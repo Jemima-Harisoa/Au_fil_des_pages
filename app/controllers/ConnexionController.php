@@ -6,6 +6,7 @@ session_start();
 
 use Flight;
 use app\models\ConnexionModel;
+use app\models\AdminModel;
 class ConnexionController {
 
 	public function __construct() {
@@ -77,6 +78,8 @@ class ConnexionController {
         //tezitra
         $idGestion = 1;
         $p = new ConnexionModel(Flight::db());
+        $AdminModel = new AdminModel(Flight::db());
+
         
             $Nom = $_POST['Nom'];
             $mdp = $_POST['mdp'];
@@ -87,6 +90,7 @@ class ConnexionController {
         {
             $_SESSION['admin']  = $p->getAdmin($Nom, $mdp); 
             $_SESSION['departement']  = $p-> getDepartementAdmin($_SESSION['admin']['id_admin']);     
+            $_SESSION['infoAdmin'] = $AdminModel -> getDetailsPersoAdmin($_SESSION['admin']['id_admin']);
             if($_SESSION['departement']['id_departement'] ==  $idGestion  )
             {
                 Flight::render('accueilG',null);    

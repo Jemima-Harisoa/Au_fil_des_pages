@@ -2,6 +2,8 @@
 
 namespace app\models;
 
+use PDO;
+use PDOException;
 use Flight;
 use flight\Engine;
 use flight\database\PdoWrapper;
@@ -13,6 +15,7 @@ class AdminModel {
     public function __construct() {
         $this->db = Flight::db();
     }
+    
     
     public function getDetailsPersoAdmin($idAdmin)
     {
