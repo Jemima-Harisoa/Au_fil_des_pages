@@ -78,8 +78,9 @@ class ConnexionController {
         $v = $p->verifierAdmin($Nom, $mdp);
         if($v == true)
         {
-            $_SESSION['admin']  = $p->getAdmin($Nom, $mdp);     
-            if($p->getDepartementAdmin($_SESSION['admin']['id_admin']) == $idGestion  )
+            $_SESSION['admin']  = $p->getAdmin($Nom, $mdp); 
+            $_SESSION['departement']  = $p-> getDepartementAdmin($_SESSION['admin']['id_admin']);     
+            if($_SESSION['departement']['id_departement'] ==  $idGestion  )
             {
                 Flight::render('accueilG',null);    
             }

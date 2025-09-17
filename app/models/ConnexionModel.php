@@ -80,14 +80,13 @@ class ConnexionModel {
     {
         $idDepartement = null;
 
-        $stmt = $this->db->prepare(" SELECT id_departement FROM admins JOIN employes ON admins.id_employe=employes.id_employe WHERE admins.id_admin= :id_admin;");
+        $stmt = $this->db->prepare(" SELECT departements.id_departement , departements.nom FROM admins JOIN employes ON admins.id_employe=employes.id_employe JOIN departements ON employes.id_departement = departements.id_departement  WHERE admins.id_admin= :id_admin ;");
         $stmt->execute(['id_admin' => $idAdmin]);
-        $idDepartement = $stmt->fetch(PDO::FETCH_ASSOC);
-        $idDepartement =  $idDepartement['id_departement'];
-        if ($idDepartement === false) {
+        $Departement = $stmt->fetch(PDO::FETCH_ASSOC);
+        if ($Departement === false) {
             return null;
         }
-        return $idDepartement; 
+        return $Departement; 
     }
 
 }
