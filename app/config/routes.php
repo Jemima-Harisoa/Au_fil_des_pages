@@ -1,6 +1,7 @@
 <?php
 use app\controllers\WelcomeController;
 use app\controllers\ConnexionController;
+use app\controllers\AnnoncesController;
 
 use flight\Engine;
 use flight\net\Router;
@@ -31,3 +32,23 @@ $WelcomeController = new WelcomeController();
 $router->get('/accueilG', [ $WelcomeController, 'AppelAccueilG' ]);
 $router->get('/accueilA', [ $WelcomeController, 'AppelAccueilA' ]);
 $router->get('/accueilU', [ $WelcomeController, 'AppelAccueilU' ]);
+
+$AnnoncesController = new AnnoncesController();
+$router->get('/form', [ $AnnoncesController, 'appelCreateAnnonce' ]);
+    
+// Groupe annonces
+$router->group('/annonces', function($router) use ($AnnoncesController) {
+    
+    // Page d’appel du formulaire
+    $router->get('/form', [ $AnnoncesController, 'appelCreateAnnonce' ]);
+    
+    // Action de création
+    $router->post('/create', [ $AnnoncesController, 'createAnnonce' ]);
+    
+    // Lecture (liste des annonces)
+    $router->get('/read', [ $AnnoncesController, 'readAnnonces' ]);
+    
+    // Lecture d’une seule annonce (avec ID)
+    $router->get('/read/{id}', [ $AnnoncesController, 'readAnnonce' ]);
+});
+
