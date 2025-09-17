@@ -19,10 +19,13 @@ $ConnexionController = new ConnexionController();
 $router->get('/', [ $ConnexionController, 'AppelLoginU' ]);
 $router->post('/inscriptionU', [ $ConnexionController, 'InscrireU' ]);
 $router->post('/loginU', [ $ConnexionController, 'VerificationConnectionU' ]);
+$router->get('/deconnexionU', [ $ConnexionController, 'deconnexionU' ]);
 
 $router->get('/admin', [ $ConnexionController, 'AppelLoginA' ]);
 $router->post('/inscriptionA', [ $ConnexionController, 'InscrireA' ]);
 $router->post('/loginA', [ $ConnexionController, 'VerificationConnectionA' ]);
+$router->get('/deconnexionA', [ $ConnexionController, 'deconnexionA' ]);
+
 
 $WelcomeController = new WelcomeController();
 $router->get('/accueilG', [ $WelcomeController, 'AppelAccueilG' ]);

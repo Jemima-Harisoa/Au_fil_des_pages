@@ -57,6 +57,13 @@ class ConnexionController {
             Flight::render('connexionU', ['mess' => $mess]);
         }
     }
+    
+    public function deconnexionU()
+    {
+        $model = new ConnexionModel(Flight::db());
+        $model->deconnexion();
+        Flight::redirect('/');
+    }
 
 
     // ADMINS
@@ -95,5 +102,12 @@ class ConnexionController {
             Flight::render('connexionA', ['mess' => $mess]);
         }
     }
+    public function deconnexionA()
+    {
+        $model = new ConnexionModel(Flight::db());
+        $model->deconnexion();
+        Flight::redirect('/admin');
+    }
 
+    
 }
