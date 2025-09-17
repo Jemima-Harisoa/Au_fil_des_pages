@@ -71,9 +71,10 @@ return [
 	'database' => [
 		// uncomment the below 4 lines for mysql
 		 'host' => 'localhost',
+		 'port' => '5432',
 		 'dbname' => 'pages',
-		 'user' => 'jemima',
-		 'password' => 'pass'
+		 'user' => 'postgres',
+		 'password' => 'manoa'
 
 		// uncomment the following line for sqlite
 		// 'file_path' => __DIR__ . $ds . '..' . $ds . 'database.sqlite'
