@@ -1,5 +1,6 @@
 <?php
 use app\controllers\WelcomeController;
+use app\controllers\migration\ContratController;
 
 use flight\Engine;
 use flight\net\Router;
@@ -16,3 +17,9 @@ use flight\net\Router;
 
 $Welcome_Controller = new WelcomeController();
 $router->get('/', [ $Welcome_Controller, 'home' ]);
+
+/***************Route Module RH / Features migration***************/
+
+// Contrat
+$Contrat_Controller = new ContratController(); 
+$router->get('/migration/Redaction',  [ $Contrat_Controller, 'RedactionContrat' ]);
