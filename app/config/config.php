@@ -67,7 +67,6 @@ if (Debugger::$showBar && php_sapi_name() !== 'cli') {
  * 
  * What you store here is totally up to you.
  */
-
 return [
     'database' => [
         'driver'   => 'pgsql',
