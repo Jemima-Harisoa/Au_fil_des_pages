@@ -23,3 +23,8 @@ $router->post('/loginU', [ $ConnexionController, 'VerificationConnectionU' ]);
 $router->get('/admin', [ $ConnexionController, 'AppelLoginA' ]);
 $router->post('/inscriptionA', [ $ConnexionController, 'InscrireA' ]);
 $router->post('/loginA', [ $ConnexionController, 'VerificationConnectionA' ]);
+
+$WelcomeController = new WelcomeController();
+$router->get('/accueilG', [ $WelcomeController, 'AppelAccueilG' ]);
+$router->get('/accueilA', [ $WelcomeController, 'AppelAccueilA' ]);
+$router->get('/accueilU', [ $WelcomeController, 'AppelAccueilU' ]);

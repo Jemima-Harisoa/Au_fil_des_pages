@@ -1,0 +1,23 @@
+{
+  "titre": "Caissier / Caissière",
+  "type_contrat": "CDI",
+  "diplome": "Bac (toutes séries), formation en caisse/commerce est un atout",
+  "experience": "1 an en caisse ou grande surface",
+  "missions": [
+    "Accueillir et encaisser les clients",
+    "Assurer la rapidité et la fiabilité des transactions",
+    "Maintenir un espace de caisse organisé et propre",
+    "Appliquer les procédures de sécurité et de contrôle"
+  ],
+  "profil": {
+    "soft_skills": [
+      "Rigueur et honnêteté",
+      "Rapidité d’exécution",
+      "Gestion du stress"
+    ],
+    "loisirs": [
+      "Jeux de logique",
+      "Activités demandant précision"
+    ]
+  }
+}

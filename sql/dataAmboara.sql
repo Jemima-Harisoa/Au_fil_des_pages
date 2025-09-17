@@ -17,3 +17,7 @@ INSERT INTO employes (id_personne, id_contrat, id_departement, poste, date_embau
 INSERT INTO admins (id_employe, nom, mdp) VALUES
   (1, 'RD', 'mdp1'),
   (2, 'RC', 'mdp2');
+
+  -- UPDATE admins
+-- SET date_fin_affiliation = NOW()
+-- WHERE id_admin = 1;

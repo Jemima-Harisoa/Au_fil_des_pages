@@ -1,4 +1,5 @@
 --- Database  
+\c postgres
 DROP DATABASE IF EXISTS aufildespages;
 
 CREATE Database aufildespages;
@@ -53,7 +54,8 @@ CREATE TABLE admins (
   id_employe INT,
   nom VARCHAR(255) UNIQUE NOT NULL,
   mdp VARCHAR(255) NOT NULL,
-  date_affiliation TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  date_affiliation TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  date_fin_affiliation TIMESTAMP
 );
 
 

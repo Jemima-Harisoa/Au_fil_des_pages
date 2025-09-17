@@ -1,0 +1,25 @@
+{
+  "titre": "Comptable",
+  "type_contrat": "CDI",
+  "diplome": "Bac+2 minimum (BTS CG, DUT GEA), Licence/Master apprécié",
+  "experience": "2 à 3 ans d’expérience en cabinet ou PME",
+  "missions": [
+    "Assurer la tenue de la comptabilité générale et analytique",
+    "Établir les bilans et déclarations fiscales",
+    "Analyser les flux financiers",
+    "Conseiller la direction sur la gestion budgétaire"
+  ],
+  "profil": {
+    "soft_skills": [
+      "Confidentialité",
+      "Esprit analytique",
+      "Minutie",
+      "Gestion des priorités"
+    ],
+    "loisirs": [
+      "Jeux stratégiques",
+      "Sudoku",
+      "Activités de gestion"
+    ]
+  }
+}

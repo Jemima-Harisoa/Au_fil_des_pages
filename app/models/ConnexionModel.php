@@ -3,6 +3,7 @@ namespace app\models;
 
 use PDO;
 use PDOException;
+use DateTime;
 
 class ConnexionModel {
     private $db;
@@ -71,10 +72,27 @@ class ConnexionModel {
     }
     
     public function verifierAdmin($nom, $motDePasse)
-    {
-        $Admin = $this->getAdmin($nom, $motDePasse);
-        return $Admin != null;
+{
+    $Admin = $this->getAdmin($nom, $motDePasse);
+
+    if ($Admin === null) {
+        return false;
     }
+
+    // Date actuelle
+    $now = new DateTime();
+
+    // Si pas de date_fin_affiliation => toujours valide
+    if ($Admin['date_fin_affiliation'] === null) {
+        return true;
+    }
+
+    // Comparaison avec date_fin_affiliation
+    $dateFin = new DateTime($Admin['date_fin_affiliation']);
+
+    return $dateFin > $now;
+}
+
 
     public function getDepartementAdmin($idAdmin)
     {
