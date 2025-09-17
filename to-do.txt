@@ -1,0 +1,6 @@
+Module entretien(automatique)
+Base: 
+    -planning entretien:5 min
+    -disponibilite employé: 5 min
+Fonction:
+   -
