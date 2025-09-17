@@ -68,16 +68,15 @@ if (Debugger::$showBar && php_sapi_name() !== 'cli') {
  * What you store here is totally up to you.
  */
 return [
-	'database' => [
-		// uncomment the below 4 lines for mysql
-		 'host' => '127.0.0.1',
-		 'dbname' => 'pages',
-		 'user' => 'root',
-		 'password' => ''
+    'database' => [
+        'driver'   => 'pgsql',
+        'host'     => 'localhost',
+        'port'     => '5432', // le port par défaut de PostgreSQL
+        'dbname'   => 'aufildespages',
+        'user'     => 'postgres',
+        'password' => 'postgres'
+    ],
 
-		// uncomment the following line for sqlite
-		// 'file_path' => __DIR__ . $ds . '..' . $ds . 'database.sqlite'
-	],
 
 	// this is just here for an example
 	// 'google_oauth' => [
