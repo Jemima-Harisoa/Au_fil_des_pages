@@ -63,6 +63,10 @@
                     <i class="fas fa-fw fa-cog"></i>
                     <span>Components</span>
                 </a>
+                <a class="nav-link collapsed" href="/testAccueil">
+                   
+                    Test
+                </a>
                 <div id="collapseTwo" class="collapse" aria-labelledby="headingTwo" data-parent="#accordionSidebar">
                     <div class="bg-white py-2 collapse-inner rounded">
                         <h6 class="collapse-header">Custom Components:</h6>
