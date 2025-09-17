@@ -47,7 +47,8 @@ CREATE TABLE personnes (
   date_naissance date,
   contact varchar UNIQUE,
   lien_image varchar,
-  mdp varchar
+  mdp varchar,
+  email varchar
 );
 
 CREATE TABLE questions (
