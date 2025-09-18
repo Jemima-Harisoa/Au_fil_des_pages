@@ -69,16 +69,10 @@ class AnnoncesModel {
         return $stmt->execute(['id_annonce' => $idAnnonce]);
     }
 
-    public function create($titre, $lien, $date_expiration, $nombrePoste, $idProfil, $contenuAnnonce) {
-        // Générer une seule fois la date de publication
+    public function create($titre, $nombrePoste, $idProfil, $contenuAnnonce, $date_expiration) {
         $date_publication = date('Y-m-d H:i:s');
-
-        // 1. Enregistrer dans la base
-        $this->add($titre, $lien, $date_publication, $date_expiration, $nombrePoste, $idProfil);
-
-        // 2. Créer le fichier JSON correspondant
         $filename = $this->createFichier($contenuAnnonce, $nombrePoste, $idProfil, $titre, $date_publication);
-
+        $this->add($titre, $filename, $date_publication, $date_expiration, $nombrePoste, $idProfil);
         return $filename;
     }
 
@@ -93,7 +87,7 @@ class AnnoncesModel {
         ];
     
         // Nom du fichier basé sur la date (pour cohérence avec la DB)
-        $dir = __DIR__ . "/json/publier/";
+        $dir = __DIR__ . "\..\..\public\json\publier";
         if (!is_dir($dir)) {
             mkdir($dir, 0777, true);
         }

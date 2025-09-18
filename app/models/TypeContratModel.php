@@ -6,7 +6,7 @@ use PDO;
 use PDOException;
 use Flight;
 
-class TypeContratModele {
+class TypeContratModel {
     protected $db;
 
     public function __construct() {
