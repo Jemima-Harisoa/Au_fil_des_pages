@@ -1,5 +1,6 @@
 <?php
 use app\controllers\WelcomeController;
+use app\controllers\PlanningEntretienController;
 
 use flight\Engine;
 use flight\net\Router;
@@ -16,3 +17,6 @@ use flight\net\Router;
 
 $Welcome_Controller = new WelcomeController();
 $router->get('/', [ $Welcome_Controller, 'home' ]);
+
+$planning_entretien_controller = new PlanningEntretienController();
+$router->get('/planning_entretien',[$planning_entretien_controller,'showAllPlanningEntretien']);
