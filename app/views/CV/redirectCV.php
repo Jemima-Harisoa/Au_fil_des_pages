@@ -1,8 +1,11 @@
 <?php
+    session_start();
     $rqt = "SELECT * FROM annonces";
     $stmt = Flight::db()->prepare($rqt);
     $stmt->execute();
     $annonces = $stmt->fetchAll();
+    $_SESSION['idUser'] = 1;
+    $idUser = $_SESSION['idUser'];
 ?>
 
 <!DOCTYPE html>
@@ -13,21 +16,32 @@
     <title>Document</title>
 </head>
 <body>
-    <a href="/CV/fillCV">temp publish</a>
-
     
     <div class="annonces">
     <?php foreach ($annonces as $annonce): ?>
+        <?= $annonce['id_annonce']?>
         <div class="annonce">
             <h3><?= htmlspecialchars($annonce['titre']) ?></h3>
-            <p><strong>Lien :</strong> <a href="<?= htmlspecialchars($annonce['lien']) ?>" target="_blank"><?= htmlspecialchars($annonce['lien']) ?></a></p>
+            <p><strong>Lien source :</strong> 
+                <a href="<?= htmlspecialchars($annonce['lien']) ?>" target="_blank">
+                    <?= htmlspecialchars($annonce['lien']) ?>
+                </a>
+            </p>
             <p><strong>Date de publication :</strong> <?= htmlspecialchars($annonce['date_publication']) ?></p>
             <p><strong>Date d'expiration :</strong> <?= htmlspecialchars($annonce['date_expiration']) ?></p>
             <p><strong>Nombre de postes :</strong> <?= htmlspecialchars($annonce['nombre_poste']) ?></p>
+
+            <!-- Lien pour postuler -->
+            <p>
+                <a href="/<?= $idUser?>/Annonce/<?= urlencode($annonce['id_annonce']) ?>/fillCV" class="btn-postuler">
+                    Postuler
+                </a>
+            </p>
         </div>
         <hr>
     <?php endforeach; ?>
 </div>
+
 
 
 

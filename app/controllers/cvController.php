@@ -7,18 +7,19 @@ use app\models\CVModel;
 use Flight;
 
 class cvController {
+    public function home() {
+        Flight::render('CV/temp');
+    }
+    
     public function redirectCV() {
-        $Admin = new AdminModel();
         Flight::render('CV/redirectCV');
     }
 
-    public function fillCV(){
-        Flight::render('CV/Postuler/formulaireCV');
+    public function fillCV($idUser, $idAnnonce){
+        Flight::render('CV/Postuler/formulaireCV', ['idAnnonce' => $idAnnonce]);
     }
 
-    public function uploadImage(){
-        echo "Mande ilay izy";
-    }
+
     public function printDataCV() {
         $requete = Flight::request();
     
