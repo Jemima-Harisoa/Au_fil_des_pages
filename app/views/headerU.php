@@ -55,22 +55,12 @@
             <hr class="sidebar-divider">
 
 
-            <!-- Nav Item - Pages Collapse Menu -->
             <li class="nav-item">
-                <a class="nav-link" href="#" data-toggle="collapse" data-target="#collapsePages" aria-expanded="true"
-                    aria-controls="collapsePages">
-                    <i class="fas fa-fw fa-folder"></i>
-                    <span>Annonces</span>
-                </a>
-                <div id="collapsePages" class="collapse" aria-labelledby="headingPages"
-                    data-parent="#accordionSidebar">
-                    <div class="bg-white py-2 collapse-inner rounded">
-                        <h6 class="collapse-header">Suivie d'annonces:</h6>
-                        <a class="collapse-item" href="/annonces/form">Creer une annonce</a>
-                        <a class="collapse-item" href="/annonces/read">Voirs les annonces</a>
-                    </div>
-                </div>
+                <a class="nav-link" href="/annonces/readU">
+                    <i class="fas fa-fw fa-tachometer-alt"></i>
+                    <span>Annonces</span></a>
             </li>
+
 
             <!-- Divider -->
             <hr class="sidebar-divider d-none d-md-block">

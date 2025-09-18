@@ -40,6 +40,7 @@ $router->group('/annonces', function($router) use ($AnnoncesController) {
     $router->get('/form', [ $AnnoncesController, 'form' ]);
     $router->post('/create', [$AnnoncesController, 'create']);
     $router->get('/read', [ $AnnoncesController, 'read' ]);
+    $router->get('/readU', [ $AnnoncesController, 'readU' ]);
     $router->get('/read/{id}', [ $AnnoncesController, 'read' ]);
     $router->post('/update', [ $AnnoncesController, 'update' ]);
 });

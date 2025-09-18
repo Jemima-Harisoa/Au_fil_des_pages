@@ -50,6 +50,13 @@ class AnnoncesController {
         Flight::render('listAnnonces' , ['Annonces' => $Annonces]);            
     }
 
+    public static function readU()
+    {
+        $model = new AnnoncesModel();
+        $Annonces = $model->getAllNonExpire();
+        Flight::render('defileAnnonces' , ['Annonces' => $Annonces]);            
+    }
+
     public static function update()
 {
     try {
