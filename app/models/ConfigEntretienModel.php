@@ -42,4 +42,24 @@ class ConfigEntretienModel {
         $stmt->execute([$id]);
         return $stmt->fetch(PDO::FETCH_ASSOC);
     }
+
+    // Optionnel : mettre à jour une configuration
+    public function update() {
+        $db = Flight::db();
+        $stmt = $db->prepare("UPDATE config_entretien 
+                              SET id_departement = ?, duree_entretien = ? 
+                              WHERE id_config_entretien = ?");
+        $stmt->execute([
+            $this->id_departement,
+            $this->duree_entretien,
+            $this->id_config_entretien
+        ]);
+    }
+
+    // Optionnel : supprimer une configuration
+    public function delete() {
+        $db = Flight::db();
+        $stmt = $db->prepare("DELETE FROM config_entretien WHERE id_config_entretien = ?");
+        $stmt->execute([$this->id_config_entretien]);
+    }
 }
