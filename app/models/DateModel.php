@@ -7,7 +7,7 @@ use flight\database\PdoWrapper;
 use flight\debug\database\PdoQueryCapture;
 class DateModel{ 
  private DateTime $dateTime;
-
+ private const JourEnLettres = ['Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi','Dimache'];
     // Constructeur : accepte soit un timestamp, soit une chaîne de date
     public function __construct(int|string|null $timeOrDateTime = null)
     {
@@ -61,7 +61,28 @@ class DateModel{
             }
         }
         catch(Exception $e){
-            echo "".$e->getMessage();
+            echo "".$e->getMessage(); 
         }
+    }
+
+    //     "d" → jour du mois avec 2 chiffres (ex: 01 à 31)
+
+    // "j" → jour du mois sans zéro initial (ex: 1 à 31)
+
+    // "N" → jour de la semaine ISO (1 = lundi, 7 = dimanche)
+
+    // "w" → jour de la semaine (0 = dimanche, 6 = samedi)
+    public static function getJourLettreDate(DateTime $datetime):string{
+        $indiceJour = (int) $datetime->format("N");
+        $jour = self::JourEnLettres[$indice];
+        return $jour;
+    }
+    public static function getJourChiffreDate(DateTime $datetime):int{
+        $indiceJour = (int) $datetime->format("N");
+        return $indiceJour;
+    }
+    function ajouterJours(DateTime $date, int $nbJours): DateTime {
+        $date->modify("+{$nbJours} days");
+        return $date;
     }
 }  
