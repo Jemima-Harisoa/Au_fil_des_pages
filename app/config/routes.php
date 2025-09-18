@@ -37,17 +37,9 @@ $AnnoncesController = new AnnoncesController();
     
 // Groupe annonces
 $router->group('/annonces', function($router) use ($AnnoncesController) {
-    
-    // Page d’appel du formulaire
     $router->get('/form', [ $AnnoncesController, 'form' ]);
-    
-    // Action de création
-    $router->post('/create', [ $AnnoncesController, 'createAnnonce' ]);
-    
-    // Lecture (liste des annonces)
+    $router->post('/create', [$AnnoncesController, 'createAnnonce']);
     $router->get('/read', [ $AnnoncesController, 'readAnnonces' ]);
-    
-    // Lecture d’une seule annonce (avec ID)
     $router->get('/read/{id}', [ $AnnoncesController, 'readAnnonce' ]);
 });
 
