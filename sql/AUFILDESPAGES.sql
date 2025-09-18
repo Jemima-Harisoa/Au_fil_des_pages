@@ -41,7 +41,7 @@ CREATE TABLE profils (
   langues text,
   lien_suggestion_annonce varchar ,
   id_type_contract int ,
-  est_minimum boolean
+  est_minimum BOOLEAN DEFAULT FALSE
 );
 
 CREATE TABLE utilisateurs(
