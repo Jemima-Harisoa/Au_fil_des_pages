@@ -39,10 +39,16 @@ class AnnoncesController {
         );
 
         Flight::json(['success' => true, 'file' => $filename]);
-    } catch (\Exception $e) {
+        } catch (\Exception $e) {
         Flight::json(['success' => false, 'message' => $e->getMessage()]);
+        }
     }
-}
+    public static function read()
+    {
+        $model = new AnnoncesModel();
+        $Annonces = $model->getAll();
+        Flight::render('listeAnnonces' , ['Annonces' => $Annonces]);            
+    }
 
 }
 

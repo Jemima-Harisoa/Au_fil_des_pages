@@ -87,7 +87,7 @@ class AnnoncesModel {
         ];
     
         // Nom du fichier basé sur la date (pour cohérence avec la DB)
-        $dir = __DIR__ . "\..\..\public\json\publier";
+        $dir = __DIR__ . "\..\..\public\json\publier\p";
         if (!is_dir($dir)) {
             mkdir($dir, 0777, true);
         }
