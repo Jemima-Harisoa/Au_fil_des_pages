@@ -16,6 +16,7 @@
 <h1>Formulaire CV</h1>
     <form action="/<?=$idUser?>/Annonce/<?=$idAnnonce?>/fillCV/postulationCV" method="post" enctype="multipart/form-data">
 
+      <!-- Peronne - debut -->
         <input type="hidden" name="MAX_FILE_SIZE">            
         <input type="file" name="photo_identite" id="id_photo_identite">
         
@@ -23,8 +24,13 @@
         <input type="text" name="prenoms" id="" placeholder="Prenoms">
         <input type="date" name="date" id="">
         <input type="text" name="contact" id="" placeholder="Contact">
+      <!-- Personne - fin -->
 
-        <input type="submit" value="Postuler">
+      <!-- Profil - debut -->
+      
+      <!-- Profil - fin -->
+      
+      <input type="submit" value="Postuler">
 
     </form>
 </body>

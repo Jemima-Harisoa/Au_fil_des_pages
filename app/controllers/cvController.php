@@ -59,7 +59,7 @@ class cvController {
         $Prenoms = $requete->data->prenoms;
         $Date = $requete->data->date;
         $Contact = $requete->data->contact;
-    
+                                                                                    
         // Gestion de l'upload de l'image
         $file = $requete->files->photo_identite;
         $dossier = 'img/PHOTO_CV/';

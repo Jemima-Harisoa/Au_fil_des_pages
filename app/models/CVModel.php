@@ -34,7 +34,7 @@ class CVModel {
         $db = Flight::db();
 
         $getMaxID = "SELECT MAX(id_personne) FROM personnes";
-        $
+        
 
         $sql = "INSERT INTO candidats (id_personne, id_annonce, poste) VALUES ()";
     }
