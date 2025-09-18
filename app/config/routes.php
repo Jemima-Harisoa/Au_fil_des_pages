@@ -34,13 +34,12 @@ $router->get('/accueilA', [ $WelcomeController, 'AppelAccueilA' ]);
 $router->get('/accueilU', [ $WelcomeController, 'AppelAccueilU' ]);
 
 $AnnoncesController = new AnnoncesController();
-$router->get('/form', [ $AnnoncesController, 'appelCreateAnnonce' ]);
     
 // Groupe annonces
 $router->group('/annonces', function($router) use ($AnnoncesController) {
     
     // Page d’appel du formulaire
-    $router->get('/form', [ $AnnoncesController, 'appelCreateAnnonce' ]);
+    $router->get('/form', [ $AnnoncesController, 'form' ]);
     
     // Action de création
     $router->post('/create', [ $AnnoncesController, 'createAnnonce' ]);

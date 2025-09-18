@@ -21,3 +21,13 @@ INSERT INTO admins (id_employe, nom, mdp) VALUES
   -- UPDATE admins
 -- SET date_fin_affiliation = NOW()
 -- WHERE id_admin = 1;
+
+INSERT INTO diplomes (nom, niveau) VALUES
+('Brevet', -3),
+('Bac', 0),
+('BTS / DUT', 2),
+('Licence', 3),
+('Master', 5),
+('Doctorat', 6);
+
+
