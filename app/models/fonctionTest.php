@@ -17,16 +17,16 @@ class fonctionTest {
         return $qst;
     }
      public function getRepCorrectes($idQst) {
-        $repQstVrai = Query::query("SELECT * FROM Reponses_Question WHERE id_question = ? AND est_Correct=1", [$idQst]);
+        $repQstVrai = Query::query("SELECT * FROM Reponses_Question WHERE id_question = ? AND est_Correct=True", [$idQst]);
         return $repQstVrai;
     }
     public function getRepQst($idQst) {
         $repQst = Query::query("SELECT * FROM Reponses_Question WHERE id_question = ?", [$idQst]);
         return $repQst;
     }
-    public function getIdProfil($idCandidat) {
-        $repQst = Query::query("SELECT * FROM Profils WHERE id_candidat = ?", [$idCandidat]);
-        return $repQst;
+    public function getIdProfil($idCandidat,$idAnnonce) {
+        $repQst = Query::query("SELECT * FROM Candidats WHERE id_candidat = ? AND id_Annonce=?", [$idCandidat,$idAnnonce]);
+        return $repQst; 
     }
     public function createFichierTemp($data) {
         $filePath = __DIR__ . '/reponses_candidat.json';
@@ -35,9 +35,9 @@ class fonctionTest {
         return $filePath;
     }
 
-   public function comparaisonReponse($data, $idProfil) {
+   public function comparaisonReponse($data,$idProfil, $idAnnonce) {
     $score = 0; 
-    $questions = $this->getQst($idProfil);
+    $questions = $this->getQst($idAnnonce);
 
     foreach ($questions as $q) {
         $idQst = $q['id_question'];
@@ -51,21 +51,51 @@ class fonctionTest {
         error_log("Réponses candidat: " . json_encode($repCandidat));
         error_log("score: " . json_encode($q['note']));
         error_log("Réponse vrai: " . json_encode($repCorrectes[0]['reponse'] ));
-        if ($repCorrectes[0]['reponse'] == $repCandidat[0]) {
-            $score += $q['note']; 
-        }
+        if (!empty($repCorrectes) && !empty($repCandidat)) {
+    if ($repCorrectes[0]['reponse'] == $repCandidat[0]) {
+        $score += $q['note'];
+    }
+}
+
     }
     $dateTest = date('Y-m-d H:i:s'); 
-    $sql = "INSERT INTO tests (id_candidat, score_test, date_test) VALUES (?, ?, ?)";
-    Query::query($sql, [$idProfil, $score, $dateTest]);
+   $sql = "INSERT INTO tests (id_candidat, id_annonce, score_test, date_test)
+        VALUES (?, ?, ?, ?) RETURNING id_test";
+
+$lastId = Query::query($sql, [$idProfil, $questions[0]['id_profil'] ?? null, $score, $dateTest]);
+
+if ($lastId === false) {
+    error_log("Erreur insertion test");
+} else {
+    echo "ID inséré : $lastId";
+}
+
 }
     public function listTest(){
-         $test = Query::query(" select *from tests join candidats on tests.id_candidat=candidats.id_candidat join personnes on personnes.id_personne=candidats.id_personne");
+         $test = Query::query("select *from tests join candidats on tests.id_candidat=candidats.id_candidat join personnes on personnes.id_personne=candidats.id_personne");
         return $test;
     }
-     public function trierTests(){
-         $test = Query::query(" select *from tests join candidats on tests.id_candidat=candidats.id_candidat join personnes on personnes.id_personne=candidats.id_personne");
+     public function trierMetier($job){
+        $j=Query::query("SELECT *
+FROM tests
+JOIN annonces   ON tests.id_annonce   = annonces.id_annonce
+JOIN candidats  ON tests.id_candidat  = candidats.id_candidat
+JOIN personnes  ON candidats.id_personne = personnes.id_personne
+WHERE annonces.titre = ?",[$job]);
+        return $j;
+    }
+    public function getAllJobs(){
+         $test = Query::query("Select *from Profils");
         return $test;
+    }
+    public function trierTests($job,$colonne, $ordre) {
+         $j=Query::query("SELECT *
+FROM tests
+JOIN annonces   ON tests.id_annonce   = annonces.id_annonce
+JOIN candidats  ON tests.id_candidat  = candidats.id_candidat
+JOIN personnes  ON candidats.id_personne = personnes.id_personne
+WHERE annonces.titre = ? ORDER BY $colonne $ordre",[$job]);
+        return $j;
     }
 
     /*public function header($table) {

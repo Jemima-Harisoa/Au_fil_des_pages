@@ -13,8 +13,9 @@ class TestController {
 
 	public function QCM() {
         $fonction = new fonctionTest(Flight::db());
-        $idCandidat = 1;
-        $profilData = $fonction->getIdProfil($idCandidat);
+        $idCandidat = 6;
+        $idAnnonce=1;
+        $profilData = $fonction->getIdProfil($idCandidat,$idAnnonce);
         if (empty($profilData)) {
             Flight::halt(404, "Profil non trouvé pour ce candidat");
             return;
@@ -45,7 +46,7 @@ class TestController {
             echo implode(", ", $choix);
             echo "<br>";
         }
-        $score = $fonction->comparaisonReponse($reponses, 1);
+        $score = $fonction->comparaisonReponse($reponses,6, 1);
         Flight::render('formulaireTest', [
             'score'     => $score,
             'reponses'  => $reponses,
@@ -55,8 +56,47 @@ class TestController {
     public function getList(){
         $fonction = new fonctionTest(Flight::db());
         $list=$fonction->listTest();
-        Flight::render('listTestBack', ['list' => $list]);
+        $jobs=$fonction->getAllJobs();
+        Flight::render('listTestBack', ['list' => $list,'jobs'=> $jobs]);
     }
+    public function getListByJob() {
+    $job = Flight::request()->query['metier'];  
+
+    $fonction = new fonctionTest(Flight::db());
+    $list = $fonction->trierMetier($job);
+    $jobs = $fonction->getAllJobs();
+
+    Flight::render('listTestBack', [
+        'list' => $list,
+        'jobs' => $jobs
+    ]);
+}
+
+    public function getListSorted() {
+    $critere = Flight::request()->query['critere'] ?? 'score';
+    $type    = Flight::request()->query['type'] ?? 'dec';
+    $job=Flight::request()->query['metier'];
+    $colonnesValides = ['score_test', 'nom', 'prenom'];
+    $typesValides    = ['dec' => 'DESC', 'croi' => 'ASC'];
+
+    $colonne = $critere === 'score' ? 'score_test' : $critere;
+
+    if (!in_array($colonne, $colonnesValides)) {
+        $colonne = 'score_test';
+    }
+
+    $ordre = $typesValides[$type] ?? 'DESC';
+    $fonction = new fonctionTest(Flight::db());
+    $list = $fonction->trierTests($job,$colonne, $ordre);
+    $jobs = $fonction->getAllJobs();
+
+    Flight::render('listTestBack', [
+        'list' => $list,
+        'jobs' => $jobs
+    ]);
+}
+}
+
 
     
 
@@ -86,4 +126,3 @@ class TestController {
         $data = ['page' => "product"];
         Flight::render('template', $data);
     }*/
-}
