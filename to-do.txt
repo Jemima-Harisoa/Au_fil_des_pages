@@ -1,6 +1,22 @@
 Module entretien(automatique)
-Base: 
-    -planning entretien:5 min
-    -disponibilite employé: 5 min
+Base:
+	-planning entretien:5 min
+	-disponibilite employé: 5 min
+	-jour_ferie: 5min
+	-config_entretien:5min
 Fonction:
-   -
+	-assignationEntretien(liste_candidats_selectionnes)15min
+	-configurerDureeEntretien(id_annonce)10min
+	-upateAllEntretien()20min
+	-getAllTempsDisponibles(id_emloye)10min
+	-reporterEntretien(id_entretien,id_employe,nouvelle_date_entretien)30min
+	-rejeterEntretien(id_entretien,id_employe)10min
+	-getEntretiensPresDate(date)10min
+	-checkJourFerie(date_entretien)5min
+	-getDureeEntretien(id_departement)10min
+	-getEntretienPlanifies()15min
+
+Integration:
+	-
+	-
+	-
