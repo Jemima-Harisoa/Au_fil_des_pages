@@ -76,28 +76,36 @@ class AnnoncesModel {
         return $filename;
     }
 
-    public function createFichier($contenuAnnonce, $nombrePoste, $idProfil, $titre = "Nouvelle annonce", $date_publication = null) {
-        // Structure de l’annonce
-        $data = [
-            'titre' => $titre,
-            'id_profil' => $idProfil,
-            'nombre_poste' => $nombrePoste,
-            'contenu' => $contenuAnnonce,
-            'date_publication' => $date_publication ?? date('Y-m-d H:i:s')
-        ];
-    
-        // Nom du fichier basé sur la date (pour cohérence avec la DB)
-        $dir = __DIR__ . "\..\..\public\json\publier\p";
-        if (!is_dir($dir)) {
-            mkdir($dir, 0777, true);
-        }
-    
-        // On base le nom du fichier sur la date de publication pour cohérence
-        $filename = $dir . "annonce_" . str_replace([' ', ':'], ['_', '-'], $data['date_publication']) . ".json";
-    
-        file_put_contents($filename, json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
-    
-        return $filename;
+public function createFichier($contenuAnnonce, $nombrePoste, $idProfil, $titre = "Nouvelle annonce", $date_publication = null) {
+    // Structure de l’annonce
+    $data = [
+        'titre' => $titre,
+        'id_profil' => $idProfil,
+        'nombre_poste' => $nombrePoste,
+        'contenu' => $contenuAnnonce,
+        'date_publication' => $date_publication ?? date('Y-m-d H:i:s')
+    ];
+
+    // Chemin côté serveur pour écrire le fichier
+    $dirServer = __DIR__ . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . "public" . DIRECTORY_SEPARATOR . "json" . DIRECTORY_SEPARATOR . "publier" . DIRECTORY_SEPARATOR;
+
+    // Créer le dossier si nécessaire
+    if (!is_dir($dirServer)) {
+        mkdir($dirServer, 0777, true);
     }
+
+    // Nom du fichier basé sur la date de publication
+    $safeDate = str_replace([' ', ':'], ['_', '-'], $data['date_publication']);
+    $filenameServer = $dirServer . "annonce_" . $safeDate . ".json";
+
+    // Écrire le fichier JSON
+    file_put_contents($filenameServer, json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+
+    // Retourner le chemin relatif utilisable dans le navigateur
+    $filenamePublic = "/json/publier/annonce_" . $safeDate . ".json";
+
+    return $filenamePublic;
+}
+
 
 }

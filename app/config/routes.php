@@ -41,5 +41,6 @@ $router->group('/annonces', function($router) use ($AnnoncesController) {
     $router->post('/create', [$AnnoncesController, 'create']);
     $router->get('/read', [ $AnnoncesController, 'read' ]);
     $router->get('/read/{id}', [ $AnnoncesController, 'read' ]);
+    $router->post('/update', [ $AnnoncesController, 'update' ]);
 });
 
