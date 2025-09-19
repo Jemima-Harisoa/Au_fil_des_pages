@@ -169,11 +169,11 @@ INSERT INTO disponibilite_employe (id_employe, heure_debut, heure_fin, jour,est_
 (8, '14:00:00', '16:00:00', 'Vendredi');
 
 
--- INSERT INTO jour_ferie ("date") VALUES
--- ('2025-01-01'),  -- Jour de l'An
--- ('2025-03-29'),  -- Fête nationale (Indépendance)
--- ('2025-05-01'),  -- Fête du Travail
--- ('2025-06-26'),  -- Fête nationale
--- ('2025-08-15'),  -- Assomption
--- ('2025-11-01'),  -- Toussaint
--- ('2025-12-25');  -- Noël
+INSERT INTO jour_ferie ("date") VALUES
+('2025-01-01'),  -- Jour de l'An
+('2025-03-29'),  -- Fête nationale (Indépendance)
+('2025-05-01'),  -- Fête du Travail
+('2025-06-26'),  -- Fête nationale
+('2025-08-15'),  -- Assomption
+('2025-11-01'),  -- Toussaint
+('2025-12-25');  -- Noël
