@@ -70,11 +70,23 @@ if (Debugger::$showBar && php_sapi_name() !== 'cli') {
 return [
 	'database' => [
 		// uncomment the below 4 lines for mysql
-		 'host' => 'localhost',
-		 'port' => '5432',
-		 'dbname' => 'pages',
-		 'user' => 'postgres',
-		 'password' => 'manoa'
+		'driver'   => 'pgsql',
+		'host' => 'localhost',
+		'port' => '5432',
+		'dbname' => 'pages',
+		'user' => 'postgres',
+		'password' => 'manoa'
+
+		//  return [
+		// 	'database' => [
+		// 		'driver'   => 'pgsql',
+		// 		'host'     => 'localhost',
+		// 		'port'     => '5432', // le port par défaut de PostgreSQL
+		// 		'dbname'   => 'aufildespages',
+		// 		'user'     => 'postgres',
+		// 		'password' => 'postgres'
+		// 	],
+		
 
 		// uncomment the following line for sqlite
 		// 'file_path' => __DIR__ . $ds . '..' . $ds . 'database.sqlite'
