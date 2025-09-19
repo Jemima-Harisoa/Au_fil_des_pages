@@ -29,7 +29,7 @@
                                 <h1 class="h4 text-gray-900 mb-4">Formulaire - Contrat de Travail</h1>
                             </div>
 
-                            <form class="user" method="post">
+                            <form class="user" method="post" action="/migration/contrat/register?id_candidat=<?= htmlspecialchars($data['candidat']['id_candidat'] ?? '') ?>">
                                 <!-- Type de contrat -->
                                 <h5 class="mb-3">Type de contrat</h5>
                                 <div class="form-group mb-3">
@@ -37,7 +37,7 @@
                                         <option value="">Sélectionner le type</option>
                                         <?php if (!empty($data['type_contrats'])): ?>
                                             <?php foreach ($data['type_contrats'] as $tc): ?>
-                                                <option value="<?= htmlspecialchars($tc['nom']) ?>">
+                                                <option value="<?= htmlspecialchars($tc['id_type_contrat']) ?>">
                                                     <?= htmlspecialchars($tc['nom']) ?>
                                                 </option>
                                             <?php endforeach; ?>
@@ -128,7 +128,7 @@
                                 </div>
                                 <ul id="listeAvantages" class="list-group mb-3"></ul>
 
-                                <a href="/migration/contrat/register" class="btn btn-primary btn-user btn-block" onclick="updateContrat()">Générer le contrat</a>
+                                <input type="submit" value="Générer le contrat" class="btn btn-primary btn-user btn-block">
                             </form>
                         </div>
                     </div>

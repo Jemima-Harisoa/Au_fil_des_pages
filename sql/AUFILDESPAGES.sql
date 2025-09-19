@@ -168,7 +168,7 @@ CREATE TABLE historique_validation (
   id_employe int,
   id_candidat int,
   date_heure_validation timestamp,
-  est_valide boolean
+  id_etat int,
 );
 
 -- Contraintes de clé étrangère
@@ -206,3 +206,4 @@ ALTER TABLE disponibilite_employe ADD FOREIGN KEY (id_employe) REFERENCES employ
 
 ALTER TABLE historique_validation ADD FOREIGN KEY (id_employe) REFERENCES employes (id_employe);
 ALTER TABLE historique_validation ADD FOREIGN KEY (id_candidat) REFERENCES candidats (id_candidat);
+ALTER TABLE historique_validation ADD FOREIGN KEY (id_etat) REFERENCES etat (id_etat);

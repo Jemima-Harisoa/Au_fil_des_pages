@@ -16,19 +16,15 @@ INSERT INTO type_contrats (nom) VALUES
 ('CDD'),
 ('Stage');
 
--- Table contrats
-
-
--- Imaginons que seul Jean a déjà un contrat
-INSERT INTO contrats (id_candidat, id_type_contrat, url_contrat) VALUES
-(1, 1, '/contrats/contrat_jean.pdf');
-
--- Etat potentiel des entretient pour les tests 
+-- Etat potentiel des entretient pour les tests (non definitif) 
 INSERT INTO etat (nom) VALUES
 ('Planifié'),       -- 1
 ('Réalisé'),        -- 2
 ('Annulé'),         -- 3
-('En attente de note'); -- 4
+('En attente de note'), -- 4 
+('Brouillon'), --5
+('Validé'), -- 6
+('Non validé'); -- 7 
 
 -- Niveau d'appreciation 
 INSERT INTO appreciation (type_appreciation, code) VALUES

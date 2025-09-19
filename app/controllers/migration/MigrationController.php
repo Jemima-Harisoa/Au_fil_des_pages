@@ -7,14 +7,14 @@ use app\models\migration\CandidatModel;
 use app\models\migration\ScoringModel;
 use app\models\migration\TypeContratModel;
 use app\models\migration\ContratModel;
-
+use app\models\migration\HistoriqueValidation;
 
 
 class MigrationController {
     // Redirection vers la page d'enregistrement des information du candidat dans json *brouillon
     public function registerContrat() {
         // Récupérer l'id du candidat depuis le formulaire ou query string
-        $id_candidat = Flight::request()->data['id_candidat'] ?? null;
+        $id_candidat = Flight::request()->query['id_candidat'] ?? null;
 
         if (!$id_candidat) {
             Flight::halt(400, "ID du candidat manquant.");
@@ -28,6 +28,12 @@ class MigrationController {
         $personneModel = Flight::Personne();
         $candidatModel = Flight::Candidat();
 
+        // Récupérer le model de contrat
+        $contratModel = Flight::Contrat();
+
+        // Récupérer le model historique de validation
+        $historiqueModel = Flight::HistoriqueValidation(); 
+        
         $personne = $personneModel->getBy('id_personne', $id_candidat);
         $candidat  = $candidatModel->getBy('id_candidat', $id_candidat);
 
@@ -36,8 +42,14 @@ class MigrationController {
             return;
         }
 
-        // Créer le dossier pour le candidat si non existant
-        $dir = __DIR__ . "/../../contrats/candidat_" . $id_candidat;
+        // Chemin relatif vers public/json/contrats/contrat_travail/candidat_X
+        $basePath = realpath(__DIR__ . "/../../../public/json/contrats/contrat_travail");
+        if (!$basePath) {
+            Flight::halt(500, "Répertoire des contrats introuvable.");
+            return;
+        }
+
+        $dir = $basePath . "/candidat_" . $id_candidat;
         if (!file_exists($dir)) {
             mkdir($dir, 0777, true);
         }
@@ -67,19 +79,45 @@ class MigrationController {
             "engagement" => "Les parties s'engagent à respecter les dispositions du Code du Travail et de ses textes d'application pour tout ce qui n'est pas prévu dans ce contrat",
             "lieu_edition" => $data['lieuEdition'] ?? 'Antananarivo',
             "date_edition" => date('d/m/Y'),
-            "signature" => $data['signature'] ?? '',
-            "etat" => "Brouillon" // par défaut
+            "signature" => $data['signature'] ?? "{$personne['nom']} {$personne['prenom']}, {$data['poste']}",
         ];
 
         // Nom du fichier JSON
         $file = $dir . "/contrat_" . date('Ymd_His') . ".json";
 
-        // Enregistrer le JSON
+        // Enregistrer le JSON// Enregistrer le JSON
         if (file_put_contents($file, json_encode($contrat, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE))) {
-            Flight::json(["success" => true, "message" => "Contrat enregistré avec succès.", "file" => $file]);
+            
+            $contratData = [
+                "id_candidat" => $id_candidat ,
+                "id_type_contrat" => $data["id_type_contrat"] , // Cdd temp
+                "url_contrat" =>  str_replace(getcwd() . '/public', '/public', $file) // lien relatif depuis /public
+            ];
+            $contratModel->save($contratData);
+
+            //  Création de l'historique de validation
+            $historiqueData = [
+                'id_employe' => $contrat['id_employe'] ?? null,   // adapte selon ton modèle
+                'id_candidat' => $contratData['id_candidat'] ?? null, // adapte selon ton modèle
+                'date_heure_validation' => date('Y-m-d H:i:s'),
+                'id_etat' => 5, // Etat "Brouillon"
+            ];
+            
+            $historiqueModel->save($historiqueData);
+
+            Flight::json([
+                "success" => true,
+                "message" => "Contrat enregistré avec succès.",
+                "file" => $file,
+                "etat" => "Brouillon"
+            ]);
         } else {
-            Flight::json(["success" => false, "message" => "Erreur lors de l'enregistrement du contrat."]);
+            Flight::json([
+                "success" => false,
+                "message" => "Erreur lors de l'enregistrement du contrat."
+            ]);
         }
+
     }
 
 

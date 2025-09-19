@@ -9,6 +9,8 @@ use app\models\migration\CandidatModel;
 use app\models\migration\ScoringModel;
 use app\models\migration\TypeContratModel;
 use app\models\migration\ContratModel;
+use app\models\EtatModel;
+use app\models\migration\HistoriqueValidationModel;
 /** 
  * @var array $config This comes from the returned array at the bottom of the config.php file
  * @var Engine $app
@@ -52,4 +54,12 @@ Flight::map('TypeContrat', function () {
 
 Flight::map('Contrat', function () {
     return new ContratModel(Flight::db());
+});
+
+Flight::map('Etat', function () {
+    return new EtatModel(Flight::db());
+});
+
+Flight::map('HistoriqueValidation', function () {
+    return new HistoriqueValidationModel(Flight::db());
 });

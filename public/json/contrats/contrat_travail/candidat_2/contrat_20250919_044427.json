@@ -1,0 +1,26 @@
+{
+    "_comment": "fichier avec les clauses du contrat general pour un employee donne",
+    "type": "CDD",
+    "modalite": {
+        "debut_contrat": "",
+        "duree": null,
+        "essai": null
+    },
+    "lieu": "",
+    "poste": {
+        "qualité": "",
+        "class": ""
+    },
+    "remuneration": {
+        "salaire": "",
+        "avantages": []
+    },
+    "resiliation": {
+        "type": "CDD",
+        "indemnite": ""
+    },
+    "engagement": "Les parties s'engagent à respecter les dispositions du Code du Travail et de ses textes d'application pour tout ce qui n'est pas prévu dans ce contrat",
+    "lieu_edition": "Antananarivo",
+    "date_edition": "19\/09\/2025",
+    "signature": "Randria Sofia, "
+}
