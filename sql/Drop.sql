@@ -1,7 +1,7 @@
 -- Se connecter à la base
 \c aufildespages
 
--- ----------------- DROP VUES -----------------
+------------------- DROP VUES -----------------
 DROP VIEW IF EXISTS view_scoring CASCADE;
 
 -- ----------------- DROP TABLES -----------------
