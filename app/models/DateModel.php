@@ -12,11 +12,11 @@ class DateModel{
     public function __construct(int|string|null $timeOrDateTime = null)
     {
         if ($timeOrDateTime === null) {
-            $this->dateTime = new DateTime(); // date actuelle
+            $this->dateTime = new \DateTime(); // date actuelle
         } elseif (is_int($timeOrDateTime)) {
-            $this->dateTime = (new DateTime())->setTimestamp($timeOrDateTime);
+            $this->dateTime = (new \DateTime())->setTimestamp($timeOrDateTime);
         } elseif (is_string($timeOrDateTime)) {
-            $this->dateTime = new DateTime($timeOrDateTime);
+            $this->dateTime = new \DateTime($timeOrDateTime);
         } else {
             throw new InvalidArgumentException("Type non valide pour DateModel");
         }
@@ -43,11 +43,11 @@ class DateModel{
     // Modifier la date via une chaîne
     public function setDate(string $dateString): void
     {
-        $this->dateTime = new DateTime($dateString);
+        $this->dateTime = new \DateTime($dateString);
     }
 
     // Accéder directement à l'objet DateTime
-    public function getDateTime(): DateTime
+    public function getDateTime():\DateTime
     {
         return $this->dateTime;
     }
@@ -72,19 +72,26 @@ class DateModel{
     // "N" → jour de la semaine ISO (1 = lundi, 7 = dimanche)
 
     // "w" → jour de la semaine (0 = dimanche, 6 = samedi)
-    public static function getJourLettreDate(DateTime $datetime):string{
+    public static function getJourLettreDate(\DateTime $datetime):string{
         $indiceJour = (int) $datetime->format("N");
-        $jour = self::JourEnLettres[$indice-1];
+        $jour = self::JourEnLettres[$indiceJour-1];
         return $jour;
     }
-    public static function getJourChiffreDate(DateTime $datetime):int{
+    public static function getJourChiffreDate(\DateTime $datetime):int{
         $indiceJour = (int) $datetime->format("N");
         return $indiceJour;
     }
-    function ajouterJours(DateTime $date, int $nbJours): DateTime {
+    function ajouterJours(\DateTime $date, int $nbJours): DateTime {
         $date->modify("+{$nbJours} days");
         return $date;
     }
-    // public static function getJourLe
+    public static function getJourLettreEnChiffre(string $jour):int{
+        for($i=0;$i<count(self::JourEnLettres);$i++){
+            if($jour === self::JourEnLettres[$i]){
+                $i++;
+                return $i;
+            }
+        }
+    }
 }  
-echo DateModel::getJourLettreDate(new \DateTime("2025-09-19"));
+echo DateModel::getJourLettreEnChiffre('Vendredi');
