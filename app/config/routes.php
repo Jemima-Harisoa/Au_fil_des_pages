@@ -20,7 +20,7 @@ use flight\net\Router;
 $Welcome_Controller = new WelcomeController();
 $cvController = new cvController();
 
-$router->get('/', [ $cvController, 'home' ]);
+// $router->get('/', [ $cvController, 'home' ]);
 
 $router->get('/@idUser/Annonce', [ $cvController, 'redirectCV' ]);
 $router->get('/@idUser/Annonce/@idAnnonce/fillCV', [ $cvController, 'fillCV']);
