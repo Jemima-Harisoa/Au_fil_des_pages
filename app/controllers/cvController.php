@@ -52,7 +52,7 @@ class cvController {
         }
     }
     
-    public function getDataCV(){
+    public function getDataCV($idUser, $idAnnonce) {
         $requete = Flight::request();
     
         $Nom = $requete->data->nom;
@@ -92,7 +92,7 @@ class cvController {
                 $photo_path = $dossier . $fichier;
                 $data = [$Nom, $Prenoms, $Date, $Contact, $photo_path];
                 
-                CVModel::insertCV($data);
+                CVModel::insertCV($data, $idAnnonce);
                 Flight::render('CV/Postuler/confirmation');
             } else {
                 Flight::render('CV/Postuler/erreur');
