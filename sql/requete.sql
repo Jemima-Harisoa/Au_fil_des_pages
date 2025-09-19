@@ -65,6 +65,5 @@ SELECT de.*,em.id_departement,CASE jour
     ON em.id_employe = de.id_employe
     order by numero_jour asc
 );
-CREATE OR REPLACE VIEW v_jour_nombre_jour as(
-    SELECT 'Lundi','Mardi','Mercredi'
+
     
