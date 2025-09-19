@@ -34,7 +34,9 @@ $router->post('/@idUser/Annonce/@idAnnonce/fillCV/postulationCV',[ $cvController
 $ConnexionController = new ConnexionController();
 $router->get('/', [ $ConnexionController, 'AppelLoginU' ]);
 $router->post('/inscriptionU', [ $ConnexionController, 'InscrireU' ]);
-$router->post('/loginU', [ $ConnexionController, 'VerificationConnectionU' ]);
+
+$router->post('/loginU', [ $ConnexionController, 'VerificationConnectionU' ]); // 11.16
+
 $router->get('/deconnexionU', [ $ConnexionController, 'deconnexionU' ]);
 
 $router->get('/admin', [ $ConnexionController, 'AppelLoginA' ]);

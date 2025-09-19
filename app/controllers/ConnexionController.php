@@ -31,7 +31,6 @@ class ConnexionController {
         {
             $_SESSION['utilisateur']  = $p->getUtilisateur($Nom, $mdp);     
             Flight::render('accueilU',null);
-
         }
         else {
             $mess = "Verifier votre mot de passe ou votre nom d'utilisateur";
