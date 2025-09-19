@@ -64,11 +64,6 @@ class fonctionTest {
 
 $lastId = Query::query($sql, [$idProfil, $questions[0]['id_profil'] ?? null, $score, $dateTest]);
 
-if ($lastId === false) {
-    error_log("Erreur insertion test");
-} else {
-    echo "ID inséré : $lastId";
-}
 
 }
     public function listTest(){
