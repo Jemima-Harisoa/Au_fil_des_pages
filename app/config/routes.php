@@ -3,6 +3,7 @@ use app\controllers\WelcomeController;
 use app\controllers\ConnexionController;
 use app\controllers\AnnoncesController;
 
+use app\controllers\TestController;
 use flight\Engine;
 use flight\net\Router;
 //use Flight;
@@ -45,3 +46,12 @@ $router->group('/annonces', function($router) use ($AnnoncesController) {
     $router->post('/update', [ $AnnoncesController, 'update' ]);
 });
 
+$Welcome_Controller = new WelcomeController();
+$Test_Controller = new TestController();
+
+$router->get('/', [ $Welcome_Controller, 'home' ]);
+$router->get('/testAccueil', [ $Test_Controller, 'QCM' ]); 
+$router->post('/traitement-qcm', [ $Test_Controller, 'traitementQCM' ]); 
+$router->get('/allTests', [ $Test_Controller, 'getList' ]); 
+$router->get('/triMetier', [ $Test_Controller, 'getListByJob' ]); 
+$router->get('/triageTests', [ $Test_Controller, 'getListSorted' ]); 
