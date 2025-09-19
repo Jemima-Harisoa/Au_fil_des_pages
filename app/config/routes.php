@@ -1,6 +1,6 @@
 <?php
 use app\controllers\WelcomeController;
-use app\controllers\migration\ContratController;
+use app\controllers\migration\MigrationController;
 
 use flight\Engine;
 use flight\net\Router;
@@ -21,5 +21,10 @@ $router->get('/', [ $Welcome_Controller, 'home' ]);
 /***************Route Module RH / Features migration***************/
 
 // Contrat
-$Contrat_Controller = new ContratController(); 
-$router->get('/migration/Redaction',  [ $Contrat_Controller, 'RedactionContrat' ]);
+$Migration_Controller = new MigrationController(); 
+//$router->get('/migration/Redaction',  [ $Contrat_Controller, 'RedactionContrat' ]);
+$router->group( "/migration" , function($router) use ($Migration_Controller){
+	$router->get("/candidats", [$Migration_Controller , 'getCandidatRetenu']);
+
+}
+);

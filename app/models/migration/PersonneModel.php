@@ -3,31 +3,31 @@
 namespace app\models\migration;
 
 use Flight;
-
 use flight\Engine;
 use flight\database\PdoWrapper;
 use flight\debug\database\PdoQueryCapture;
 
-class ContratModel {
+
+class PersonneModel {
     protected $db;
 
     public function __construct() {
-        $this->db = Flight::db();
+        $this->db = Flight::db(); // Connexion PDO
     }
 
-    // Enregistrer un contrat
+    // Enregistrer une personne
     public function save($data) {
-        $sql = "INSERT INTO contrats (id_candidat, id_type_contrat, url_contrat) 
-                VALUES (:id_candidat, :id_type_contrat, :url_contrat)";
+        $sql = "INSERT INTO personnes (nom, prenom, date_naissance, contact, lien_image, mdp) 
+                VALUES (:nom, :prenom, :date_naissance, :contact, :lien_image, :mdp)";
         $stmt = $this->db->prepare($sql);
         return $stmt->execute($data);
     }
 
-    // Mettre à jour un contrat
+    // Mettre à jour
     public function update($id, $data) {
-        $sql = "UPDATE contrats 
-                SET id_candidat=:id_candidat, id_type_contrat=:id_type_contrat, url_contrat=:url_contrat
-                WHERE id_contrat=:id";
+        $sql = "UPDATE personnes 
+                SET nom=:nom, prenom=:prenom, date_naissance=:date_naissance, contact=:contact, lien_image=:lien_image, mdp=:mdp
+                WHERE id_personne=:id";
         $stmt = $this->db->prepare($sql);
         $data['id'] = $id;
         return $stmt->execute($data);
@@ -35,14 +35,14 @@ class ContratModel {
 
     // Supprimer
     public function delete($id) {
-        $sql = "DELETE FROM contrats WHERE id_contrat=:id";
+        $sql = "DELETE FROM personnes WHERE id_personne=:id";
         $stmt = $this->db->prepare($sql);
         return $stmt->execute(['id' => $id]);
     }
 
     // Chercher par champ
     public function getBy($field, $value) {
-        $sql = "SELECT * FROM contrats WHERE {$field} = :value";
+        $sql = "SELECT * FROM personnes WHERE {$field} = :value";
         $stmt = $this->db->prepare($sql);
         $stmt->execute(['value' => $value]);
         return $stmt->fetch(\PDO::FETCH_ASSOC);
@@ -50,7 +50,7 @@ class ContratModel {
 
     // Lister tous
     public function list() {
-        $sql = "SELECT * FROM contrats";
+        $sql = "SELECT * FROM personnes";
         $stmt = $this->db->query($sql);
         return $stmt->fetchAll(\PDO::FETCH_ASSOC);
     }

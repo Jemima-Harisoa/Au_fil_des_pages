@@ -1,0 +1,36 @@
+{
+    "_comment" : "Clause global pour tout contrat de travail", 
+    "sous_titre" : "DISPOSITIONS GENERALES",
+    "modalite" : {
+        "debut_contrat": "Le présent contrat prend effet à compter du",
+        "duree": [
+            "Pour une durée Indéterminée",
+            "Pour une durée de"
+        ],
+        "essai":"Le travailleur accomplira une période d'essai de",
+        "rupture": "pendant laquelle le contrat peut être rompu sans préavis"
+    },
+    "lieu": "Le lieu d'emploi est" ,
+    "poste": {
+        "qualité" : "Le travailleur est recruté en qualité de",
+        "class": "Classification professionnelle"
+    },
+    "remuneration": {
+        "salaire" : "Il percevra la rémunération suivante  \n Salaire de base ",
+        "avantages" : "Autres avantages : \n"
+    },
+    "conge" : "Le travailleur bénéficie des congés payés conformément à la réglementation en vigueur.",
+    "fond_social": "Il appartient à l'employeur d'affilier le travailleur à la CNaPS et de prendre en charge les soins résultant de maladie du travailleur et des membres de sa famille conformément aux dispositions légales en vigueur.",
+    "resilliation":{
+        "cdi" : "La résiliation du contrat à durée indéterminée est subordonnée à un préavis écrit conforme au Décret n° 2007-009 du 09 janvier 2007.",
+        "cdd" : "Pour un CDD, chaque partie doit aviser l'autre de son intention ou non de renouveler le contrat",
+        "indemnite": "À défaut, une indemnité équivalente au préavis sera due"
+    },
+    "engagement" : "Les parties s'engagent à respecter les dispositions du Code du Travail et de ses textes d'application pour tout ce qui n'est pas prévu dans ce contrat",
+    "lieu_edition" : "Fait à",
+    "date_edition" : "le",
+    "signature" : {
+        "employe" : "SIGNATURE DU TRAVAILLEUR (Noms et qualité, cachet)",
+        "employeur": "SIGNATURE DE L'EMPLOYEUR"
+    } 
+}

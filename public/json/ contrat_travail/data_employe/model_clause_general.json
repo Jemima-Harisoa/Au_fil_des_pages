@@ -1,0 +1,27 @@
+{
+    "_comment" : "fichier avec les clauses du contrat generale pour un employee donne",
+    "type":  "cdd/cdi", 
+    "modalite": {
+        "debut_contrat": "date" ,
+        "duree" : "x mois / an ", // si null cdi 
+        "essai" : "x mois", // si null pas d'essai
+    },
+    "lieu" : "",
+    "poste": {
+        "qualité" : "",
+        "class" : "" 
+    },
+    "remuneration": {   
+        "salaire" : "", // recup dans profil
+        "avantages": []
+    },
+    "resilliation": {
+        "type" : "cdd/cdi",
+        "indemnite" : ""
+    },
+    "engagement" : "Les parties s'engagent à respecter les dispositions du Code du Travail et de ses textes d'application pour tout ce qui n'est pas prévu dans ce contrat",
+    "lieu_edition" : "Fait à",
+    "date_edition" : "le",
+    "signature" : "" //lien signature electro ou nom
+
+}

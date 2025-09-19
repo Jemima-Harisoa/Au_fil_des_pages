@@ -1,0 +1,13 @@
+
+{
+    "_comment" : "clause en plus pour les employers d'origine etrangere" ,
+    "sous_titre":"PARTIE RESERVEE AUX TRAVAILLEURS RECRUTES A L'EXTERIEUR DU TERRITOIRE",
+    "residence": "Résidence habituelle (lieu d'embauche et de rapatriement)",
+    "adresse_origin": "Adresse exacte dans ce pays",
+    "charge_essai" :[ 
+        "L'employeur prendra en charge les frais de déplacement des membres de la famille du travailleur pendant la période d'essai.",
+        "L'employeur ne prendra pas en charge les frais de déplacement des membres de la famille du travailleur pendant la période d'essai."
+    ],
+    "charge" : "L'employeur prend en charge les frais de déplacement du travailleur et des membres de sa famille entre le lieu de résidence habituelle et le lieu d'emploi à l'embauche, ainsi qu'à l'expiration ou rupture du contrat. \n Condition du transport :",
+    "conge" : "Le travailleur bénéficiera d'un congé payé au lieu de sa résidence habituelle tous les"
+}

@@ -1,0 +1,12 @@
+
+{
+    "_comment" : "partie d'entete pour l'employeur",
+    "denomination" : "Au fil des pages",
+    "statut_juridique" : "",
+    "capital_social" : "",
+    "adresse": "",
+    "identification_statique": "",
+    "representant": "",
+    "qualite_representant" : "",
+    "signature" : ""
+}
