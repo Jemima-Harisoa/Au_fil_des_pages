@@ -74,7 +74,7 @@ class DateModel{
     // "w" → jour de la semaine (0 = dimanche, 6 = samedi)
     public static function getJourLettreDate(DateTime $datetime):string{
         $indiceJour = (int) $datetime->format("N");
-        $jour = self::JourEnLettres[$indice];
+        $jour = self::JourEnLettres[$indice-1];
         return $jour;
     }
     public static function getJourChiffreDate(DateTime $datetime):int{
@@ -85,4 +85,6 @@ class DateModel{
         $date->modify("+{$nbJours} days");
         return $date;
     }
+    // public static function getJourLe
 }  
+echo DateModel::getJourLettreDate(new \DateTime("2025-09-19"));
