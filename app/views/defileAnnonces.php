@@ -82,11 +82,7 @@
             <div class="modal-footer">
                 <!--  -->
                 <!-- /@idUser/Annonce/@idAnnonce/fillCV -->
-                 
-                    <!-- echo "ID UTILISATEUR: ".$idUtilisateur. " || ";
-                    echo "ID ANNONCE: ".$annonce['id_annonce']; -->
-                 
-                 
+            
                     <a href="#" id="postulerButton" class="btn btn-primary">Postuler</a>
                 
                 <!--  -->
@@ -108,7 +104,7 @@ document.querySelectorAll('.voirPlusBtn').forEach(button => {
                 let entreprise = data.nom_entreprise ? "Entreprise: " + data.nom_entreprise + "\n\n" : "";
                 document.getElementById('annonceModalLabel').textContent = data.titre;
                 document.getElementById('annonceModalContent').textContent = entreprise + data.contenu;
-                document.getElementById('postulerButton').setAttribute('href', '#'); // mettre lien réel si besoin
+                document.getElementById('postulerButton').setAttribute('href', '/<?= $idUtilisateur?>/Annonce/<?= $annonce['id_annonce']?>/<?= $annonce['id_profil']?>/fillCV'); // mettre lien réel si besoin
             })
             .catch(err => {
                 console.error(err);

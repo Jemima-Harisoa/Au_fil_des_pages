@@ -2,6 +2,7 @@
 namespace app\controllers;
 use app\models\AdminModel;
 use app\models\CVModel;
+use PDO;
 
 
 use Flight;
@@ -15,14 +16,23 @@ class cvController {
         Flight::render('CV/redirectCV');
     }
 
-    public function fillCV($idUser, $idAnnonce){
-        Flight::render('CV/Postuler/formulaireCV', ['idAnnonce' => $idAnnonce]);
+    public function fillCV($idUser, $idAnnonce, $idProfil){
+        Flight::render('CV/Postuler/formulaireCV', ['idAnnonce' => $idAnnonce, 'idProfil' => $idProfil]);
     }
 
 
     public function printDataCV() {
         $requete = Flight::request();
-    
+        $combineValuesMap = json_decode($_POST['combineValuesMap'], true);
+        echo "<h2>Données reçues :</h2>";
+
+        var_dump($combineValuesMap);
+        
+        foreach ($combineValuesMap as $key => $value) {
+            echo ucfirst($key) . " : " . htmlspecialchars($value) . "<br>";
+        }   
+        echo "Diplomes : " . htmlspecialchars($requete->data->id_diplome) . "<br>";
+
         // Affichage des informations du formulaire
         echo "<h3>Données personnelles :</h3>";
         echo "Nom : " . htmlspecialchars($requete->data->nom) . "<br>";
@@ -52,13 +62,17 @@ class cvController {
         }
     }
     
-    public function getDataCV($idUser, $idAnnonce) {
+    public function getDataCV($idUser, $idAnnonce, $idProfil) {
         $requete = Flight::request();
+        $combineValuesMap = json_decode($_POST['combineValuesMap'], true);
+
     
         $Nom = $requete->data->nom;
         $Prenoms = $requete->data->prenoms;
         $Date = $requete->data->date;
         $Contact = $requete->data->contact;
+        
+        $idDiplome = $requete->data->id_diplome;
                                                                                     
         // Gestion de l'upload de l'image
         $file = $requete->files->photo_identite;
@@ -92,7 +106,7 @@ class cvController {
                 $photo_path = $dossier . $fichier;
                 $data = [$Nom, $Prenoms, $Date, $Contact, $photo_path];
                 
-                CVModel::insertCV($data, $idAnnonce);
+                CVModel::insertCV($data, $idAnnonce, $idProfil, $idDiplome, $combineValuesMap);
                 Flight::render('CV/Postuler/confirmation');
             } else {
                 Flight::render('CV/Postuler/erreur');
@@ -119,6 +133,7 @@ class cvController {
         $fichier = preg_replace('/([^.a-z0-9]+)/i', '-', $fichier);
         return $fichier;
     }
+    
 }
 
 ?>

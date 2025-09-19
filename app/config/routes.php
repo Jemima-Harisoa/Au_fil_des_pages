@@ -23,9 +23,10 @@ $cvController = new cvController();
 // $router->get('/', [ $cvController, 'home' ]);
 
 $router->get('/@idUser/Annonce', [ $cvController, 'redirectCV' ]);
-$router->get('/@idUser/Annonce/@idAnnonce/fillCV', [ $cvController, 'fillCV']);
 
-$router->post('/@idUser/Annonce/@idAnnonce/fillCV/postulationCV',[ $cvController, 'getDataCV']);
+$router->get('/@idUser/Annonce/@idAnnonce/@idProfil/fillCV', [ $cvController, 'fillCV']);
+
+$router->post('/@idUser/Annonce/@idAnnonce/@idProfil/fillCV/postulationCV',[ $cvController, 'getDataCV']);
 // $router->get('/CV', [ $cvController, 'redirectCV']);
 
 // $router->get('/CV/fillCV/@idUser/@idAnnonce', [ $cvController, 'fillCV']);
