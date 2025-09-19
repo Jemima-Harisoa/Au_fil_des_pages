@@ -16,15 +16,14 @@ SELECT *
 CREATE OR REPLACE VIEW v_disponibilite_employe_valide as(
     SELECT de.*,em.poste
     FROM disponibilite_employe de  
-    
     JOIN (
         SELECT * 
         FROM employes 
-        where id_departement = 2
+        where id_departement = 1
     )em
     ON de.id_employe = em.id_employe
-    and de.est_valide;
-)
+    and de.est_valide
+);
     --recuperer candidats dans un departement apres une date
     -- en utilisant la table candidat en jointure avec les 
     -- tables planning_entretien,employes
@@ -43,10 +42,9 @@ SELECT  pe.*,e.id_departement
     ON e.poste = c.poste
     WHERE pe.date_heure_entretien >=""
 );
-
---Recuperation 
-CREATE OR REPLACE VIEW v_disponibilite_employe_ordre_chronologique as(
-SELECT de.*,em.id_departement,CASE jour
+--Recuperation disponibilite_employe valide pour tous les id_departements
+CREATE OR REPLACE VIEW v_disponibilite_employe_valide as(
+SELECT de.*,em.id_departement,em.poste,CASE jour
     WHEN 'Lundi'THEN 1
     WHEN 'Mardi'THEN 2
     WHEN 'Mercredi'THEN 3
@@ -60,10 +58,25 @@ SELECT de.*,em.id_departement,CASE jour
         SELECT 
         id_employe,poste,id_departement
         FROM employes
-        where id_departement = 1
     )em
     ON em.id_employe = de.id_employe
-    order by numero_jour asc
+    and de.est_valide
 );
 
-    
+--Recuperation disponibilite_employe valide pour un id_deparement par ordre chronologique
+select  id_employe,
+        heure_debut,
+        heure_fin,
+        numero_jour,
+        est_valide,
+        id_departement,
+        poste
+    FROM 
+        v_disponibilite_employe_valide
+    where id_departement = ? ;
+
+--
+--Recuperer les candidats qui ont reussi les tests par id_departement
+
+SELECT * 
+FROM candidats 
