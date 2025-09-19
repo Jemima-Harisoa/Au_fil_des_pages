@@ -229,3 +229,5 @@ ALTER TABLE historique_validation ADD FOREIGN KEY (id_candidat) REFERENCES candi
 ALTER TABLE responsable_entretien ADD FOREIGN KEY (id_employe) REFERENCES employes(id_employe);
 ALTER TABLE responsable_entretien ADD FOREIGN KEY (id_profil) REFERENCES profils(id_profil);
 
+ALTER TABLE disponibilite_employe ADD FOREIGN KEY (id_employe) REFERENCES employes(id_employe);
+
