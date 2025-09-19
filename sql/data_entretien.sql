@@ -10,6 +10,73 @@ INSERT INTO etat(nom)VALUES ('en attente'),
 ('rejete'),
 ('termine');
 
+--Diplomes
+INSERT INTO diplomes (nom, niveau) VALUES
+-- Diplômes avant ou équivalents Bac
+-- Avant Bac
+('BEPC', '-3'),         -- environ 3 ans avant Bac
+('CAP / BEP', '-2'),    -- environ 2 ans avant Bac
+
+-- Bac
+('Baccalauréat', '0'),
+
+('Baccalauréat général ou technologique', '0'),
+('CAP / BEP Logistique', '-2'),
+
+-- Post Bac
+('BTS Comptabilité et Gestion (BTS CG)', '+2'),
+('DUT Gestion des Entreprises et Administrations (GEA)', '+2'),
+('Licence Professionnelle Comptabilité', '+3'),
+('Master Comptabilité / Finance', '+5');
+
+INSERT INTO profils (
+  titre, id_departement, competences, skills, loisirs, niveau_etudes, id_diplome, experience_pro, certifications, langues
+) VALUES
+-- Vendeur
+('Vendeur / Vendeuse', 1,
+ 'Relation client, techniques de vente, dynamisme',
+ 'Sens du relationnel; Communication claire; Patience & écoute; Dynamisme',
+ 'Lecture; Activités sociales (théâtre, clubs de lecture)',
+ 'Bac minimum (commerce ou littéraire apprécié)',
+ 1,  -- Bac
+ 'Débutant accepté; expérience en relation client = un plus',
+ 'Formation en vente (souhaitée)',
+ 'Français, notions d’anglais'),
+
+-- Caissier
+('Caissier / Caissière', 1,
+ 'Gestion de caisse, rigueur, rapidité',
+ 'Rigueur & honnêteté; Rapidité d’exécution; Gestion du stress',
+ 'Jeux de logique; Activités demandant précision',
+ 'Bac (toutes séries)',
+ 1,  -- Bac
+ '1 an en caisse ou grande surface',
+ 'Formation en caisse/commerce (atout)',
+ 'Français'),
+
+-- Magasinier
+('Magasinier', 2,
+ 'Gestion de stock, organisation, logistique',
+ 'Organisation; Fiabilité; Résistance physique; Esprit d’équipe',
+ 'Sport (endurance, fitness); Bricolage (sens pratique)',
+ 'BEP/CAP logistique ou équivalent',
+ 2,  -- CAP/BEP Logistique
+ '1-2 ans en gestion de stock',
+ NULL,
+ 'Français'),
+
+-- Comptable
+('Comptable', 3,
+ 'Comptabilité générale, gestion, analyse financière',
+ 'Confidentialité; Esprit analytique; Minutie; Gestion des priorités',
+ 'Jeux stratégiques; Sudoku; Activités de gestion',
+ 'Bac+2 minimum (BTS CG, DUT GEA), Licence/Master apprécié',
+ 3,  -- BTS CG (on pourrait aussi choisir DUT GEA, id=4)
+ '2-3 ans d’expérience en cabinet ou PME',
+ 'BTS CG, DUT GEA, Licence/Master',
+ 'Français, notions d’anglais');
+
+
 INSERT INTO annonces (titre, lien, date_publication, date_expiration, nombre_poste) VALUES
 ('vendeur_2025.pdf', '/files/annonces/vendeur_2025.pdf', '2025-09-01', NULL, 2),
 ('caissier_2025.pdf', '/files/annonces/caissier_2025.pdf', '2025-09-03', NULL, 1),
@@ -77,7 +144,7 @@ INSERT INTO candidats (id_personne, id_annonce, cv_url, poste) VALUES
 (5, NULL, '/cv/noro.pdf', 'Comptable senior'),
 (6, NULL, '/cv/fanilo.pdf', 'Assistant comptable'),
 (7, NULL, '/cv/mamy2.pdf', 'Adjoint du gérant'),
-(8, NULL, '/cv/tovo.pdf', 'Responsable RH')
+(8, NULL, '/cv/tovo.pdf', 'Responsable RH'),
 (9, 1, '/cv/fanja.pdf', 'Vendeur'),
 (10, 1, '/cv/hery.pdf', 'Vendeur'),
 (11, 1, '/cv/miora.pdf', 'Vendeur'),
@@ -130,12 +197,29 @@ INSERT INTO tests (id_candidat, score_test, date_test) VALUES
 (19, 86.5, '2025-09-18'),
 (20, 79.0, '2025-09-18');
 
+INSERT INTO tests (id_candidat, score_test, date_test)
+VALUES
+(9, 78.50, CURRENT_DATE - 1),
+(10, 85.00, CURRENT_DATE - 2),
+(11, 92.75, CURRENT_DATE - 3),
+(16, 67.20, CURRENT_DATE - 4),
+(17, 74.10, CURRENT_DATE - 5),
+(18, 88.90, CURRENT_DATE - 6),
+(13, 81.00, CURRENT_DATE - 1),
+(19, 79.50, CURRENT_DATE - 2),
+(21, 69.30, CURRENT_DATE - 3),
+(22, 95.00, CURRENT_DATE - 4),
+(14, 72.80, CURRENT_DATE - 1),
+(24, 84.60, CURRENT_DATE - 2),
+(25, 77.40, CURRENT_DATE - 3),
+(26, 90.25, CURRENT_DATE - 1),
+(27, 66.70, CURRENT_DATE - 2),
+(28, 82.10, CURRENT_DATE - 3);
 
 
 
 
-
-INSERT INTO disponibilite_employe (id_employe, heure_debut, heure_fin, jour,est_valide) VALUES
+INSERT INTO disponibilite_employe (id_employe, heure_debut, heure_fin, jour) VALUES
 -- Employé 1 (Vendeur confirmé)
 (1, '09:00:00', '11:00:00', 'Lundi'),
 (1, '14:00:00', '16:00:00', 'Mercredi'),
@@ -177,3 +261,5 @@ INSERT INTO jour_ferie ("date") VALUES
 ('2025-08-15'),  -- Assomption
 ('2025-11-01'),  -- Toussaint
 ('2025-12-25');  -- Noël
+
+
