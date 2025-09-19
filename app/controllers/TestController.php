@@ -13,7 +13,7 @@ class TestController {
 
 	public function QCM() {
         $fonction = new fonctionTest(Flight::db());
-        $idCandidat = 6;
+        $idCandidat = 1;
         $idAnnonce=1;
         $profilData = $fonction->getIdProfil($idCandidat,$idAnnonce);
         if (empty($profilData)) {
@@ -39,7 +39,7 @@ class TestController {
     }
     public function traitementQCM() {
          $fonction = new fonctionTest(Flight::db());
-        $idCandidat = 6;
+        $idCandidat = 1;
         $idAnnonce=1;
         $profilData = $fonction->getIdProfil($idCandidat,$idAnnonce);
         $idProfil = $profilData[0]['id_profil'];
@@ -59,7 +59,7 @@ class TestController {
         }
         $data = Flight::request()->data->getData();
         $reponses = $data['reponses'] ?? [];
-        $score = $fonction->comparaisonReponse($reponses,6, 1);
+        $score = $fonction->comparaisonReponse($reponses,1, 1);
         Flight::render('formulaireTest', [
             'score'     => $score,
             'reponses'  => $reponses,

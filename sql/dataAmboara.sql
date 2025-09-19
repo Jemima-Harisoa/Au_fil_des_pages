@@ -97,10 +97,10 @@ INSERT INTO profils (
 -- Questions
 INSERT INTO questions (question, id_profil, note) VALUES
 ('Comment gerer une file d attente en caisse ?', 1 , 4.50),
-('Quelles sont les principales obligations fiscales d une PME ?',2, 5.50),
-('Comment motiver une equipe en periode de forte activite ?', 3, 6.00),
-('Quelle est la meilleure methode pour organiser un stock ?', 4, 4.00),
-('Comment fideliser un client apres une premiere vente ?', 5, 5.00);
+('Quelles sont les principales obligations fiscales d une PME ?',1, 5.50),
+('Comment motiver une equipe en periode de forte activite ?', 1, 6.00),
+('Quelle est la meilleure methode pour organiser un stock ?', 1, 4.00),
+('Comment fideliser un client apres une premiere vente ?', 1, 5.00);
 
 -- Reponses
 INSERT INTO reponses_question (id_question, reponse, est_correct) VALUES
