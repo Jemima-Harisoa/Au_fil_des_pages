@@ -17,7 +17,7 @@ class CandidatModel {
 
     // Enregistrer un candidat
     public function save($data) {
-        $sql = "INSERT INTO candidats (id_personne, id_annonce, cv_url, poste) 
+        $sql = "INSERT INTO candidats (id_personne , id_annonce , cv_url, poste) 
                 VALUES (:id_personne, :id_annonce, :cv_url, :poste)";
         $stmt = $this->db->prepare($sql);
         return $stmt->execute($data);

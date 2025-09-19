@@ -24,7 +24,13 @@ $router->get('/', [ $Welcome_Controller, 'home' ]);
 $Migration_Controller = new MigrationController(); 
 //$router->get('/migration/Redaction',  [ $Contrat_Controller, 'RedactionContrat' ]);
 $router->group( "/migration" , function($router) use ($Migration_Controller){
+	// route de configuration 
+	$router->get("/test", [$Migration_Controller, "test"]);
+	// route vers la liste des candidat apres le scoring  
 	$router->get("/candidats", [$Migration_Controller , 'getCandidatRetenu']);
-
+	// route vers le formulaire de soumission de contrat de travail 
+	$router->get("/contrat/create", [$Migration_Controller , 'createContrat']);
+	// enregister le brouillon du contrat avant validation
+	$router->post("/contrat/register", [$Migration_Controller, 'registerContrat']);
 }
 );
