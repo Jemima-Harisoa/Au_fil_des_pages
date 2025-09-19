@@ -21,9 +21,9 @@ class AnnoncesModel {
     }
 
     public function getAllNonExpire() {
-    $stmt = $this->db->prepare("SELECT * FROM annonces WHERE date_expiration IS NULL OR date_expiration >= CURRENT_DATE ORDER BY date_publication DESC");
-    $stmt->execute();
-    return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $stmt = $this->db->prepare("SELECT * FROM annonces WHERE date_expiration IS NULL OR date_expiration >= CURRENT_DATE ORDER BY date_publication DESC");
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
     

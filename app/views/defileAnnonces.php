@@ -1,4 +1,7 @@
 <?php include "headerU.php"; ?>
+<?php
+    $idUtilisateur = $_SESSION['utilisateur']['id_utilisateur'];
+?>
 
 <style>
 .hover-shadow:hover {
@@ -77,7 +80,16 @@
             <div class="modal-body" id="annonceModalContent" style="white-space:pre-line; font-size:0.95rem; line-height:1.5;">
             </div>
             <div class="modal-footer">
-                <a href="#" id="postulerButton" class="btn btn-primary">Postuler</a>
+                <!--  -->
+                <!-- /@idUser/Annonce/@idAnnonce/fillCV -->
+                 
+                    <!-- echo "ID UTILISATEUR: ".$idUtilisateur. " || ";
+                    echo "ID ANNONCE: ".$annonce['id_annonce']; -->
+                 
+                 
+                    <a href="#" id="postulerButton" class="btn btn-primary">Postuler</a>
+                
+                <!--  -->
                 <button type="button" class="btn btn-secondary" data-dismiss="modal">Fermer</button>
             </div>
         </div>
