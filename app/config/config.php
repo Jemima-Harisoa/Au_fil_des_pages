@@ -73,7 +73,7 @@ return [
 		'driver'   => 'pgsql',
 		'host' => 'localhost',
 		'port' => '5432',
-		'dbname' => 'pages',
+		'dbname' => 'aufildespages',
 		'user' => 'postgres',
 		'password' => 'manoa'
 
