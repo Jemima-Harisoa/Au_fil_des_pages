@@ -5,7 +5,7 @@
         'type' => 'library',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
-        'reference' => '93e90f33a0b787574571e242aeb602ceafe14d20',
+        'reference' => '91cf77009b02604a1e87c3676d6de10c41cf3225',
         'name' => 'flightphp/skeleton',
         'dev' => true,
     ),
@@ -25,7 +25,7 @@
             'type' => 'library',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),
-            'reference' => '93e90f33a0b787574571e242aeb602ceafe14d20',
+            'reference' => '91cf77009b02604a1e87c3676d6de10c41cf3225',
             'dev_requirement' => false,
         ),
         'flightphp/tracy-extensions' => array(
