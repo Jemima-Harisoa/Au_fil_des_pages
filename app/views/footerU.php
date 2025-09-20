@@ -1,5 +1,4 @@
-
-                </div>
+</div>
                 <!-- /.container-fluid -->
 
             </div>
@@ -56,6 +55,107 @@
     }
 })
     </script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('=== INITIALISATION RECHERCHE MESSAGE CENTER ===');
+    
+    const toggleButton = document.getElementById('toggleMessageSearch');
+    const searchInput = document.getElementById('messageCenterSearch');
+    const titleSpan = document.getElementById('messageCenterTitle');
+    const messagesDropdown = document.getElementById('messagesDropdown');
+
+    function filterMessages(searchText) {
+        const dropdownItems = document.querySelectorAll('.dropdown-list .dropdown-item:not(.text-center)');
+        searchText = searchText.toLowerCase().trim();
+        
+        let hasResults = false;
+        
+        dropdownItems.forEach(item => {
+            const title = item.querySelector('.text-truncate').textContent.toLowerCase();
+            const nameInfo = item.querySelector('.small.text-gray-500').textContent.toLowerCase();
+            
+            if (searchText === '' || title.includes(searchText) || nameInfo.includes(searchText)) {
+                item.style.display = 'flex';
+                hasResults = true;
+            } else {
+                item.style.display = 'none';
+            }
+        });
+
+        // Handle "No results" message
+        handleNoResultsMessage(searchText, hasResults);
+    }
+
+    function handleNoResultsMessage(searchText, hasResults) {
+        const dropdownList = document.querySelector('.dropdown-list');
+        let noResultsElement = dropdownList.querySelector('.no-results-message');
+        
+        if (!noResultsElement) {
+            noResultsElement = document.createElement('div');
+            noResultsElement.className = 'dropdown-item text-center text-muted no-results-message';
+            noResultsElement.textContent = 'Aucun résultat trouvé';
+            dropdownList.insertBefore(noResultsElement, dropdownList.querySelector('.dropdown-item.text-center.small'));
+        }
+        
+        noResultsElement.style.display = (searchText !== '' && !hasResults) ? 'block' : 'none';
+    }
+
+    // Toggle search input
+    toggleButton.addEventListener('click', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        
+        if (searchInput.classList.contains('d-none')) {
+            titleSpan.classList.add('d-none');
+            searchInput.classList.remove('d-none');
+            searchInput.focus();
+        } else {
+            titleSpan.classList.remove('d-none');
+            searchInput.classList.add('d-none');
+            searchInput.value = '';
+            filterMessages('');
+        }
+    });
+
+    // Prevent dropdown from closing when clicking search
+    searchInput.addEventListener('click', function(e) {
+        e.stopPropagation();
+    });
+
+    // Real-time search with debounce
+    let searchTimeout;
+    searchInput.addEventListener('input', function(e) {
+        clearTimeout(searchTimeout);
+        searchTimeout = setTimeout(() => filterMessages(this.value), 300);
+    });
+
+    // Prevent dropdown from closing when clicking inside
+    document.querySelector('.dropdown-list').addEventListener('click', function(e) {
+        if (!e.target.closest('a[href*="/messagerieU/"]')) {
+            e.stopPropagation();
+        }
+    });
+
+    // Reset search on dropdown close
+    const dropdownMenu = document.querySelector('.dropdown-list').parentElement;
+    dropdownMenu.addEventListener('hidden.bs.dropdown', function () {
+        titleSpan.classList.remove('d-none');
+        searchInput.classList.add('d-none');
+        searchInput.value = '';
+        filterMessages('');
+    });
+
+    // Handle Escape key
+    searchInput.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            titleSpan.classList.remove('d-none');
+            this.classList.add('d-none');
+            this.value = '';
+            filterMessages('');
+        }
+    });
+});
+</script>
 
 </body>
 

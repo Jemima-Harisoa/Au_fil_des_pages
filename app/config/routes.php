@@ -60,4 +60,5 @@ $router->get('/triageTests', [ $Test_Controller, 'getListSorted' ]);
 $MessagerieController = new MessagerieController();
 $router->get('/messagerieU/@id_candidat/@id_annonce', [ $MessagerieController, 'showMessagerieU' ]);
 $router->post('/messagerieU/send', [ $MessagerieController, 'sendMessageU' ]);
+$router->post('/messagerieA/send', [ $MessagerieController, 'sendMessageA' ]);
 $router->get('/messagerieA/@id_candidat/@id_annonce', [ $MessagerieController, 'showMessagerieA' ]);

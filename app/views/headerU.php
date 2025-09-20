@@ -32,6 +32,50 @@ if(!empty($_SESSION['messagerie'])) {
     <!-- Custom styles for this page -->
     <link href="/vendor/datatables/dataTables.bootstrap4.min.css" rel="stylesheet">
 
+    <!-- In the head section, add the styles -->
+    <style>
+.dropdown-header {
+    display: flex !important;
+    align-items: center !important;
+    padding: 0.5rem 1rem !important;
+}
+
+#messageCenterSearch {
+    background: rgba(255,255,255,0.2);
+    border: none;
+    color: white;
+    font-size: 0.85rem;
+    padding: 0.25rem 0.5rem;
+}
+
+#messageCenterSearch::placeholder {
+    color: rgba(255,255,255,0.7);
+}
+
+#messageCenterSearch:focus {
+    outline: none;
+    background: rgba(255,255,255,0.3);
+}
+
+.message-item {
+    transition: all 0.2s;
+}
+
+.no-results-message {
+    font-style: italic;
+    color: #6c757d !important;
+}
+
+.hidden-by-search {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+    height: 0 !important;
+    padding: 0 !important;
+    margin: 0 !important;
+}
+</style>
+
 </head>
 
 <body id="page-top">
@@ -122,8 +166,15 @@ if(!empty($_SESSION['messagerie'])) {
                             <!-- Dropdown - Messages -->
                             <div class="dropdown-list dropdown-menu dropdown-menu-right shadow animated--grow-in"
                                 aria-labelledby="messagesDropdown">
-                                <h6 class="dropdown-header">
-                                    Message Center
+                                <h6 class="dropdown-header d-flex justify-content-between align-items-center">
+                                    <span id="messageCenterTitle">Message Center</span>
+                                    <input type="text" id="messageCenterSearch" 
+                                           class="form-control form-control-sm d-none" 
+                                           placeholder="Rechercher..." 
+                                           style="width: 150px;">
+                                    <button id="toggleMessageSearch" class="btn btn-link text-white p-0 ml-2">
+                                        <i class="fas fa-search fa-sm"></i>
+                                    </button>
                                 </h6>
                                 <?php if(!empty($_SESSION['messagerie'])): ?>
     <?php foreach($_SESSION['messagerie'] as $msg): ?>

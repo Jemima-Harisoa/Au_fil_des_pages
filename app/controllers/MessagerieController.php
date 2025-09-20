@@ -42,6 +42,23 @@ class MessagerieController {
         exit;
     }
 
+    public function sendMessageA() {
+        $data = json_decode(file_get_contents('php://input'), true);
+        $id_candidat = $data['id_candidat'] ?? null;
+        $id_annonce = $data['id_annonce'] ?? null;
+        $message = $data['message'] ?? '';
+    
+        if ($id_candidat && $id_annonce && $message) {
+            $model = new MessagerieModel();
+            $model->repondreA($id_candidat, $id_annonce, $message);
+            $_SESSION['messagerie'] = $model->getTitresConversationsA();
+            echo json_encode(['success' => true]);
+        } else {
+            echo json_encode(['success' => false]);
+        }
+        exit;
+    }
+
     public function showMessagerieA($id_candidat, $id_annonce) {
         $model = new MessagerieModel();
         $vu = '';
