@@ -77,6 +77,7 @@ return [
         'password' => ''
     ],
 
+
 	// this is just here for an example
 	// 'google_oauth' => [
 	// 	'client_id' => 'client_id',

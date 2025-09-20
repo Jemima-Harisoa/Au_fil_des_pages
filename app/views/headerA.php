@@ -133,6 +133,16 @@ if(!empty($_SESSION['messagerie'])) {
                 </a>
             </li>
 
+            <!-- Nav Item - Dashboard -->
+            <li class="nav-item">
+                <a class="nav-link" href="/listeCV">
+                <i class="fas fa-file-alt"></i> <!-- Icône document -->
+                    <span>Liste CV</span></a>
+            </li>
+
+            
+
+
             <!-- Divider -->
             <hr class="sidebar-divider d-none d-md-block">
 

@@ -23,6 +23,9 @@ $postes = array_unique($postes);
 ?>
 
 <?php include "headerU.php"; ?>
+<?php
+    $idUtilisateur = $_SESSION['utilisateur']['id_utilisateur'];
+?>
 
 <style>
 .hover-shadow:hover {
@@ -135,7 +138,12 @@ $postes = array_unique($postes);
             </div>
             <div class="modal-body" id="annonceModalContent" style="white-space:pre-line; font-size:0.95rem; line-height:1.5;"></div>
             <div class="modal-footer">
-                <a href="#" id="postulerButton" class="btn btn-primary">Postuler</a>
+                <!--  -->
+                <!-- /@idUser/Annonce/@idAnnonce/fillCV -->
+            
+                    <a href="#" id="postulerButton" class="btn btn-primary">Postuler</a>
+                
+                <!--  -->
                 <button type="button" class="btn btn-secondary" data-dismiss="modal">Fermer</button>
             </div>
         </div>
@@ -154,7 +162,9 @@ document.querySelectorAll('.voirPlusBtn').forEach(button => {
                 const entreprise = data.nom_entreprise ? "Entreprise: " + data.nom_entreprise + "\n\n" : "";
                 document.getElementById('annonceModalLabel').textContent = data.titre;
                 document.getElementById('annonceModalContent').textContent = entreprise + data.contenu;
-                document.getElementById('postulerButton').setAttribute('href', '#');
+
+                document.getElementById('postulerButton').setAttribute('href', '/<?= $idUtilisateur?>/Annonce/<?= $annonce['id_annonce']?>/<?= $annonce['id_profil']?>/fillCV'); // mettre lien réel si besoin
+
             })
             .catch(err => {
                 console.error(err);
