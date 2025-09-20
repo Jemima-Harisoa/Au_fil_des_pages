@@ -8,6 +8,7 @@ use app\models\ProductModel;
 use app\models\InscriptionModel;
 use app\models\ConnexionModel;
 use app\models\AdminModel;
+use app\models\ResponsableEntretienModel;
 
 /** 
  * @var array $config This comes from the returned array at the bottom of the config.php file
@@ -34,9 +35,9 @@ $app->register('db', $pdoClass, [ $dsn, $config['database']['user'] ?? null, $co
 
 
 //
-//Flight::map('productModel', function () {
-//    return new ProductModel(Flight::db());
-//});
+Flight::map('responsableEntretienModel', function () {
+    return new ResponsableEntretienModel(Flight::db());
+});
 //
 //Flight::map('TaxiModel', function () {
 //    return new TaxiModel(Flight::db());
