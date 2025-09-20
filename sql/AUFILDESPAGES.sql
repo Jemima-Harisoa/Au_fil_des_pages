@@ -36,7 +36,8 @@ CREATE TABLE profils (
   id_diplome int,
   experience_pro text,
   certifications text,
-  langues text
+  langues text,
+  date_application date not null,
 );
 
 CREATE TABLE personnes (
