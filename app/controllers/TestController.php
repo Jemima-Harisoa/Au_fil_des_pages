@@ -12,7 +12,7 @@ class TestController {
 	}
 	public function traitementQCM() {
     $fonction = new fonctionTest(Flight::db());
-    $idCandidat = 6;
+    $idCandidat = 1;
     $idAnnonce = 1;
     $profilData = $fonction->getIdProfil($idCandidat, $idAnnonce);
     $idProfil = $profilData[0]['id_profil'];
@@ -35,7 +35,7 @@ class TestController {
 
     $score = $fonction->comparaisonReponse($reponses, $idProfil, $idAnnonce);
 
-    Flight::render('formulaireTest', [
+    Flight::render('accueilU', [
         'score' => $score,
         'reponses' => $reponses,
         'qcm' => $qcm

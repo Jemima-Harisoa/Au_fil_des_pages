@@ -1,4 +1,4 @@
-<?php include "header.php" ?>
+<?php include "headerA.php" ?>
    
  <style>
     label{
@@ -175,4 +175,4 @@ document.addEventListener("click", (e) => {
 </form>
 
     
-<?php include "footer.php" ?>
+<?php include "footerA.php" ?>

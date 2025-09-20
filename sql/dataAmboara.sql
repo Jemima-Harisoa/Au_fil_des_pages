@@ -116,6 +116,7 @@ INSERT INTO reponses_question (id_question, reponse, est_correct) VALUES
 (5, 'Ne plus parler au client apres la vente', FALSE);
 
 -- Autres personnes
+
 INSERT INTO personnes (nom, prenom, date_naissance, contact, lien_image) VALUES
 ('Lia', 'Mia', '1995-05-12', '0341234560', 'https://img.com/lia.jpg'),
 ('Rasoa', 'Sophie', '1998-09-21', '0349876543', 'https://img.com/sophie.jpg'),
@@ -129,3 +130,6 @@ INSERT INTO personnes (nom, prenom, date_naissance, contact, lien_image) VALUES
 INSERT INTO message_automatique (message) 
 VALUES ('Merci d avoir complete le test. Vos reponses ont ete enregistrees.Les responsables d Au fil des Page vont analyser vos resultats et vous serez recontacte prochainement.');
 
+INSERT INTO candidats (id_personne, id_annonce, id_profil, cv_url, poste, id_utilisateur) VALUES
+(1, 1, 1, 'https://cv.com/lia.pdf', 'Caissier', 101),
+(2, 2, 2, 'https://cv.com/sophie.pdf', 'Comptable', 102);

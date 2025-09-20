@@ -1,4 +1,4 @@
-<?php include "header.php" ?>
+<?php include "headerA.php" ?>
 <style>
 h2 {
   text-align: center;
@@ -216,4 +216,4 @@ btnSave.onclick = () => {
 
 
 
-<?php include "footer.php" ?>
+<?php include "footerA.php" ?>

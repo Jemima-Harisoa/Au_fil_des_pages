@@ -1,4 +1,4 @@
-<?php include "header.php" ?>
+<?php include "headerA.php" ?>
 <style>
 label {
   display: block; 
@@ -398,4 +398,4 @@ btnSuppr.addEventListener("click", () => {
 </script>
 
 
-<?php include "footer.php" ?>
+<?php include "footerA.php" ?>
