@@ -21,7 +21,7 @@ class fonctionTest {
         return $repQstVrai;
     }
     public function getRepQst($idQst) {
-        $repQst = Query::query("SELECT * FROM Reponses_Question WHERE id_question = ?", [$idQst]);
+        $repQst = Query::query("SELECT * FROM Reponses_Question WHERE id_question = ? ORDER BY id_reponse ASC", [$idQst]);
         return $repQst;
     }
     public function getIdProfil($idCandidat,$idAnnonce) {
@@ -35,37 +35,30 @@ class fonctionTest {
         return $filePath;
     }
 
-   public function comparaisonReponse($data,$idProfil, $idAnnonce) {
+  public function comparaisonReponse($data, $idProfil, $idAnnonce) {
     $score = 0; 
     $questions = $this->getQst($idAnnonce);
 
     foreach ($questions as $q) {
         $idQst = $q['id_question'];
-
         $repCorrectes = $this->getRepCorrectes($idQst); 
-        $repCandidat = $data[$idQst] ?? [];
-        sort($repCorrectes);
-        sort($repCandidat);
-        error_log("Question $idQst"); 
-        error_log("Réponses correctes: " . json_encode($repCorrectes));
-        error_log("Réponses candidat: " . json_encode($repCandidat));
-        error_log("score: " . json_encode($q['note']));
-        error_log("Réponse vrai: " . json_encode($repCorrectes[0]['reponse'] ));
-        if (!empty($repCorrectes) && !empty($repCandidat)) {
-    if ($repCorrectes[0]['reponse'] == $repCandidat[0]) {
-        $score += $q['note'];
+        $repCandidat = $data[$idQst] ?? null; 
+        $repCandidat = is_array($repCandidat) ? $repCandidat[0] : $repCandidat; 
+        if (!empty($repCorrectes) && $repCandidat !== null) {
+            if ($repCorrectes[0]['reponse'] == $repCandidat) {
+                $score += $q['note'];
+            }
+        }
     }
-}
 
-    }
     $dateTest = date('Y-m-d H:i:s'); 
-   $sql = "INSERT INTO tests (id_candidat, id_annonce, score_test, date_test)
-        VALUES (?, ?, ?, ?) RETURNING id_test";
+    $sql = "INSERT INTO tests (id_candidat, id_annonce, score_test, date_test)
+            VALUES (?, ?, ?, ?) RETURNING id_test";
+    $lastId = Query::query($sql, [$idProfil, $questions[0]['id_profil'] ?? null, $score, $dateTest]);
 
-$lastId = Query::query($sql, [$idProfil, $questions[0]['id_profil'] ?? null, $score, $dateTest]);
-
-
+    return $score; 
 }
+
     public function listTest(){
          $test = Query::query("select *from tests join candidats on tests.id_candidat=candidats.id_candidat join personnes on personnes.id_personne=candidats.id_personne");
         return $test;
@@ -79,6 +72,7 @@ JOIN personnes  ON candidats.id_personne = personnes.id_personne
 WHERE annonces.titre = ?",[$job]);
         return $j;
     }
+    
     public function getAllJobs(){
          $test = Query::query("Select *from Profils");
         return $test;
@@ -92,58 +86,141 @@ JOIN personnes  ON candidats.id_personne = personnes.id_personne
 WHERE annonces.titre = ? ORDER BY $colonne $ordre",[$job]);
         return $j;
     }
-
-    /*public function header($table) {
-        try {
-           
-            $query = "SHOW COLUMNS FROM " . $table;
-            $statement = Flight::db()->prepare($query);
-
-            $statement->execute();
-            $columns = $statement->fetchAll(PDO::FETCH_ASSOC);
-            $headers = [];
-            foreach ($columns as $column) {
-                $headers[] = $column['Field'];
-            }
     
-            return $headers;
-        } catch (PDOException $e) {
-            error_log($e->getMessage()); 
-            return []; 
-        }
+    public function listeTests(){
+         $j=Query::query("select *from Questions ORDER BY id_question ASC");
+        return $j;
+    }
+    public function deleteQst($idQst){
+         $j=Query::query("delete from questions where id_question=?",[$idQst]);
+        return $j;
+    }
+     public function deleteRepByQst($idQst,$idRep){
+         $j=Query::query("delete from reponses_question where id_question=? and id_reponse=?",[$idQst,$idRep]);
+        return $j;
+    }
+     public function deleteRep($idQst){
+         $j=Query::query("delete from reponses_question where id_question=?",[$idQst]);
+        return $j;
     }
     
-    
-    public function htmlPart( $tab,$table) {
-        $head=array();
-        $head=$this->header($table);
-        $html = "
-    <table border='1'>
-        <tr>";
-    
-        foreach ($head as $headers) {
-            $html .= "<th>" . htmlspecialchars($headers) . "</th>";
+public function deleteQstRep($tabQstRep){
+    $del = true;
+
+    foreach($tabQstRep as $item){
+
+        if(empty($item['idRep'])){
+            $rep=$this->deleteRep($item['idQst']);
+            $res = $this->deleteQst($item['idQst']);
+            $del = true;
+        } 
+        else if(empty($item['idQst'])){
+            $res = $this->deleteRep($item['idQst']); 
+            $del = true;
+        } 
+        else {
+            $res = $this->deleteRepByQst($item['idQst'], $item['idRep']);
+            $del = true;
         }
+    }
+
+    return $del;
+}
+    public function getIdJob($job){
+    $j = Query::query("SELECT * FROM profils WHERE titre=?", [$job]);
+    return !empty($j) ? $j[0]['id_profil'] : null; 
+}
+
+public function triQuestion($job) {
+    $id = $this->getIdJob($job);
+    if ($id === null) {
+        return [];
+    }
+    $q = Query::query("SELECT * FROM questions WHERE id_profil=?", [$id]);
+    return $q;
+}
+
+public function modifQst($newQst,$idQst) {
+       $j=Query::query("UPDATE questions
+SET question = ? WHERE id_question=?;
+",[$newQst,$idQst]);
+        return $j;
+}
+public function modifRep($newQst, $repType, $idQst, $idRep) {
+    if (!is_null($repType)) {
+        $repType = $repType ? 'TRUE' : 'FALSE';
+    }
+
+    $sql = "UPDATE reponses_question
+            SET reponse = ?, est_correct = $repType
+            WHERE id_question = ? AND id_reponse = ?;";
+
+    $j = Query::query($sql, [$newQst, $idQst, $idRep]);
+
+    return $j;
+}
+
+
+public function modifQstRep($tabQstRep){
+        $modif = true;
+    foreach($tabQstRep as $item){
         
-        $html .= "</tr>
-        <tr>";
-        
-        foreach ($tab as $row) {
-            $html .= "<tr>";
-            if (is_array($row)) {
-                foreach ($row as $data) {
-                    $html .= "<td>" . htmlspecialchars((string)$data) . "</td>";
-                }
-            } else {
-                $html .= "<td>" . htmlspecialchars((string)$row) . "</td>";
-            }
-            $html .= "</tr>";
+        if(empty($item['idRep'])){
+            $rep=$this->modifQst($item['nouvelleValeur'],$item['idQst']);
+            $modif = true;
+        } 
+        else {
+            $res = $this->modifRep($item['nouvelleValeur'],$item['repType'],$item['idQst'], $item['idRep']);
+            $modif = true;
         }
-        
-        $html .= "</table>";
+}
+    return $modif;
+
     
-        
-        return $html;
-    }*/
-    
+}
+
+public function ajoutRep($tabQstRep){
+    $modif = true;
+
+    foreach($tabQstRep as $item){
+        $idQst = $item['idQst'] ?? null;
+        $nouvelleValeur = $item['nouvelleValeur'] ?? '';
+        $repType = !empty($item['repType']) ? 1 : 0;
+
+        $j = Query::query(
+            "INSERT INTO reponses_question(id_question, reponse, est_correct) VALUES (?, ?, ?) RETURNING id_reponse",
+            [$idQst, $nouvelleValeur, $repType]
+        );
+
+        if($j === false){
+            $modif = false;
+        }
+    }
+
+    return $modif;
+}
+
+public function creerTest($qst, $job, $point, $reps, $checks){
+    $idJob = $this->getIdJob($job);
+    $idQuestion = Query::query(
+        "INSERT INTO questions (question, id_profil, note) VALUES (?, ?, ?) RETURNING id_question",
+        [$qst, $idJob, $point]
+    );
+
+    if (!$idQuestion) {
+        return false; 
+    }
+
+    foreach ($reps as $index => $answer) {
+        $estCorrect = isset($checks[$index]) && $checks[$index] ? 1 : 0; 
+        Query::query(
+            "INSERT INTO reponses_question (id_question, reponse, est_correct) VALUES (?, ?, ?) RETURNING id_reponse",
+            [$idQuestion, $answer, $estCorrect]
+        );
+    }
+
+    return true; 
+}
+
+
 }

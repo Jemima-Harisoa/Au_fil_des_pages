@@ -13,7 +13,7 @@
     }
 
     .question {
-        display: none; /* cachées par défaut */
+        display: none; 
         margin-bottom: 30px;
         padding: 15px;
         background-color: #ffffff;
@@ -23,7 +23,7 @@
     }
 
     .question.active {
-        display: block; /* affiche la question courante */
+        display: block; 
     }
 
     .question p {
@@ -85,7 +85,6 @@
 </style>
 
 <form id="qcmForm" action="/traitement-qcm" method="POST">
-
 <?php if (!empty($qcm)) {
     foreach ($qcm as $index => $q): ?>
         <div class="question <?= $index === 0 ? 'active' : '' ?>">
@@ -93,18 +92,21 @@
 
             <?php foreach ($q['reponses'] as $r): ?>
                 <label class="reponse-card">
-                    <input type="checkbox" name="reponses[<?= $q['id_question'] ?>][]" value="<?= htmlspecialchars($r['reponse']) ?>">
+                    <input type="radio" 
+                           name="reponses[<?= $q['id_question'] ?>]"  
+                           value="<?= htmlspecialchars($r['reponse']) ?>">
                     <?= htmlspecialchars($r['reponse']) ?>
                 </label>
             <?php endforeach; ?>
 
             <div class="nav-buttons">
+                <?php if ($index < count($qcm) - 1): ?>
+                     <button type="button" class="btn-nav next-btn">Suivant</button>
+                <?php endif; ?>
                 <?php if ($index > 0): ?>
                     <button type="button" class="btn-nav prev-btn">Précédent</button>
                 <?php endif; ?>
-                <?php if ($index < count($qcm) - 1): ?>
-                    <button type="button" class="btn-nav next-btn">Suivant</button>
-                <?php else: ?>
+                <?php if ($index == count($qcm) - 1): ?>
                     <button type="submit" class="btn-nav">ENVOYER LE TEST</button>
                 <?php endif; ?>
             </div>
@@ -123,14 +125,15 @@
             currentIndex = index;
             questions[currentIndex].classList.add("active");
         }
-        document.querySelectorAll(".next-btn").forEach((btn, index) => {
-            btn.addEventListener("click", () => {
-                showQuestion(index + 1);
-            });
-        });
+
         document.querySelectorAll(".prev-btn").forEach((btn, index) => {
             btn.addEventListener("click", () => {
                 showQuestion(index);
+            });
+        });
+                document.querySelectorAll(".next-btn").forEach((btn, index) => {
+            btn.addEventListener("click", () => {
+                showQuestion(index + 1);
             });
         });
 
