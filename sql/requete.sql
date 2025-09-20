@@ -53,7 +53,7 @@ SELECT de.*,em.id_departement,em.poste,CASE jour
     WHEN 'Samedi'THEN 6
     WHEN 'Dimanche'THEN 7
     END as numero_jour
-    FROM  disponibilite_employe de 
+    FROM  disponibilite_entretien de 
     JOIN (
         SELECT 
         id_employe,poste,id_departement
@@ -76,7 +76,43 @@ select  id_employe,
     where id_departement = ? ;
 
 --
---Recuperer les candidats qui ont reussi les tests par id_departement
+--Recuperer les candidats qui ont reussi les tests 
 
-SELECT * 
-FROM candidats 
+SELECT *
+FROM (
+    SELECT 
+        ca.*,
+        te.score_test,
+        te.date_test,
+        ROW_NUMBER() OVER (PARTITION BY ca.id_profil ORDER BY te.score_test DESC) AS rang
+    FROM candidats ca
+    JOIN tests te ON ca.id_candidat = te.id_candidat
+) t
+WHERE rang <= ?
+ORDER BY id_profil, rang;
+
+
+-- Recuperer les responsables de l'entretien d'un candidat ayant reussi le test en utilisant l'id profil du candidat
+SELECT * FROM responsable_entretien where id_profil = ?;
+
+--recuperer  le departement de chaque employe responsable
+CREATE OR REPLACE VIEW v_responsable_avec_departement AS
+    SELECT 
+        re.id_responsable,
+        re.id_employe,
+        em_de.nom as nom_departement,
+        em_de.id_departement
+    FROM responsable_entretien re
+    JOIN (
+        SELECT EM.*,de.nom
+        FROM (SELECT *
+        FROM employes em
+        )Em
+        JOIN departements de
+        ON de.id_departement = Em.id_departement
+    )em_de
+    ON em_de.id_employe = re.id_employe;
+
+
+--Recuperer les configurations des entretiens par un responsable
+
