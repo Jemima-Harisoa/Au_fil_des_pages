@@ -72,7 +72,80 @@ document.getElementById('searchMessages').addEventListener('keyup', function() {
     });
 });
 </script>
+<script>
+// Empêcher la fermeture du dropdown sur l'icône et le champ de recherche
+document.getElementById('toggleMessageSearch').addEventListener('click', function(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    const searchInput = document.getElementById('messageCenterSearch');
+    const titleSpan = document.getElementById('messageCenterTitle');
+    
+    if (searchInput.classList.contains('d-none')) {
+        titleSpan.classList.add('d-none');
+        searchInput.classList.remove('d-none');
+        searchInput.focus();
+    } else {
+        titleSpan.classList.remove('d-none');
+        searchInput.classList.add('d-none');
+        searchInput.value = '';
+        filterMessages('');
+    }
+});
 
+document.getElementById('messageCenterSearch').addEventListener('click', function(e) {
+    e.stopPropagation();
+});
+
+// Fonction de filtrage des messages
+function filterMessages(searchText) {
+    const dropdownItems = document.querySelectorAll('.dropdown-item:not(.text-center)');
+    searchText = searchText.toLowerCase().trim();
+    
+    let hasResults = false;
+    
+    dropdownItems.forEach(item => {
+        const title = item.querySelector('.text-truncate').textContent.toLowerCase();
+        const nameInfo = item.querySelector('.small.text-gray-500').textContent.toLowerCase();
+        
+        if (searchText === '' || title.includes(searchText) || nameInfo.includes(searchText)) {
+            item.style.display = '';
+            hasResults = true;
+        } else {
+            item.style.display = 'none';
+        }
+        // On cache l'élément si aucun critère ne correspond
+        if (searchText === '' || title.includes(searchText) || nameInfo.includes(searchText)) {
+            item.style.display = 'flex'; // Garde l'alignement original
+            hasResults = true;
+        } else {
+            item.style.display = 'none'; // Cache complètement l'élément
+        }
+    });
+    
+    // Gestion du message "Aucun résultat"
+    const noResults = document.querySelector('.dropdown-item.text-center.text-muted');
+    if (noResults) {
+        if (searchText !== '' && !hasResults) {
+            noResults.style.display = 'block';
+            noResults.textContent = 'Aucun résultat';
+        } else {
+            noResults.style.display = 'none';
+        }
+    }
+}
+
+// Recherche en temps réel avec debounce
+let searchTimeout;
+document.getElementById('messageCenterSearch').addEventListener('input', function(e) {
+    clearTimeout(searchTimeout);
+    searchTimeout = setTimeout(() => filterMessages(this.value), 300);
+});
+
+// Empêcher la fermeture du dropdown lors de la recherche
+document.querySelector('.dropdown-list').addEventListener('click', function(e) {
+    e.stopPropagation();
+});
+</script>
 </body>
 
 </html>
