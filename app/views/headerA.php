@@ -1,3 +1,13 @@
+<?php
+// var_dump($_SESSION['messagerie']);
+$nbNonLus = 0;
+if(!empty($_SESSION['messagerie'])) {
+    foreach($_SESSION['messagerie'] as $msg) {
+        if(($msg['dernier_auteur'] ?? '') === 'Utilisateur' && empty($msg['lu'])) {
+            $nbNonLus++;
+        }
+    }
+}?>
 <!DOCTYPE html>
 <html lang="en">
 
@@ -109,13 +119,53 @@
                             </a>
                         </li>
 
+                                 <li class="nav-item dropdown no-arrow mx-1">
+                            <a class="nav-link dropdown-toggle" href="#" id="messagesDropdown" role="button"
+                               data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                <i class="fas fa-envelope fa-fw"></i>
+                                <!-- Counter - Messages -->
+                                <?php if($nbNonLus > 0): ?>
+                                    <span class="badge badge-danger badge-counter"><?= $nbNonLus ?></span>
+                                <?php endif; ?>
+                            </a>
+                            <!-- Dropdown - Messages -->
+                            <div class="dropdown-list dropdown-menu dropdown-menu-right shadow animated--grow-in"
+                                aria-labelledby="messagesDropdown">
+                                <h6 class="dropdown-header">
+                                    Message Center
+                                </h6>
+                                <?php if(!empty($_SESSION['messagerie'])): ?>
+    <?php foreach($_SESSION['messagerie'] as $msg): ?>
+        <a class="dropdown-item d-flex align-items-center" href="/messagerieA/<?= $msg['id_candidat'] ?>/<?= $msg['id_annonce'] ?>">
+            <div class="dropdown-list-image mr-3">
+                <img class="rounded-circle" src="/img/undraw_profile_1.svg" alt="Profil">
+                <?php if(($msg['dernier_auteur'] ?? '') === 'Utilisateur' && empty($msg['lu'])): ?>
+                    <span class="badge badge-danger badge-counter" style="position:absolute;top:0;right:0;font-size:0.7rem;">●</span>
+                <?php endif; ?>
+            </div>
+            <div class="<?= (($msg['dernier_auteur'] ?? '') === 'Utilisateur' && empty($msg['lu'])) ? 'font-weight-bold' : '' ?>">
+                <div class="text-truncate"><?= htmlspecialchars($msg['titre']) ?></div>
+                <div class="small text-gray-500"><?= htmlspecialchars($msg['nom']) ?> <?= htmlspecialchars($msg['prenom']) ?></div>
+            </div>
+        </a>
+    <?php endforeach; ?>
+<?php else: ?>
+    <div class="dropdown-item text-center text-muted">
+        Aucune conversation
+    </div>
+<?php endif; ?>
+                                <a class="dropdown-item text-center small text-gray-500" href="#">Read More Messages</a>
+                            </div>
+                        </li>
+
+
                         <!-- Nav Item - User Information -->
                         <li class="nav-item dropdown no-arrow">
                             <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button"
                                 data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                                 <span class="mr-2 d-none d-lg-inline text-gray-600 small"><?= $_SESSION['infoAdmin']['nom'] ?> <br> <?= $_SESSION['infoAdmin']['prenom'] ?></span>
                                 <img class="img-profile rounded-circle"
-                                    src="/img/undraw_profile.svg">
+                                    src="/img/undraw_profile_1.svg">
                             </a>
                             <!-- Dropdown - User Information -->
                             <div class="dropdown-menu dropdown-menu-right shadow animated--grow-in"

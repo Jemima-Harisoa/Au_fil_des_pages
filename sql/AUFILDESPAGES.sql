@@ -100,7 +100,8 @@ CREATE TABLE candidats (
   id_annonce INT,
   id_profil INT,
   cv_url VARCHAR,
-  poste VARCHAR
+  poste VARCHAR ,
+  id_utilisateur INT
 );
 
 CREATE TABLE tests (

@@ -123,5 +123,9 @@ INSERT INTO personnes (nom, prenom, date_naissance, contact, lien_image) VALUES
 ('Hanitra', 'Lina', '2000-01-15', '0342223334', 'https://img.com/lina.jpg');
 
 
--- INSERT INTO candidats (id_personne, id_annonce, id_profil, poste) VALUES
--- (1, 1, 1 , 'Caissier / Caissiere');
+-- INSERT INTO candidats (id_personne, id_annonce, id_profil , id_utilisateur , poste) VALUES
+-- (1, 1, 1 , 1, 'Caissier / Caissiere');
+
+INSERT INTO message_automatique (message) 
+VALUES ('Merci d avoir complete le test. Vos reponses ont ete enregistrees.Les responsables d Au fil des Page vont analyser vos resultats et vous serez recontacte prochainement.');
+

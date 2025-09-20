@@ -7,6 +7,7 @@ session_start();
 use Flight;
 use app\models\ConnexionModel;
 use app\models\AdminModel;
+use app\models\MessagerieModel;
 class ConnexionController {
 
 	public function __construct() {
@@ -23,15 +24,16 @@ class ConnexionController {
 	public function VerificationConnectionU()
     {
         $p = new ConnexionModel(Flight::db());
+        $messagerieModel = new messagerieModel(Flight::db());
         
             $Nom = $_POST['Nom'];
             $mdp = $_POST['mdp'];
         $v = $p->verifierUtilisateur($Nom, $mdp);
         if($v == true)
         {
-            $_SESSION['utilisateur']  = $p->getUtilisateur($Nom, $mdp);     
+            $_SESSION['utilisateur']  = $p->getUtilisateur($Nom, $mdp);
+            $_SESSION['messagerie'] = $messagerieModel->getTitresConversationsU($_SESSION['utilisateur']['id_utilisateur']);  
             Flight::render('accueilU',null);
-
         }
         else {
             $mess = "Verifier votre mot de passe ou votre nom d'utilisateur";
@@ -79,6 +81,7 @@ class ConnexionController {
         $idGestion = 1;
         $p = new ConnexionModel(Flight::db());
         $AdminModel = new AdminModel(Flight::db());
+        $messagerieModel = new MessagerieModel(Flight::db());
 
         
             $Nom = $_POST['Nom'];
@@ -91,6 +94,7 @@ class ConnexionController {
             $_SESSION['admin']  = $p->getAdmin($Nom, $mdp); 
             $_SESSION['departement']  = $p-> getDepartementAdmin($_SESSION['admin']['id_admin']);     
             $_SESSION['infoAdmin'] = $AdminModel -> getDetailsPersoAdmin($_SESSION['admin']['id_admin']);
+            $_SESSION['messagerie'] = $messagerieModel->getTitresConversationsA();  
             if($_SESSION['departement']['id_departement'] ==  $idGestion  )
             {
                 Flight::render('accueilG',null);    

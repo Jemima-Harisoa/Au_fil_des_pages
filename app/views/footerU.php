@@ -46,6 +46,16 @@
 
     <!-- Custom scripts for all pages-->
     <script src="/js/sb-admin-2.min.js"></script>
+    <script>
+        .then(data => {
+    if (data.success) {
+        input.value = '';
+        window.location.reload(); // <-- recharge la page pour afficher la session à jour
+    } else {
+        alert("Erreur lors de l'envoi du message.");
+    }
+})
+    </script>
 
 </body>
 

@@ -47,6 +47,32 @@
     <!-- Custom scripts for all pages-->
     <script src="/js/sb-admin-2.min.js"></script>
 
+        <script>
+        .then(data => {
+    if (data.success) {
+        input.value = '';
+        window.location.reload(); // <-- recharge la page pour afficher la session à jour
+    } else {
+        alert("Erreur lors de l'envoi du message.");
+    }
+})
+    </script>
+    <script>
+document.getElementById('toggleSearch').addEventListener('click', function() {
+    const container = document.getElementById('searchContainer');
+    container.style.display = (container.style.display === 'none' || container.style.display === '') ? 'block' : 'none';
+    document.getElementById('searchMessages').focus();
+});
+
+document.getElementById('searchMessages').addEventListener('keyup', function() {
+    const term = this.value.toLowerCase();
+    document.querySelectorAll('.message-item').forEach(item => {
+        const text = item.innerText.toLowerCase();
+        item.style.display = text.includes(term) ? '' : 'none';
+    });
+});
+</script>
+
 </body>
 
 </html>

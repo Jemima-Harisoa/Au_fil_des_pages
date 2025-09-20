@@ -83,6 +83,7 @@ class AnnoncesModel {
         $this->add($titre, $filename, $date_publication, $date_expiration, $nombrePoste, $idProfil);
         return $filename;
     }
+    
 
 public function createFichier($contenuAnnonce, $nombrePoste, $idProfil, $titre = "Nouvelle annonce", $date_publication = null) {
     // Structure de l’annonce

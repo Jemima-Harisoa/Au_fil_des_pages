@@ -52,18 +52,20 @@ class fonctionTest {
         error_log("score: " . json_encode($q['note']));
         error_log("Réponse vrai: " . json_encode($repCorrectes[0]['reponse'] ));
         if (!empty($repCorrectes) && !empty($repCandidat)) {
-    if ($repCorrectes[0]['reponse'] == $repCandidat[0]) {
-        $score += $q['note'];
-    }
-}
-
+            if ($repCorrectes[0]['reponse'] == $repCandidat[0]) {
+                $score += $q['note'];
+            }
+        }
     }
     $dateTest = date('Y-m-d H:i:s'); 
-   $sql = "INSERT INTO tests (id_candidat, id_annonce, score_test, date_test)
+    $sql = "INSERT INTO tests (id_candidat, id_annonce, score_test, date_test)
         VALUES (?, ?, ?, ?) RETURNING id_test";
 
-$lastId = Query::query($sql, [$idProfil, $questions[0]['id_profil'] ?? null, $score, $dateTest]);
+    $lastId = Query::query($sql, [$idProfil, $idAnnonce ?? null, $score, $dateTest]);
 
+    // Appel de la réponse automatique
+    $messagerieModel = new MessagerieModel();
+    $messagerieModel->reponseAutomatique($idProfil, $idAnnonce, 1);
 
 }
     public function listTest(){

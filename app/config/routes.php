@@ -4,6 +4,7 @@ use app\controllers\ConnexionController;
 use app\controllers\AnnoncesController;
 
 use app\controllers\TestController;
+use app\controllers\MessagerieController;
 use flight\Engine;
 use flight\net\Router;
 //use Flight;
@@ -55,3 +56,8 @@ $router->post('/traitement-qcm', [ $Test_Controller, 'traitementQCM' ]);
 $router->get('/allTests', [ $Test_Controller, 'getList' ]); 
 $router->get('/triMetier', [ $Test_Controller, 'getListByJob' ]); 
 $router->get('/triageTests', [ $Test_Controller, 'getListSorted' ]); 
+
+$MessagerieController = new MessagerieController();
+$router->get('/messagerieU/@id_candidat/@id_annonce', [ $MessagerieController, 'showMessagerieU' ]);
+$router->post('/messagerieU/send', [ $MessagerieController, 'sendMessageU' ]);
+$router->get('/messagerieA/@id_candidat/@id_annonce', [ $MessagerieController, 'showMessagerieA' ]);

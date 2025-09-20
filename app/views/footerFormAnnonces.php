@@ -61,7 +61,16 @@
 
     <!-- Page level custom scripts -->
     <script src="/js/demo/datatables-demo.js"></script>
-
+    <script>
+        .then(data => {
+    if (data.success) {
+        input.value = '';
+        window.location.reload(); // <-- recharge la page pour afficher la session à jour
+    } else {
+        alert("Erreur lors de l'envoi du message.");
+    }
+})
+    </script>
 </body>
 
 </html>
