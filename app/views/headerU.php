@@ -32,7 +32,6 @@ if(!empty($_SESSION['messagerie'])) {
     <!-- Custom styles for this page -->
     <link href="/vendor/datatables/dataTables.bootstrap4.min.css" rel="stylesheet">
 
-    <!-- In the head section, add the styles -->
     <style>
 .dropdown-header {
     display: flex !important;
@@ -152,7 +151,6 @@ if(!empty($_SESSION['messagerie'])) {
                             </a>
                         </li>
 
-                    
                         <!-- Nav Item - Messages -->
                         <li class="nav-item dropdown no-arrow mx-1">
                             <a class="nav-link dropdown-toggle" href="#" id="messagesDropdown" role="button"
@@ -177,25 +175,25 @@ if(!empty($_SESSION['messagerie'])) {
                                     </button>
                                 </h6>
                                 <?php if(!empty($_SESSION['messagerie'])): ?>
-    <?php foreach($_SESSION['messagerie'] as $msg): ?>
-        <a class="dropdown-item d-flex align-items-center" href="/messagerieU/<?= $msg['id_candidat'] ?>/<?= $msg['id_annonce'] ?>">
-            <div class="dropdown-list-image mr-3">
-                <img class="rounded-circle" src="/img/undraw_profile_1.svg" alt="Profil">
-                <?php if(($msg['dernier_auteur'] ?? '') === 'Admin' && empty($msg['lu'])): ?>
-                    <span class="badge badge-danger badge-counter" style="position:absolute;top:0;right:0;font-size:0.7rem;">●</span>
-                <?php endif; ?>
-            </div>
-            <div class="<?= (($msg['dernier_auteur'] ?? '') === 'Admin' && empty($msg['lu'])) ? 'font-weight-bold' : '' ?>">
-                <div class="text-truncate"><?= htmlspecialchars($msg['titre']) ?></div>
-                <div class="small text-gray-500"><?= htmlspecialchars($msg['nom_entreprise']) ?></div>
-            </div>
-        </a>
-    <?php endforeach; ?>
-<?php else: ?>
-    <div class="dropdown-item text-center text-muted">
-        Aucune conversation
-    </div>
-<?php endif; ?>
+                                    <?php foreach($_SESSION['messagerie'] as $msg): ?>
+                                        <a class="dropdown-item d-flex align-items-center" href="/messagerieU/<?= $msg['id_candidat'] ?>/<?= $msg['id_annonce'] ?>">
+                                            <div class="dropdown-list-image mr-3">
+                                                <img class="rounded-circle" src="/img/undraw_profile_1.svg" alt="Profil">
+                                                <?php if(($msg['dernier_auteur'] ?? '') === 'Admin' && empty($msg['lu'])): ?>
+                                                    <span class="badge badge-danger badge-counter" style="position:absolute;top:0;right:0;font-size:0.7rem;">●</span>
+                                                <?php endif; ?>
+                                            </div>
+                                            <div class="<?= (($msg['dernier_auteur'] ?? '') === 'Admin' && empty($msg['lu'])) ? 'font-weight-bold' : '' ?>">
+                                                <div class="text-truncate"><?= htmlspecialchars($msg['titre']) ?></div>
+                                                <div class="small text-gray-500"><?= htmlspecialchars($msg['nom_entreprise']) ?></div>
+                                            </div>
+                                        </a>
+                                    <?php endforeach; ?>
+                                <?php else: ?>
+                                    <div class="dropdown-item text-center text-muted">
+                                        Aucune conversation
+                                    </div>
+                                <?php endif; ?>
                             </div>
                         </li>
 
