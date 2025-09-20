@@ -42,15 +42,16 @@ class fonctionTest {
     foreach ($questions as $q) {
         $idQst = $q['id_question'];
         $repCorrectes = $this->getRepCorrectes($idQst); 
+
         $repCandidat = $data[$idQst] ?? null; 
         $repCandidat = is_array($repCandidat) ? $repCandidat[0] : $repCandidat; 
         if (!empty($repCorrectes) && $repCandidat !== null) {
             if ($repCorrectes[0]['reponse'] == $repCandidat) {
+
                 $score += $q['note'];
             }
         }
     }
-
     $dateTest = date('Y-m-d H:i:s'); 
     $sql = "INSERT INTO tests (id_candidat, id_annonce, score_test, date_test)
             VALUES (?, ?, ?, ?) RETURNING id_test";

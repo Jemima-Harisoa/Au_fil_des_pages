@@ -10,7 +10,6 @@ class TestController {
 	public function __construct() {
 
 	}
-
 	public function traitementQCM() {
     $fonction = new fonctionTest(Flight::db());
     $idCandidat = 6;
@@ -18,7 +17,6 @@ class TestController {
     $profilData = $fonction->getIdProfil($idCandidat, $idAnnonce);
     $idProfil = $profilData[0]['id_profil'];
 
-    // Récupération des questions et réponses
     $questions = $fonction->getQst($idProfil);
     $qcm = [];
     foreach ($questions as $q) {
@@ -43,6 +41,33 @@ class TestController {
         'qcm' => $qcm
     ]);
 }
+	public function QCM() {
+        $fonction = new fonctionTest(Flight::db());
+        $idCandidat = 1;
+        $idAnnonce=1;
+        $profilData = $fonction->getIdProfil($idCandidat,$idAnnonce);
+        if (empty($profilData)) {
+            Flight::halt(404, "Profil non trouvé pour ce candidat");
+            return;
+        }
+        $idProfil = $profilData[0]['id_profil'];
+        $questions = $fonction->getQst($idProfil);
+        $qcm = [];
+    
+        foreach ($questions as $q) {
+            $idQst = $q['id_question']; 
+            $reponses = $fonction->getRepQst($idQst); 
+    
+            $qcm[] = [
+                'id_question' => $idQst,
+                'question' => $q['question'],
+                'note' => $q['note'],
+                'reponses' => $reponses 
+            ];
+        }
+        Flight::render('formulaireTest', ['qcm' => $qcm]);
+    }
+   
 
     public function getList(){
         $fonction = new fonctionTest(Flight::db());
