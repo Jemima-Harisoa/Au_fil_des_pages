@@ -60,6 +60,20 @@ if(!empty($_SESSION['messagerie'])) {
 .message-item {
     transition: all 0.2s;
 }
+
+.no-results-message {
+    font-style: italic;
+    color: #6c757d !important;
+}
+
+.hidden-by-search {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+    height: 0 !important;
+    padding: 0 !important;
+    margin: 0 !important;
+}
 </style>
 
 </head>
@@ -148,7 +162,7 @@ if(!empty($_SESSION['messagerie'])) {
                             </a>
                         </li>
 
-                                 <li class="nav-item dropdown no-arrow mx-1">
+                        <li class="nav-item dropdown no-arrow mx-1">
                             <a class="nav-link dropdown-toggle" href="#" id="messagesDropdown" role="button"
                                data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                                 <i class="fas fa-envelope fa-fw"></i>
@@ -159,38 +173,37 @@ if(!empty($_SESSION['messagerie'])) {
                             </a>
                             <!-- Dropdown - Messages -->
                             <div class="dropdown-list dropdown-menu dropdown-menu-right shadow animated--grow-in"
-    aria-labelledby="messagesDropdown">
-    <h6 class="dropdown-header d-flex justify-content-between align-items-center">
-        <span id="messageCenterTitle">Message Center</span>
-        <input type="text" id="messageCenterSearch" 
-               class="form-control form-control-sm d-none" 
-               placeholder="Rechercher..." 
-               style="width: 150px;">
-        <button id="toggleMessageSearch" class="btn btn-link text-white p-0 ml-2">
-            <i class="fas fa-search fa-sm"></i>
-        </button>
-    </h6>
+                                 aria-labelledby="messagesDropdown">
+                                <h6 class="dropdown-header d-flex justify-content-between align-items-center">
+                                    <span id="messageCenterTitle">Message Center</span>
+                                    <input type="text" id="messageCenterSearch" 
+                                           class="form-control form-control-sm d-none" 
+                                           placeholder="Rechercher..." 
+                                           style="width: 150px;">
+                                    <button id="toggleMessageSearch" class="btn btn-link text-white p-0 ml-2">
+                                        <i class="fas fa-search fa-sm"></i>
+                                    </button>
+                                </h6>
                                 <?php if(!empty($_SESSION['messagerie'])): ?>
-    <?php foreach($_SESSION['messagerie'] as $msg): ?>
-        <a class="dropdown-item d-flex align-items-center" href="/messagerieA/<?= $msg['id_candidat'] ?>/<?= $msg['id_annonce'] ?>">
-            <div class="dropdown-list-image mr-3">
-                <img class="rounded-circle" src="/img/undraw_profile_1.svg" alt="Profil">
-                <?php if(($msg['dernier_auteur'] ?? '') === 'Utilisateur' && empty($msg['lu'])): ?>
-                    <span class="badge badge-danger badge-counter" style="position:absolute;top:0;right:0;font-size:0.7rem;">●</span>
-                <?php endif; ?>
-            </div>
-            <div class="<?= (($msg['dernier_auteur'] ?? '') === 'Utilisateur' && empty($msg['lu'])) ? 'font-weight-bold' : '' ?>">
-                <div class="text-truncate"><?= htmlspecialchars($msg['titre']) ?></div>
-                <div class="small text-gray-500"><?= htmlspecialchars($msg['nom']) ?> <?= htmlspecialchars($msg['prenom']) ?></div>
-            </div>
-            
-        </a>
-    <?php endforeach; ?>
-<?php else: ?>
-    <div class="dropdown-item text-center text-muted">
-        Aucune conversation
-    </div>
-<?php endif; ?>
+                                    <?php foreach($_SESSION['messagerie'] as $msg): ?>
+                                        <a class="dropdown-item d-flex align-items-center" href="/messagerieA/<?= $msg['id_candidat'] ?>/<?= $msg['id_annonce'] ?>">
+                                            <div class="dropdown-list-image mr-3">
+                                                <img class="rounded-circle" src="/img/undraw_profile_1.svg" alt="Profil">
+                                                <?php if(($msg['dernier_auteur'] ?? '') === 'Utilisateur' && empty($msg['lu'])): ?>
+                                                    <span class="badge badge-danger badge-counter" style="position:absolute;top:0;right:0;font-size:0.7rem;">●</span>
+                                                <?php endif; ?>
+                                            </div>
+                                            <div class="<?= (($msg['dernier_auteur'] ?? '') === 'Utilisateur' && empty($msg['lu'])) ? 'font-weight-bold' : '' ?>">
+                                                <div class="text-truncate"><?= htmlspecialchars($msg['titre']) ?></div>
+                                                <div class="small text-gray-500"><?= htmlspecialchars($msg['nom']) ?> <?= htmlspecialchars($msg['prenom']) ?></div>
+                                            </div>
+                                        </a>
+                                    <?php endforeach; ?>
+                                <?php else: ?>
+                                    <div class="dropdown-item text-center text-muted">
+                                        Aucune conversation
+                                    </div>
+                                <?php endif; ?>
                                 <a class="dropdown-item text-center small text-gray-500" href="#">Read More Messages</a>
                             </div>
                         </li>
