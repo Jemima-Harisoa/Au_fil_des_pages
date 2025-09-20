@@ -2,7 +2,7 @@
 namespace app\controllers;
 use app\models\AdminModel;
 use app\models\CVModel;
-use PDO;
+// use PDO;
 
 
 use Flight;
@@ -19,7 +19,15 @@ class cvController {
     public function fillCV($idUser, $idAnnonce, $idProfil){
         Flight::render('CV/Postuler/formulaireCV', ['idAnnonce' => $idAnnonce, 'idProfil' => $idProfil]);
     }
+    
 
+    public function retourAccueilU() {
+        Flight::render('accueilU');
+    }
+
+    public function retourFill() {
+        Flight::render('CV/Postuler/formulaireCV');
+    }
 
     public function printDataCV() {
         $requete = Flight::request();
@@ -133,6 +141,12 @@ class cvController {
         $fichier = preg_replace('/([^.a-z0-9]+)/i', '-', $fichier);
         return $fichier;
     }
+
+    public function listeCV() {
+        $data = CVModel::getAllCVs();
+        Flight::render('CV/listeCV', ['data' => $data]);
+    }
+    
     
 }
 

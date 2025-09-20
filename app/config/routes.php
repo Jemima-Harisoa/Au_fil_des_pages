@@ -27,6 +27,12 @@ $router->get('/@idUser/Annonce', [ $cvController, 'redirectCV' ]);
 $router->get('/@idUser/Annonce/@idAnnonce/@idProfil/fillCV', [ $cvController, 'fillCV']);
 
 $router->post('/@idUser/Annonce/@idAnnonce/@idProfil/fillCV/postulationCV',[ $cvController, 'getDataCV']);
+
+$router->get('/retourConfirmation',[ $cvController, 'retourAccueilU']);
+$router->get('/retourFill',[ $cvController, 'retourAccueilU']);
+
+$router->get('/listeCV',[ $cvController, 'listeCV']);
+
 // $router->get('/CV', [ $cvController, 'redirectCV']);
 
 // $router->get('/CV/fillCV/@idUser/@idAnnonce', [ $cvController, 'fillCV']);
