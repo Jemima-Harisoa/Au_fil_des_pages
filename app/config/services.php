@@ -13,6 +13,8 @@ use app\models\DisponibiliteEntretienModel;
 use app\models\ConfigEntretienModel;
 use app\models\CandidatModel;
 use app\models\TestModel;
+use app\models\ProfilsModel;
+use app\models\PlanningEntretienModel;
 
 /** 
  * @var array $config This comes from the returned array at the bottom of the config.php file
@@ -56,6 +58,14 @@ Flight::map('candidatModel', function () {
 //
 Flight::map('testModel', function () {
   return new TestModel(Flight::db());
+});
+
+Flight::map('profilsModel', function () {
+  return new ProfilsModel(Flight::db());
+});
+
+Flight::map('planningEntretienModel', function () {
+  return new PlanningEntretienModel(Flight::db());
 });
 //Flight::map('ConnexionModel', function () {
 //    return new ConnexionModel(Flight::db());
