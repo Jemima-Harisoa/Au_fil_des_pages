@@ -88,7 +88,27 @@ class ResponsableEntretienModel
 
         return $stmt->fetchAll(\PDO::FETCH_ASSOC);
     }
-    public function getDepartement(ResponsableEntretienModel $responsable): ?array{
-    $query = "";
+    public function getDepartement(array $responsable): ?array{
+        $query = "SELECT re.*,de.*
+        FROM (SELECT * 
+                FROM responsable_entretien  
+                WHERE  id_responsable = ?
+        )re
+        JOIN employes em 
+        ON em.id_employe = re.id_employe
+        JOIN departements de 
+        ON de.id_departement = em.id_departement";
+        try{
+            if($responsable == null){
+                throw new \Exception("aucun responsable n'a ete trouve");
+            }
+        $db = $this->db;
+        $stmt = $db->prepare($query);
+        $stmt->execute([$responsable["id_responsable"]]);
+        return $stmt->fetchAll(\PDO::FETCH_ASSOC);
+        }
+        catch(\Exception $e){
+            throw new \Exception($e->getMessage());
+        }
     }
 }
