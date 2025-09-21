@@ -114,5 +114,24 @@ CREATE OR REPLACE VIEW v_responsable_avec_departement AS
     ON em_de.id_employe = re.id_employe;
 
 
---Recuperer les configurations des entretiens par un responsable
+--Recuperer la configuraion d'entretiens pour un responsable
 
+SELECT *
+    FROM config_entretien 
+    where id_departement = ?
+    and id_config_entretien in(
+        SELECT MAX(id_config_entretien) 
+        FROM config_entretien ce
+        GROUP BY id_departement
+    ) ;
+
+--recuperer le responsbable d'entretien avec son departement
+SELECT re.*,de.*
+FROM (SELECT * 
+        FROM responsable_entretien  
+        WHERE  id_responsable = ?
+)re
+JOIN employes em 
+ON em.id_employe = re.id_employe
+JOIN departements de 
+ON de.id_departement = em.id_departement;
