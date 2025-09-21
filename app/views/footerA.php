@@ -315,7 +315,174 @@
         
     </script>
 
-    
+    <script>
+        // === SCRIPT GLOBAL POUR ACTUALISATION NOTIFICATIONS MESSAGERIE ===
+        
+        // Variables globales pour la messagerie
+        let messageNotificationInterval;
+        let currentConversation = null;
+        
+        // Fonction pour mettre à jour le badge de notification
+        function updateNotificationBadge(count) {
+            console.log('Mise à jour badge, count:', count);
+            
+            // Chercher tous les badges possibles dans le header
+            const badgeSelectors = [
+                '#messagesDropdown .badge',
+                '#messagesDropdown .badge-danger',
+                '.messages-nav .badge',
+                '.nav-link .badge',
+                '.notification-badge',
+                '[class*="badge"][class*="danger"]'
+            ];
+            
+            let badgeFound = false;
+            
+            badgeSelectors.forEach(selector => {
+                const badges = document.querySelectorAll(selector);
+                badges.forEach(badge => {
+                    // Vérifier que c'est bien le badge des messages
+                    const parent = badge.closest('#messagesDropdown, .messages-nav, [id*="message"]');
+                    if (parent) {
+                        badgeFound = true;
+                        if (count > 0) {
+                            badge.textContent = count;
+                            badge.style.display = 'inline-block';
+                            badge.classList.remove('d-none');
+                        } else {
+                            badge.style.display = 'none';
+                            badge.classList.add('d-none');
+                        }
+                    }
+                });
+            });
+            
+            // Si aucun badge trouvé, chercher dans le dropdown des messages
+            if (!badgeFound) {
+                const messagesDropdown = document.getElementById('messagesDropdown');
+                if (messagesDropdown) {
+                    let badge = messagesDropdown.querySelector('.badge');
+                    if (badge) {
+                        if (count > 0) {
+                            badge.textContent = count;
+                            badge.style.display = 'inline-block';
+                        } else {
+                            badge.style.display = 'none';
+                        }
+                    }
+                }
+            }
+        }
+        
+        // Fonction pour vérifier les nouveaux messages
+        function checkForNewMessages() {
+            fetch('/messagerie/getCount', {
+                method: 'GET',
+                headers: {'Content-Type': 'application/json'}
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    updateNotificationBadge(data.count);
+                }
+            })
+            .catch(err => {
+                console.log('Erreur vérification messages:', err);
+            });
+        }
+        
+        // Fonction pour marquer une conversation comme lue
+        function markConversationAsRead(id_candidat, id_annonce) {
+            if (!id_candidat || !id_annonce) return;
+            
+            fetch(`/messagerie/markAsRead/${id_candidat}/${id_annonce}`, {
+                method: 'GET',
+                headers: {'Content-Type': 'application/json'}
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success && typeof data.newCount !== 'undefined') {
+                    updateNotificationBadge(data.newCount);
+                }
+            })
+            .catch(err => {
+                console.log('Erreur marquage lecture:', err);
+            });
+        }
+        
+        // Initialisation au chargement de la page
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('=== INITIALISATION NOTIFICATIONS MESSAGERIE ===');
+            
+            // Vérifier immédiatement
+            setTimeout(checkForNewMessages, 1000);
+            
+            // Puis toutes les 30 secondes
+            messageNotificationInterval = setInterval(checkForNewMessages, 10000);
+            
+            // Détecter si on est sur une page de messagerie
+            const currentUrl = window.location.pathname;
+            const messagerieMatch = currentUrl.match(/\/messagerieU\/(\d+)\/(\d+)/);
+            
+            if (messagerieMatch) {
+                currentConversation = {
+                    id_candidat: messagerieMatch[1],
+                    id_annonce: messagerieMatch[2]
+                };
+                
+                console.log('Page messagerie détectée:', currentConversation);
+                
+                // Marquer comme lu dès l'ouverture
+                setTimeout(() => {
+                    markConversationAsRead(currentConversation.id_candidat, currentConversation.id_annonce);
+                }, 500);
+                
+                // Vérifier plus fréquemment sur la page de messagerie
+                clearInterval(messageNotificationInterval);
+                messageNotificationInterval = setInterval(checkForNewMessages, 10000);
+            }
+            
+            // Gérer les clics sur les liens de messagerie dans le dropdown
+            const messageLinks = document.querySelectorAll('a[href*="/messagerieU/"]');
+            messageLinks.forEach(link => {
+                link.addEventListener('click', function(e) {
+                    const href = this.getAttribute('href');
+                    const match = href.match(/\/messagerieU\/(\d+)\/(\d+)/);
+                    if (match) {
+                        // Marquer comme lu avant de naviguer
+                        setTimeout(() => {
+                            markConversationAsRead(match[1], match[2]);
+                        }, 100);
+                    }
+                });
+            });
+        });
+        
+        // Vérifier aussi quand la fenêtre retrouve le focus
+        window.addEventListener('focus', function() {
+            setTimeout(checkForNewMessages, 500);
+        });
+        
+        // Nettoyer l'interval avant de quitter la page
+        window.addEventListener('beforeunload', function() {
+            if (messageNotificationInterval) {
+                clearInterval(messageNotificationInterval);
+            }
+        });
+        
+        // Fonction pour actualiser les notifications depuis d'autres scripts (messagerie)
+        window.refreshMessageNotifications = function() {
+            checkForNewMessages();
+        };
+        
+        // Fonction globale pour marquer comme lu (utilisable depuis d'autres pages)
+        window.markMessageAsRead = function(id_candidat, id_annonce) {
+            markConversationAsRead(id_candidat, id_annonce);
+        };
+        
+        console.log('=== SCRIPT NOTIFICATIONS MESSAGERIE CHARGÉ ===');
+    </script>
+</body>
 
 </body>
 

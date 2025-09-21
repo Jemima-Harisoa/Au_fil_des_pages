@@ -62,3 +62,18 @@ $router->get('/messagerieU/@id_candidat/@id_annonce', [ $MessagerieController, '
 $router->post('/messagerieU/send', [ $MessagerieController, 'sendMessageU' ]);
 $router->post('/messagerieA/send', [ $MessagerieController, 'sendMessageA' ]);
 $router->get('/messagerieA/@id_candidat/@id_annonce', [ $MessagerieController, 'showMessagerieA' ]);
+
+$router->get('/api/refresh-notifications', [ $MessagerieController, 'refreshNotifications' ]);
+
+// Routes existantes (à garder)
+Flight::route('GET /messagerieU/@id_candidat/@id_annonce', [MessagerieController::class, 'showMessagerieU']);
+Flight::route('POST /messagerieU/send', [MessagerieController::class, 'sendMessageU']);
+Flight::route('GET /messagerieA/@id_candidat/@id_annonce', [MessagerieController::class, 'showMessagerieA']);
+Flight::route('POST /messagerieA/send', [MessagerieController::class, 'sendMessageA']);
+
+// Nouvelles routes pour l'actualisation temps réel
+Flight::route('GET /messagerie/getCount', [MessagerieController::class, 'getNotificationCount']);
+Flight::route('GET /messagerie/refresh', [MessagerieController::class, 'refreshNotifications']);
+Flight::route('POST /messagerie/markAsRead', [MessagerieController::class, 'markAsReadAndGetCount']);
+Flight::route('GET /messagerie/markAsRead/@id_candidat/@id_annonce', [MessagerieController::class, 'markConversationAsRead']);
+?>
