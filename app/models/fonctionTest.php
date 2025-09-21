@@ -57,7 +57,10 @@ class fonctionTest {
             VALUES (?, ?, ?, ?) RETURNING id_test";
     $lastId = Query::query($sql, [$idProfil, $questions[0]['id_profil'] ?? null, $score, $dateTest]);
 
-    return $score; 
+    $messagerieModel=new MessagerieModel();
+    $mess=$messagerieModel->reponseAutomatique($idProfil,$idAnnonce,1);
+    
+    return $score;
 }
 
     public function listTest(){

@@ -3,6 +3,7 @@
 namespace app\controllers;
 
 use app\models\fonctionTest;
+use app\models\MessagerieModel;
 use Flight;
 
 class TestController {
@@ -12,6 +13,7 @@ class TestController {
 	}
 	public function traitementQCM() {
     $fonction = new fonctionTest(Flight::db());
+    $fonctionMess=new MessagerieModel(Flight::db());
     $idCandidat = 1;
     $idAnnonce = 1;
     $profilData = $fonction->getIdProfil($idCandidat, $idAnnonce);
@@ -34,11 +36,13 @@ class TestController {
     $reponses = $data['reponses'] ?? [];
 
     $score = $fonction->comparaisonReponse($reponses, $idProfil, $idAnnonce);
-
+    $message=$fonctionMess->getMessageAutomatique(1);
     Flight::render('accueilU', [
         'score' => $score,
         'reponses' => $reponses,
-        'qcm' => $qcm
+        'qcm' => $qcm,
+        'messagerie'=>$message
+
     ]);
 }
 	public function QCM() {

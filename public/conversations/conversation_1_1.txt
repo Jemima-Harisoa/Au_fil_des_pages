@@ -98,3 +98,4 @@
 [2025-09-20 02:23:23] Admin: 
 [2025-09-20 02:23:30] Utilisateur: 
 [2025-09-20 02:23:35] Utilisateur: 
+[2025-09-21 12:51:42] Admin: Merci d avoir complete le test. Vos reponses ont ete enregistrees.Les responsables d Au fil des Page vont analyser vos resultats et vous serez recontacte prochainement.
