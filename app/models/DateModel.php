@@ -6,7 +6,7 @@ use flight\Engine;
 use flight\database\PdoWrapper;
 use flight\debug\database\PdoQueryCapture;
 class DateModel{ 
- private DateTime $dateTime;
+ private \DateTime $dateTime;
  private const JourEnLettres = ['Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi','Dimache'];
     // Constructeur : accepte soit un timestamp, soit une chaîne de date
     public function __construct(int|string|null $timeOrDateTime = null)
@@ -18,7 +18,7 @@ class DateModel{
         } elseif (is_string($timeOrDateTime)) {
             $this->dateTime = new \DateTime($timeOrDateTime);
         } else {
-            throw new InvalidArgumentException("Type non valide pour DateModel");
+            throw new \InvalidArgumentException("Type non valide pour DateModel");
         }
     }
 
