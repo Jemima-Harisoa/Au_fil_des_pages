@@ -1,6 +1,6 @@
 <?php
 
-namespace app\models\migration;
+namespace app\models;
 
 use Flight;
 use flight\Engine;
@@ -54,4 +54,5 @@ class CandidatModel {
         $stmt = $this->db->query($sql);
         return $stmt->fetchAll(\PDO::FETCH_ASSOC);
     }
+    
 }
