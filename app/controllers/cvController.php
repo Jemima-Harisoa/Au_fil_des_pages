@@ -114,8 +114,14 @@ class cvController {
                 $photo_path = $dossier . $fichier;
                 $data = [$Nom, $Prenoms, $Date, $Contact, $photo_path];
                 
-                CVModel::insertCV($data, $idAnnonce, $idProfil, $idDiplome, $combineValuesMap);
-                Flight::render('CV/Postuler/confirmation');
+                $note_similarite = CVModel::insertCV($data, $idAnnonce, $idProfil, $idDiplome, $combineValuesMap);
+                $boolean_validation = CVModel::isAverigeAboveThreshold($note_similarite);
+                $idCandidat = CVModel::getLastCandidat();
+                // $treshold = CVModel::getLastTreshold();
+                // echo "Note: ".$note_similarite." || Validation: ".$boolean_validation." || Seuil de tolerabilite: ".$treshold;
+
+            
+                Flight::render('CV/Postuler/confirmation', ['note_similarite' => $note_similarite, 'boolean_validation' => $boolean_validation, 'idAnnonce' => $idAnnonce, 'idCandidat' => $idCandidat]);
             } else {
                 Flight::render('CV/Postuler/erreur');
             }

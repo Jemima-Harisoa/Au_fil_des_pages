@@ -73,6 +73,20 @@ class CVModel {
         }
     }
 
+    public static function getLastTreshold(){
+        $db = Flight::db();
+        $stmt = $db->query("SELECT * FROM treshold ORDER BY id_treshold DESC LIMIT 1");
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+        return $row['valeur'] ?? null;
+    }
+
+    public static function getLastCandidat(){
+        $db = Flight::db();
+        $stmt = $db->query("SELECT * FROM candidats ORDER BY id_candidat DESC LIMIT 1");
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+        return $row['id_candidat'] ?? null;
+    }
+
     public static function insertCV($dataCV, $idAnnonce, $idProfil, $idDiplome, $combineValuesMap){
         $db = Flight::db();
         
@@ -90,8 +104,8 @@ class CVModel {
 
         self::insertCandidat($idAnnonce, $idProfil); //OK
         self::insertCVCandidats($idDiplome, $combineValuesMap); //OK
-        self::getProfilCvComparison($threshold = 0.10);
-        
+        $note_similarite = self::getProfilCvComparison(self::getLastTreshold());
+        return $note_similarite;
     }
 
     public static function insertCVCandidats($idDiplome, $combineValuesMap) {
@@ -191,7 +205,10 @@ class CVModel {
         $stmt->execute();
         $row = $stmt->fetch(PDO::FETCH_ASSOC);
 
+        // API
+
         $apiKey = $row['cle_api'];
+
         $apiUrl = "https://api-inference.huggingface.co/models/sentence-transformers/all-MiniLM-L6-v2";
     
         // Initialisation de cURL
@@ -233,8 +250,15 @@ class CVModel {
         // Récupérer le score de similarité
         return $result[0];
     }
+
+   
     
-    public static function isAverigeAboveThreshold($average, $threshold) {
+    public static function isAverigeAboveThreshold($average) {
+        $threshold = self::getLastTreshold();
+        // echo "Fonction IAAT: treshold=".$threshold." || Average=".$average;
+        // echo "Average apres format".number_format($average, 2);
+        
+        // return $average >= $threshold ? 'true' : 'false';
         return $average >= $threshold;
     }
     
@@ -279,10 +303,10 @@ class CVModel {
         c.skills AS skills_cv, c.loisirs AS loisirs_cv, c.filiere AS filiere_cv, 
         c.experience_pro AS experience_pro_cv, c.certifications AS certifications_cv, 
         c.langues AS langues_cv
- FROM candidats cand
- JOIN profils p ON cand.id_profil = p.id_profil
- JOIN cv_candidats c ON cand.id_candidat = c.id_candidat
- WHERE cand.id_candidat = (SELECT MAX(id_candidat) FROM candidats)";
+        FROM candidats cand
+        JOIN profils p ON cand.id_profil = p.id_profil
+        JOIN cv_candidats c ON cand.id_candidat = c.id_candidat
+        WHERE cand.id_candidat = (SELECT MAX(id_candidat) FROM candidats)";
 
     
         $stmt = Flight::db()->prepare($sql);
@@ -317,65 +341,63 @@ class CVModel {
         // Début du bloc de débogage et affichage
         // echo "Débogage getProfilCvComparison - Requête SQL: " . htmlspecialchars($sql) . "<br>";
         // echo "Débogage getProfilCvComparison - Données récupérées:<br>";
-        // foreach ($result as $row) {
-        //     foreach ($allInformation as $key => $value) {
-        //         $profilValue = $row[$key . '_profil'] ?? '';
-        //         $cvValue = $row[$key . '_cv'] ?? '';
-        //         echo "Débogage getProfilCvComparison - $key (Profil): " . htmlspecialchars($profilValue) . ", (CV): " . htmlspecialchars($cvValue) . "<br>";
-        //     }
-        // }
+        foreach ($result as $row) {
+            foreach ($allInformation as $key => $value) {
+                $profilValue = $row[$key . '_profil'] ?? '';
+                $cvValue = $row[$key . '_cv'] ?? '';
+                // echo "Débogage getProfilCvComparison - $key (Profil): " . htmlspecialchars($profilValue) . ", (CV): " . htmlspecialchars($cvValue) . "<br>";
+            }
+        }
     
         // echo "<h2>Détails des comparaisons Profil ↔ CV</h2>";
-        // foreach ($allInformation as $key => $types) {
-        //     $profilText = implode(' || ', $types['profils']);
-        //     $cvText = implode(' || ', $types['cv']);
+        foreach ($allInformation as $key => $types) {
+            $profilText = implode(' || ', $types['profils']);
+            $cvText = implode(' || ', $types['cv']);
     
-        //     echo "<h3>" . ucfirst($key) . "</h3>";
-        //     echo "<strong>Profil :</strong> " . htmlspecialchars($profilText ?? '') . "<br>";
-        //     echo "<strong>CV :</strong> " . htmlspecialchars($cvText ?? '') . "<br>";
+            // echo "<h3>" . ucfirst($key) . "</h3>";
+            // echo "<strong>Profil :</strong> " . htmlspecialchars($profilText ?? '') . "<br>";
+            // echo "<strong>CV :</strong> " . htmlspecialchars($cvText ?? '') . "<br>";
     
-        //     // Ignorer les comparaisons si les deux champs sont vides ou si le CV est trop court
-        //     if (empty($profilText) && empty($cvText)) {
-        //         echo "Débogage comparaison - Ignorée (champs vides).<hr>";
-        //         continue;
-        //     }
-        //     if (strlen($cvText) < 2) {
-        //         echo "Débogage comparaison - Ignorée (données CV insuffisantes).<hr>";
-        //         continue;
-        //     }
+            // Ignorer les comparaisons si les deux champs sont vides ou si le CV est trop court
+            // if (empty($profilText) && empty($cvText)) {
+            //     echo "Débogage comparaison - Ignorée (champs vides).<hr>";
+            //     continue;
+            // }
+            // if (strlen($cvText) < 2) {
+            //     echo "Débogage comparaison - Ignorée (données CV insuffisantes).<hr>";
+            //     continue;
+            // }
     
-        //     try {
-        //         $score = self::comparaison($profilText, $cvText, $threshold);
-        //         echo "Débogage comparaison - Text1: " . htmlspecialchars($profilText ?? '') . "<br>";
-        //         echo "Débogage comparaison - Text2: " . htmlspecialchars($cvText ?? '') . "<br>";
-        //         echo "Débogage comparaison - Score utilisé pour la moyenne: " . number_format($score, 2) . "<hr>";
-        //         $totalScores += $score;
-        //         $totalComparisons++;
-        //     } catch (Exception $e) {
-        //         echo "Débogage comparaison - Erreur: " . htmlspecialchars($e->getMessage()) . "<hr>";
-        //         continue;
-        //     }
-        // }
+            try {
+                $score = self::comparaison($profilText, $cvText, $threshold);
+                // echo "Débogage comparaison - Text1: " . htmlspecialchars($profilText ?? '') . "<br>";
+                // echo "Débogage comparaison - Text2: " . htmlspecialchars($cvText ?? '') . "<br>";
+                // echo "Débogage comparaison - Score utilisé pour la moyenne: " . number_format($score, 2) . "<hr>";
+                $totalScores += $score;
+                $totalComparisons++;
+            } catch (Exception $e) {
+                // echo "Débogage comparaison - Erreur: " . htmlspecialchars($e->getMessage()) . "<hr>";
+                continue;
+            }
+        }
     
-        // // Affichage final clair et précis
+        $average = ($totalComparisons > 0) ? ($totalScores / $totalComparisons) : 0;
+        // Affichage final clair et précis
         // echo "<h2>Résultat final de la correspondance</h2>";
         // echo "➡ Pourcentage de correspondance : " . number_format($average * 100, 2) . "%<br>";
         // echo "➡ Score moyen (décimal) : " . number_format($average, 2) . "<br>";
     
-        // // Vérification du diplôme et du seuil
+        // Vérification du diplôme et du seuil
         // echo "Débogage vérification finale - Validité du diplôme: " . (self::checkLatestCvDiplomeMatch() ? "✅ Diplôme conforme" : "❌ Diplôme non conforme") . "<br>";
         
         // Fin du bloc de débogage et affichage 
 
         // Calculer la moyenne des scores de similarité
-        $average = ($totalComparisons > 0) ? ($totalScores / $totalComparisons) : 0;
         $sql = "INSERT INTO validation_cv (id_cv_candidat, id_status_validation_cv, similarite) VALUES (:id_cv_candidat, :statut, :similarite)";
         if (self::checkLatestCvDiplomeMatch()) {
-            // echo "Débogage vérification finale - Comparaison moyenne/threshold: Moyenne = " . number_format($average, 2) . ", Seuil = " . number_format($threshold, 2) . "<br>";
-        
+            // echo "Débogage vérification finale - Comparaison moyenne/threshold: Moyenne = " . number_format($average, 2) . ", Seuil = " . number_format($threshold, 2) . "<br>";    
             
-            
-            if (self::isAverigeAboveThreshold($average, $threshold)) {
+            if (self::isAverigeAboveThreshold($average)) {
                 // echo "<h2>✅ Candidat accepté !</h2>";
                 $stmt = Flight::db()->prepare($sql);
                 $stmt->execute([
@@ -407,7 +429,7 @@ class CVModel {
         $average = ($totalComparisons > 0) ? ($totalScores / $totalComparisons) : 0;
         // echo $average;
     
-        // return $average;
+        return $average;
     }
     public static function getAllCVs() {
         $db = Flight::db(); // Assure-toi que $db est défini
@@ -449,6 +471,15 @@ class CVModel {
         } catch (PDOException $e) {
             throw new Exception('Query failed: ' . $e->getMessage());
         }
+    }
+
+    public function getLastValidationCV(){
+        $db = Flight::db();
+        $requete = "SELECT MAX(id_validation_cv) FROM validation_cv;";
+        $stmt = $db ->prepare($requete);
+        $stmt->execute();
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+         $row['MAX(id_validation_cv)'];
     }
     
 }
