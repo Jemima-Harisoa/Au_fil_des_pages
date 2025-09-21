@@ -104,6 +104,34 @@ class DisponibiliteEntretienModel {
         }
         return $dateHeure;
     }
+
+    public function jourOuvrableEntretien($candidat,$listeDisponibiliteEntretien){
+        $compterSuperieur = 0;
+        $diffJour = 0;
+        $jourChiffreDate = DateModel::getJourChiffreDate($canididat['date_test']);
+        $jourDispo=0;
+        $resultat;
+        foreach($listeDisponibiliteEntretien as $disponibiliteEntretien){
+            $jourDispo = $disponibiliteEntretien["jour"];
+            if($jourChiffreDate>$jourDispo){
+                $diffJour = $jourDispo - $jourChiffreDate;
+                break;
+            }
+            else if($jourChiffreDate == $jourDispo){
+                break;
+            }
+            else{
+                $compterSuperieur++;
+            }
+        }
+        $resultat = DateModel::ajouterJours($candidat["date_test"],$diffJour);
+        if($compterSuperieur == count($listeDisponibiliteEntretien)){
+            $diffJour = ($disponibiliteEntretien[0]["jour"]+7)-$jourChiffreDate;
+            $resultat = DateModel::ajouterJours($candidat["date_test"],$diffJour);
+        }
+        $resultat = self::getDateNonFerieProche($resultat,$listeDisponibiliteEntretien);
+        return $resultat;
+    }
     public static function checkDateDisponible($dateHeure,$listeDisponibiliteEntretien){
         $diffJour = 0;
         for($i=0; $i<count($listeDisponibiliteEntretien);$i++){
@@ -117,8 +145,6 @@ class DisponibiliteEntretienModel {
                             $diffJour = ($listeDisponibiliteEntretien[0]+7)-$listeDisponibiliteEntretien[$i]["jour"];
                             break;
                         default:
-                            error_log("diffJour: ".$listeDisponibiliteEntretien[$i]["jour"]);
-                            error_log("diffJour:".$diffJour);
                             $diffJour = $listeDisponibiliteEntretien[$i+1]["jour"]-$listeDisponibiliteEntretien[$i]["jour"];
                             break;
                     }
