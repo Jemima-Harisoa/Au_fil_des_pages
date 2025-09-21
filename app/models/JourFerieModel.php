@@ -52,8 +52,9 @@ class JourFerieModel {
 
         // Parcourir les jours fériés
         foreach ($joursFeries as $jour) {
+            $date = new DateModel($jour["date"]);
             // Comparer la date du jour férié avec la date donnée
-            if ($jour['date'] === $dateRef) {
+            if ( $date->getDateTime()->format('Y-m-d') === $dateRef) {
                 return true; // c'est un jour férié
             }
         }
