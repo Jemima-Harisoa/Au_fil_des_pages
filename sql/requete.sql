@@ -81,12 +81,17 @@ select  id_employe,
 SELECT *
 FROM (
     SELECT 
+        per.nom,
+        per.prenom,
         ca.*,
+        p.titre,
         te.score_test,
         te.date_test,
         ROW_NUMBER() OVER (PARTITION BY ca.id_profil ORDER BY te.score_test DESC) AS rang
     FROM candidats ca
     JOIN tests te ON ca.id_candidat = te.id_candidat
+    JOIN profils p ON  p.id_profil = ca.id_profil
+    JOIN personnes per ON per.id_personne = ca.id_personne
 ) t
 WHERE rang <= ?
 ORDER BY id_profil, rang;
@@ -135,3 +140,23 @@ JOIN employes em
 ON em.id_employe = re.id_employe
 JOIN departements de 
 ON de.id_departement = em.id_departement;
+
+--recuperer le planning d'entretien le plus recent pour un responsable d'enetretien
+CREATE OR REPLACE VIEW v_planning_entretien_recent_responsable as
+SELECT *
+FROM planning_entretien 
+where date_heure_entretien in(
+    SELECT MAX(date_heure_entretien)
+    FROM planning_entretien
+    group by id_responsable,date_heure_entretien
+);
+
+INSERT INTO jour_ferie("date") VALUES
+('2025-01-01'), -- Jour de l'an
+('2025-03-29'), -- Fête nationale
+('2025-05-01'), -- Fête du travail
+('2025-06-26'), -- Indépendance
+('2025-08-15'), -- Assomption
+('2025-11-01'), -- Toussaint
+('2025-12-25'); -- Noël
+('2025-02-20'); -- Noël
