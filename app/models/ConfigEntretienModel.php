@@ -5,15 +5,13 @@ use Flight;
 use flight\Engine;
 use flight\database\PdoWrapper;
 use flight\debug\database\PdoQueryCapture;
+
 class ConfigEntretienModel {
-    private $id_config_entretien;
-    private $id_departement;
-    private $duree_entretien;
+    private $db;
 
     // Constructeur
-    public function __construct($id_departement, $duree_entretien) {
-        $this->id_departement = $id_departement;
-        $this->duree_entretien = $duree_entretien;
+    public function __construct($db) {
+        $this->db = $db;
     }
 
     // Méthode pour insérer une nouvelle configuration
@@ -62,4 +60,32 @@ class ConfigEntretienModel {
         $stmt = $db->prepare("DELETE FROM config_entretien WHERE id_config_entretien = ?");
         $stmt->execute([$this->id_config_entretien]);
     }
+
+    public function getConfigurationEntretienResponsable($responsable){
+        $responsableEntretien = Flight::responsableEntretienModel();
+        $departementResponsable = $responsableEntretien->getDepartement($responsable);
+        $query = "SELECT re.*,de.*
+                    FROM (SELECT * 
+                FROM responsable_entretien  
+                WHERE  id_responsable = ?
+        )re
+        JOIN employes em 
+        ON em.id_employe = re.id_employe
+        JOIN departements de 
+        ON de.id_departement = em.id_departement";
+
+        try {
+            if($responsable == null){
+                throw new Exception("le responsable n'a pas ete trouve");   
+            }
+            $db = Flight::db();
+            $stmt = $db->prepare($query);
+            $stmt->execute([$responsable["id_responsable"]]);
+            return $stmt->fetch();
+        } catch (\Exception $e) {
+            throw new \Exception($e->getMessage());
+
+        }
+    }
 }
+
