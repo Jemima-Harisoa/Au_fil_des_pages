@@ -42,7 +42,7 @@ class JourFerieModel {
         $stmt = $db->prepare("DELETE FROM jour_ferie WHERE id_jour_ferie = ?");
         return $stmt->execute([$id]);
     }
-    public static function estJourFerie(DateTime $dateHeureReference): bool
+    public static function estJourFerie(\DateTime $dateHeureReference): bool
     {
         // Récupérer tous les jours fériés
         $joursFeries = self::all();
