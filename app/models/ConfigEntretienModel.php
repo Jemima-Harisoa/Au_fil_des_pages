@@ -64,15 +64,14 @@ class ConfigEntretienModel {
     public function getConfigurationEntretienResponsable($responsable){
         $responsableEntretien = Flight::responsableEntretienModel();
         $departementResponsable = $responsableEntretien->getDepartement($responsable);
-        $query = "SELECT re.*,de.*
-                    FROM (SELECT * 
-                FROM responsable_entretien  
-                WHERE  id_responsable = ?
-        )re
-        JOIN employes em 
-        ON em.id_employe = re.id_employe
-        JOIN departements de 
-        ON de.id_departement = em.id_departement";
+        $query = "SELECT *
+                FROM config_entretien 
+                where id_departement = ?
+                and id_config_entretien in(
+                    SELECT MAX(id_config_entretien) 
+                    FROM config_entretien ce
+                    GROUP BY id_departement
+        ) ";
 
         try {
             if($responsable == null){
