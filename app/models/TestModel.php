@@ -63,7 +63,7 @@ class TestModel{
                 JOIN tests te ON ca.id_candidat = te.id_candidat
             ) t
             WHERE rang <= :nombre
-            ORDER BY id_profil, rang;
+            ORDER BY id_profil, rang
             ";
 
             $stmt = $db->prepare($sql);
@@ -71,18 +71,11 @@ class TestModel{
             $stmt->execute();
 
             $resultats = $stmt->fetchAll(\PDO::FETCH_ASSOC);
-            return Flight::json([
-                'success' => true,
-                'data' => $resultats
-            ]);
+            return $resultats;
 
         } catch (\Exception $e) {
             // Gestion des erreurs
-            
-            Flight::json([
-                'success' => false,
-                'message' => $e->getMessage()
-            ]);
+            throw new \Exception($e->getMessage());
         }
     }
 
