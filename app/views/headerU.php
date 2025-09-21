@@ -162,9 +162,10 @@ if(!empty($_SESSION['messagerie'])) {
                                data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                                 <i class="fas fa-envelope fa-fw"></i>
                                 <!-- Counter - Messages -->
-                                <?php if($nbNonLus > 0): ?>
-                                    <span class="badge badge-danger badge-counter"><?= $nbNonLus ?></span>
-                                <?php endif; ?>
+                                    <?php if($nbNonLus > 0): ?>
+                                        <span id="unreadBadge" class="badge badge-danger badge-counter"><?= $nbNonLus ?></span>
+                                    <?php endif; ?>
+
                             </a>
                             <!-- Dropdown - Messages -->
                             <div class="dropdown-list dropdown-menu dropdown-menu-right shadow animated--grow-in"
@@ -185,8 +186,9 @@ if(!empty($_SESSION['messagerie'])) {
                                             <div class="dropdown-list-image mr-3">
                                                 <img class="rounded-circle" src="/img/undraw_profile_1.svg" alt="Profil">
                                                 <?php if(($msg['dernier_auteur'] ?? '') === 'Admin' && empty($msg['lu'])): ?>
-                                                    <span class="badge badge-danger badge-counter" style="position:absolute;top:0;right:0;font-size:0.7rem;">●</span>
-                                                <?php endif; ?>
+    <span class="badge badge-danger badge-counter unread-dot" style="position:absolute;top:0;right:0;font-size:0.7rem;">●</span>
+<?php endif; ?>
+
                                             </div>
                                             <div class="<?= (($msg['dernier_auteur'] ?? '') === 'Admin' && empty($msg['lu'])) ? 'font-weight-bold' : '' ?>">
                                                 <div class="text-truncate"><?= htmlspecialchars($msg['titre']) ?></div>
