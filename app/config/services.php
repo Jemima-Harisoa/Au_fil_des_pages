@@ -10,6 +10,9 @@ use app\models\ConnexionModel;
 use app\models\AdminModel;
 use app\models\ResponsableEntretienModel;
 use app\models\DisponibiliteEntretienModel;
+use app\models\ConfigEntretienModel;
+use app\models\CandidatModel;
+use app\models\TestModel;
 
 /** 
  * @var array $config This comes from the returned array at the bottom of the config.php file
@@ -43,10 +46,17 @@ Flight::map('responsableEntretienModel', function () {
 Flight::map('disponibiliteEntretienModel', function () {
     return new DisponibiliteEntretienModel(Flight::db());
 });
+Flight::map('configEntretienModel', function () {
+    return new ConfigEntretienModel(Flight::db());
+});
+
+Flight::map('candidatModel', function () {
+    return new CandidatModel(Flight::db());
+});
 //
-//Flight::map('InscriptionModel', function () {
-//    return new InscriptionModel(Flight::db());
-//});
+Flight::map('testModel', function () {
+  return new TestModel(Flight::db());
+});
 //Flight::map('ConnexionModel', function () {
 //    return new ConnexionModel(Flight::db());
 //});
