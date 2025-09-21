@@ -81,7 +81,7 @@ class DateModel{
         $indiceJour = (int) $datetime->format("N");
         return $indiceJour;
     }
-    function ajouterJours(\DateTime $date, int $nbJours): DateTime {
+    public static function ajouterJours(\DateTime $date, int $nbJours): \DateTime {
         $date->modify("+{$nbJours} days");
         return $date;
     }
@@ -93,5 +93,16 @@ class DateModel{
             }
         }
     }
+    public static function recupererHeure(\DateTime $dateHeure){
+        $resultat = $dateHeure->format("H:i:s");
+        return $resultat;
+    }
+    public static function changerHeure($datetime,$time){
+        $datetime->setTime(
+        (int)$time->format("H"),
+        (int)$time->format("i"),
+        (int)$time->format("s")
+        );
+    }
 }  
-echo DateModel::getJourLettreEnChiffre('Vendredi');
+
