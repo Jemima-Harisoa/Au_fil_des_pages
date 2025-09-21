@@ -362,7 +362,7 @@
 
                 <!-- Begin Page Content -->
                 <div class="container-fluid">
-
+                    
                     <!-- Page Heading -->
                     <a href="/api/planifier-entretien" class="btn btn-primary btn-icon-split">
                         <span class="icon text-white-50">
@@ -370,7 +370,9 @@
                         </span>
                         <span class="text">Planifier entretien</span>
                     </a>
-                    
+                    <div id="message-container">
+
+                    </div>
                     <div class="card shadow mb-4">
                         <div class="card-header py-3">
                             <h6 class="m-0 font-weight-bold text-primary">Planning Entretien</h6>
@@ -468,6 +470,7 @@
 
     <!-- Page level custom scripts -->
     <script src="js/demo/datatables-demo.js"></script>
+    <script src="js/demo/planning-entretien.js"></script>
 
 </body>
 
