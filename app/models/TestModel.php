@@ -55,15 +55,20 @@ class TestModel{
             SELECT *
             FROM (
                 SELECT 
+                    per.nom,
+                    per.prenom,
                     ca.*,
+                    p.titre,
                     te.score_test,
                     te.date_test,
                     ROW_NUMBER() OVER (PARTITION BY ca.id_profil ORDER BY te.score_test DESC) AS rang
                 FROM candidats ca
                 JOIN tests te ON ca.id_candidat = te.id_candidat
+                JOIN profils p ON  p.id_profil = ca.id_profil
+                JOIN personnes per ON per.id_personne = ca.id_personne
             ) t
             WHERE rang <= :nombre
-            ORDER BY id_profil, rang
+            ORDER BY id_profil, rang;
             ";
 
             $stmt = $db->prepare($sql);
