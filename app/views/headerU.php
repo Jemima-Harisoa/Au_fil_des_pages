@@ -116,12 +116,7 @@ if(!empty($_SESSION['messagerie'])) {
                     <span>Annonces</span></a>
             </li>
 
-             <li class="nav-item">
-                <a class="nav-link" href="/testAccueil">
-                    <i class="fas fa-fw fa-tachometer-alt"></i>
-                    <span>Test</span></a>
-            </li>
-
+          
 
 
             <!-- Divider -->

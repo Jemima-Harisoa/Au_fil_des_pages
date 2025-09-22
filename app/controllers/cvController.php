@@ -117,6 +117,8 @@ class cvController {
                 $note_similarite = CVModel::insertCV($data, $idAnnonce, $idProfil, $idDiplome, $combineValuesMap);
                 $boolean_validation = CVModel::isAverigeAboveThreshold($note_similarite);
                 $idCandidat = CVModel::getLastCandidat();
+
+                // echo "Note de similarite: ".$note_similarite;
                 error_log("dernier candidat : " . $idCandidat);
 
                 // $treshold = CVModel::getLastTreshold();
