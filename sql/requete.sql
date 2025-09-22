@@ -4,26 +4,54 @@ SELECT per.*,
         ca.id_candidat,
         ca.id_annonce,
         ca.id_profil,
+        pr.titre,
         ca.cv_url,
         ca.poste
 FROM  candidats ca 
 JOIN personnes per
-on ca.id_personne = per.id_personne;
+on ca.id_personne = per.id_personne
+JOIN profils pr
+    ON pr.id_profil = ca.id_profil
+;
+
+--recuperer les responsables d'entretien 
+CREATE OR REPLACE VIEW v_responsable_personnes AS
+SELECT per.*,
+        re.*
+FROM  employes em
+JOIN (SELECT 
+        DISTINCT
+        id_responsable,id_employe
+        FROM responsable_entretien
+        where id_responsable in(
+            SELECT MAX(id_responsable) 
+            FROM responsable_entretien
+            group by id_employe
+        )) re
+ON re.id_employe = em.id_employe
+JOIN personnes per
+ON per.id_personne = em.id_personne;
+
+
 --recuperer les planning_entretiens 
 SELECT pe.*,
-       candidat.nom,
+       te.*,
+       vrp.nom as nom_responsable,
+       vrp.prenom as prenom_responsable
     FROM planning_entretien pe
     JOIN (
-        SELECT te.id_candidat,
+        SELECT vcp.*,
                 te.score_test,  
-            FROM tests  te,
+                te.date_test
+            FROM tests  te
         join v_candidats_personnes vcp 
-        ON ca.id_candidat = te.id_candidat
+        ON te.id_candidat = vcp.id_candidat
     )
     as te
     ON pe.id_candidat = te.id_candidat
-    JOIN profils pr
-    WHERE pe.etat != 1 ;
+    JOIN v_responsable_personnes vrp
+    on vrp.id_responsable = pe.id_responsable
+    WHERE pe.etat = 3 ;
     
 
 --recuperer les temps de disponibilites pour l'entretien dans un département
