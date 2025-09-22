@@ -118,7 +118,6 @@ class DisponibiliteEntretienModel {
             $jourDispo = $disponibiliteEntretien["jour"];
             if($jourChiffreDate<$jourDispo){
                 $diffJour = $jourDispo - $jourChiffreDate;
-                error_log(type(new \DateTime($disponibiliteEntretien["heure_debut"])));
                 DateModel::changerHeure($resultat,\DateTime::createFromFormat('H:i:s', $disponibiliteEntretien["heure_debut"]));
                 break;
             }
@@ -131,11 +130,14 @@ class DisponibiliteEntretienModel {
             }
         }
         $resultat = DateModel::ajouterJours($resultat,$diffJour);
-        if($compterSuperieur == count($listeDisponibiliteEntretien)){
-            $diffJour = ($listeDisponibiliteEntretien[0][0]["jour"]+7)-$jourChiffreDate;
+       if (
+            $compterSuperieur == count($listeDisponibiliteEntretien) &&
+            !empty($listeDisponibiliteEntretien)
+        ) {
+            $diffJour = ($listeDisponibiliteEntretien[0]["jour"]+7)-$jourChiffreDate;
             $date = new DateModel($candidat["date_test"]);
             $resultat = DateModel::ajouterJours($date->getDateTime(),$diffJour);
-     DateModel::changerHeure($resultat,\DateTime::createFromFormat('H:i:s', $disponibiliteEntretien["heure_debut"]));
+            DateModel::changerHeure($resultat,\DateTime::createFromFormat('H:i:s', $disponibiliteEntretien["heure_debut"]));
         }
         
         $resultat = self::getDateNonFerieProche($resultat,$listeDisponibiliteEntretien);
