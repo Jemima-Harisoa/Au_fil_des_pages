@@ -57,13 +57,13 @@ class DateModel{
                 list($h, $m, $s) = explode(":", $interval);
                 $inter = new \DateInterval("PT{$h}H{$m}M{$s}S");
                 $this->dateTime = $this->dateTime->add($inter);
-                return $this->dateTime; // 🔥 retourne la DateTime
+                return $this->dateTime; 
             } else {
                 throw new \Exception("l'intervalle n'existe pas ou est nul");
             }
         } catch (\Exception $e) {
-            echo $e->getMessage();
-            return $this->dateTime; // ou null, selon ton choix
+            throw new \Exception($e->getMessage());
+            
         }
     }
 
