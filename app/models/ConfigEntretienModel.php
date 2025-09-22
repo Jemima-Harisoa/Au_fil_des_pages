@@ -79,7 +79,7 @@ class ConfigEntretienModel {
             }
             $db = Flight::db();
             $stmt = $db->prepare($query);
-            $stmt->execute([$responsable["id_responsable"]]);
+            $stmt->execute([$departementResponsable["id_departement"]]);
             return $stmt->fetch();
         } catch (\Exception $e) {
             throw new \Exception($e->getMessage());
