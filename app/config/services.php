@@ -11,6 +11,9 @@ use app\models\migration\TypeContratModel;
 use app\models\migration\ContratModel;
 use app\models\EtatModel;
 use app\models\migration\HistoriqueValidationModel;
+use app\models\migration\HistoriqueContratModel;
+use app\models\ProfilsModel;
+
 /** 
  * @var array $config This comes from the returned array at the bottom of the config.php file
  * @var Engine $app
@@ -62,4 +65,12 @@ Flight::map('Etat', function () {
 
 Flight::map('HistoriqueValidation', function () {
     return new HistoriqueValidationModel(Flight::db());
+});
+
+Flight::map("Profils", function(){
+    return new ProfilsModel(Flight::db());
+});
+
+Flight::map("HistoriqueContrat", function(){
+    return new HistoriqueContratModel(Flight::db());
 });

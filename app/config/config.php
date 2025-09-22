@@ -4,7 +4,7 @@ use flight\debug\tracy\TracyExtensionLoader;
 use Tracy\Debugger;
 
 // Set the default timezone
-date_default_timezone_set('America/New_York');
+date_default_timezone_set('Indian/Antananarivo');
 
 // Set the error reporting level
 error_reporting(E_ALL);

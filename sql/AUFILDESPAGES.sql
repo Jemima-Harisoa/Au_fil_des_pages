@@ -200,6 +200,31 @@ CREATE TABLE historique_validation (
   id_etat int
 );
 
+
+create or replace view historique_contrat as 
+SELECT c.id_contrat,
+       c.url_contrat,
+       cand.id_candidat,
+       cand.poste,
+       tc.nom AS type_contrat,
+       e.nom AS etat,
+       hv.date_heure_validation,
+       pv.nom || ' ' || pv.prenom AS redacteur,
+       pc.nom || ' ' || pc.prenom AS candidat
+FROM contrats c
+JOIN candidats cand ON c.id_candidat = cand.id_candidat
+JOIN type_contrats tc ON c.id_type_contrat = tc.id_type_contrat
+LEFT JOIN (
+    SELECT DISTINCT ON (id_candidat) *
+    FROM historique_validation
+    ORDER BY id_candidat, date_heure_validation DESC
+) hv ON hv.id_candidat = cand.id_candidat
+LEFT JOIN etat e ON hv.id_etat = e.id_etat
+LEFT JOIN employes emp ON hv.id_employe = emp.id_employe
+LEFT JOIN personnes pv ON emp.id_personne = pv.id_personne   -- validateur
+LEFT JOIN personnes pc ON cand.id_personne = pc.id_personne -- candidat
+ORDER BY e.nom, hv.date_heure_validation DESC;
+
 -- Contraintes de clé étrangère
 ALTER TABLE profils ADD FOREIGN KEY (id_departement) REFERENCES departements (id_departement);
 ALTER TABLE profils ADD FOREIGN KEY (id_diplome) REFERENCES diplomes (id_diplome);

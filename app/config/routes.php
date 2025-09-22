@@ -70,7 +70,10 @@ $router->group( "/migration" , function($router) use ($Migration_Controller){
 		$router->get("/contrat/create", [$Migration_Controller , 'createContrat']);
 		// enregister le brouillon du contrat avant validation
 		$router->post("/contrat/register", [$Migration_Controller, 'registerContrat']);
-		// apercus du contrat en js ajax avec voir contrat 
-		$router->get("/contrat/sketch", [$Migration_Controller, 'apercuContrat']);
+		// route vers la liste des contrat 
+		$router->get("/contrats", [$Migration_Controller, 'getContrat']);
+
+		// route vers la page d'editon des contrat pour retouche ou bien validation
+		$router->get("/contrat/edit", [$Migration_Controller, 'editContrat']);   
 	}
 );

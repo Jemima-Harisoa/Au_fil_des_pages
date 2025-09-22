@@ -38,7 +38,7 @@
                                         <option value="">Sélectionner le type</option>
                                         <?php if (!empty($data['type_contrats'])): ?>
                                             <?php foreach ($data['type_contrats'] as $tc): ?>
-                                                <option value="<?= htmlspecialchars($tc['id_type_contrat']) ?>">
+                                                <option value="<?= htmlspecialchars($tc['id_type_contrat']) ?>" <?= $tc['nom'] == "CDI" ? "selected" : ""?>>
                                                     <?= htmlspecialchars($tc['nom']) ?>
                                                 </option>
                                             <?php endforeach; ?>
@@ -49,6 +49,7 @@
                                 <!-- Informations Travailleur -->
                                 <h5 class="mb-3">Informations sur le travailleur</h5>
                                 <div class="form-group">
+                                    <label for="">Noms et prénoms</label>
                                     <input type="text" class="form-control form-control-user" 
                                         name="noms_prenoms"
                                         placeholder="Noms et prénoms"
@@ -56,29 +57,35 @@
                                 </div>
                                 <div class="form-group row">
                                     <div class="col-sm-6 mb-3 mb-sm-0">
+                                        <label for="">Date de naissance</label>
+
                                         <input type="date" class="form-control form-control-user" 
                                             name="dateNaissance"
                                             placeholder="Date de naissance"
                                             value="<?= htmlspecialchars($data['personne']['date_naissance'] ?? '') ?>">
                                     </div>
                                     <div class="col-sm-6">
+                                        <label for="">Lieu de naissance</label>
                                         <input type="text" class="form-control form-control-user" 
                                             name="lieuNaissance"
                                             placeholder="Lieu de naissance" value="">
                                     </div>
                                 </div>
                                 <div class="form-group">
+                                    <label for="">Parents</label>
                                     <input type="text" class="form-control form-control-user" 
                                         name="parents"
                                         placeholder="Fils ou fille de" value="">
                                 </div>
                                 <div class="form-group row">
                                     <div class="col-sm-6 mb-3 mb-sm-0">
+                                        <label for="">Nationalité</label>
                                         <input type="text" class="form-control form-control-user" 
                                             name="nationalite"
                                             placeholder="Nationalité" value="">
                                     </div>
                                     <div class="col-sm-6">
+                                        <label for="">Domicile</label>
                                         <input type="text" class="form-control form-control-user" 
                                             name="domicile"
                                             placeholder="Domicile à Madagascar" value="">
@@ -89,23 +96,27 @@
                                 <h5 class="mb-3">Dispositions générales</h5>
                                 <div class="form-group row">
                                     <div class="col-sm-6 mb-3 mb-sm-0">
+                                        <label for="">Date de prise d'effet</label>
                                         <input type="date" class="form-control form-control-user" 
                                             name="dateDebut"
-                                            placeholder="Date de prise d’effet" value="">
+                                            placeholder="Date de prise d'effet" value="">
                                     </div>
                                     <div class="col-sm-6">
+                                        <label for="">Durée période d'essai (mois)</label>
                                         <input type="number" class="form-control form-control-user" 
                                             name="essai"
-                                            placeholder="Durée période d’essai (mois)" value="">
+                                            placeholder="Durée période d'essai (mois)" value="">
                                     </div>
                                 </div>
                                 <div class="form-group">
+                                    <label for="">Lieu d'emploi</label>
                                     <input type="text" class="form-control form-control-user" 
                                         name="lieuEmploi"
-                                        placeholder="Lieu d’emploi"
-                                        value="<?= htmlspecialchars($data['candidat']['poste'] ?? '') ?>">
+                                        placeholder="Lieu d'emploi"
+                                        value="Rue des Lilas, Antananarivo">
                                 </div>
                                 <div class="form-group">
+                                    <label for="">Poste occupé / Fonctions</label>
                                     <input type="text" class="form-control form-control-user" 
                                         name="poste"
                                         placeholder="Poste occupé / Fonctions"
@@ -119,7 +130,7 @@
                                         <input type="number" class="form-control form-control-user" 
                                             name="salaire"
                                             id="salaire"
-                                            placeholder="Salaire mensuel (Ar)" value="">
+                                            placeholder="Salaire mensuel (Ar)" value="<?= htmlspecialchars($data['profil']['salaire'] ?? '') ?>">
                                     </div>
                                 </div>
 
@@ -136,7 +147,7 @@
                                         </select>
                                     </div>
                                     <div class="col-sm-6">
-                                        <input type="text" class="form-control form-control-user" id="descAvantage" placeholder="Description de l’avantage">
+                                        <input type="text" class="form-control form-control-user" id="descAvantage" placeholder="Description de l'avantage">
                                     </div>
                                     <div class="col-sm-2 text-center d-none d-md-inline">
                                         <button type="button" class="rounded-circle border-0 btn btn-primary" id="btnAddAvantage"
@@ -193,16 +204,16 @@
             const parent = getVal("Fils ou fille de");
             const nationalite = getVal("Nationalité");
             const domicile = getVal("Domicile à Madagascar");
-            const dateEffet = getVal("Date de prise d’effet");
-            const essai = getVal("Durée période d’essai (mois)");
+            const dateEffet = getVal("Date de prise d'effet");
+            const essai = getVal("Durée période d'essai (mois)");
             const dureeCDD = getVal("Durée CDD (si applicable)");
-            const lieuEmploi = getVal("Lieu d’emploi");
+            const lieuEmploi = getVal("Lieu d'emploi");
             const poste = getVal("Poste occupé / Fonctions");
             const salaire = document.getElementById("salaire").value || '';
             const avantages = Array.from(document.querySelectorAll('#listeAvantages li span')).map(s => s.innerText);
             const avantagesText = avantages.length ? '- ' + avantages.join('\n- ') : 'Aucun';
 
-            // Partie Travailleurs recrutés à l’extérieur
+            // Partie Travailleurs recrutés à l'extérieur
             const residence = getVal("Résidence habituelle (embauche/rapatriement)");
             const adresseExterieure = getVal("Adresse exacte dans ce pays");
 
@@ -212,13 +223,13 @@
             let partieExterieur = '';
             if (residence || adresseExterieure) {
                 partieExterieur = `
-II – PARTIE RESERVEE AUX TRAVAILLEURS RECRUTES A L’EXTERIEUR DU TERRITOIRE :
+II – PARTIE RESERVEE AUX TRAVAILLEURS RECRUTES A L'EXTERIEUR DU TERRITOIRE :
 Résidence habituelle : ${residence || '……………'}
 Adresse exacte : ${adresseExterieure || '……………'}
 
-Art.10 : L’employeur prendra en charge / ne prendra pas en charge les frais de déplacement...
-Art.11 : L’employeur prend en charge les frais de déplacement du travailleur et des membres de sa famille...
-Art.12 : Le travailleur bénéficiera d’un congé payé...`;
+Art.10 : L'employeur prendra en charge / ne prendra pas en charge les frais de déplacement...
+Art.11 : L'employeur prend en charge les frais de déplacement du travailleur et des membres de sa famille...
+Art.12 : Le travailleur bénéficiera d'un congé payé...`;
             }
 
             const texte = `
@@ -234,8 +245,8 @@ Domicile à Madagascar : ${domicile}
 I – DISPOSITIONS GENERALES :
 Art.1 : Le contrat prend effet le ${dateEffet}
 Durée : ${typeContrat === 'CDD' ? dureeCDD + ' /an (CDD)' : 'Indéterminée'}
-Période d’essai : ${essai} mois
-Lieu d’emploi : ${lieuEmploi}
+Période d'essai : ${essai} mois
+Lieu d'emploi : ${lieuEmploi}
 Poste : ${poste}
 Salaire : ${salaire} Ar
 Avantages : ${avantagesText}
@@ -244,7 +255,7 @@ ${partieExterieur}
 
 Fait à Antananarivo, le ${dateJour}
 
-SIGNATURE DU TRAVAILLEUR          SIGNATURE DE L’EMPLOYEUR`;
+SIGNATURE DU TRAVAILLEUR          SIGNATURE DE L'EMPLOYEUR`;
 
             document.getElementById('apercuContrat').innerText = texte;
         }
