@@ -35,9 +35,9 @@ class fonctionTest {
         return $filePath;
     }
 
-  public function comparaisonReponse($data, $idProfil, $idAnnonce) {
+  public function comparaisonReponse($data,$idCandidat, $idProfil, $idAnnonce) {
     $score = 0; 
-    $questions = $this->getQst($idAnnonce);
+    $questions = $this->getQst($idProfil);
 
     foreach ($questions as $q) {
         $idQst = $q['id_question'];
@@ -55,7 +55,7 @@ class fonctionTest {
     $dateTest = date('Y-m-d H:i:s'); 
     $sql = "INSERT INTO tests (id_candidat, id_annonce, score_test, date_test)
             VALUES (?, ?, ?, ?) RETURNING id_test";
-    $lastId = Query::query($sql, [$idProfil, $questions[0]['id_profil'] ?? null, $score, $dateTest]);
+    $lastId = Query::query($sql, [$idCandidat, $idAnnonce, $score, $dateTest]);
 
     $messagerieModel=new MessagerieModel();
     $mess=$messagerieModel->reponseAutomatique($idProfil,$idAnnonce,1);

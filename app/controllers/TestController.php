@@ -14,8 +14,17 @@ class TestController {
 	public function traitementQCM() {
     $fonction = new fonctionTest(Flight::db());
     $fonctionMess=new MessagerieModel(Flight::db());
-    $idCandidat = Flight::request()->query['idCandidat'];  
-    $idAnnonce = Flight::request()->query['idAnnonce'];  
+  //  error_log('idCandidat')
+  
+  // $idCandidat = Flight::request()->data['idCandidat']; // 5
+//$idAnnonce = Flight::request()->data['idAnnonce'];   // 12
+$idCandidat = Flight::request()->data->idCandidat ?? null;
+$idAnnonce = Flight::request()->data->idAnnonce ?? null;
+
+error_log("dernier candidat traite : " . $idCandidat);
+error_log("dernier annonce traite : " . $idAnnonce);
+
+
     $profilData = $fonction->getIdProfil($idCandidat, $idAnnonce);
     $idProfil = $profilData[0]['id_profil'];
 
@@ -35,20 +44,25 @@ class TestController {
     $data = Flight::request()->data->getData();
     $reponses = $data['reponses'] ?? [];
 
-    $score = $fonction->comparaisonReponse($reponses, $idProfil, $idAnnonce);
+    $score = $fonction->comparaisonReponse($reponses,$idCandidat, $idProfil, $idAnnonce);
     //$message=$fonctionMess->getMessageAutomatique(1);
-    Flight::render('accueil U', [
-        'score' => $score,
-        'reponses' => $reponses,
-        'qcm' => $qcm
+    Flight::render('accueilU'); //[
+       // 'score' => $score,
+      //  'reponses' => $reponses,
+      //  'qcm' => $qcm
        // 'messagerie'=>$message
 
-    ]);
+   // ]);
 }
 	public function QCM() {
         $fonction = new fonctionTest(Flight::db());
-        $idCandidat = 1;
-        $idAnnonce=1;
+/*$idCandidat = Flight::request()->data['idCdt']; // 5
+$idAnnonce = Flight::request()->data['idAnn'];   // 12*/
+$idCandidat = Flight::request()->query['idCdt'];
+$idAnnonce = Flight::request()->query['idAnn'];
+
+error_log("dernier candidat : " . $idCandidat);
+error_log("dernier annonce : " . $idAnnonce);
         $profilData = $fonction->getIdProfil($idCandidat,$idAnnonce);
         if (empty($profilData)) {
             Flight::halt(404, "Profil non trouvé pour ce candidat");
@@ -69,7 +83,7 @@ class TestController {
                 'reponses' => $reponses 
             ];
         }
-        Flight::render('formulaireTest', ['qcm' => $qcm]);
+        Flight::render('formulaireTest', ['qcm' => $qcm,'idCandidat'=>$idCandidat,'idAnnonce'=>$idAnnonce]);
     }
    
 
