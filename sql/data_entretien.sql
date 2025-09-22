@@ -242,3 +242,13 @@ INSERT INTO disponibilite_entretien (id_responsable, heure_debut, heure_fin, jou
 (5, '15:00', '18:00', 5),
 (5, '15:00', '18:00', 6),
 (5, '15:00', '18:00', 7);
+
+INSERT INTO jour_ferie("date") VALUES
+('2025-01-01'), -- Jour de l'an
+('2025-03-29'), -- Fête nationale
+('2025-05-01'), -- Fête du travail
+('2025-06-26'), -- Indépendance
+('2025-08-15'), -- Assomption
+('2025-11-01'), -- Toussaint
+('2025-12-25'); -- Noël
+('2025-02-20'); -- Noël
