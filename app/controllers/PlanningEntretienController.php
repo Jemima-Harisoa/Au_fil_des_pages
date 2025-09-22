@@ -4,7 +4,10 @@ use app\models\PlanningEntretienModel;
 use Flight;
 class PlanningEntretienController {
     public function showPageEntretien() {
-        Flight::render('planning_entretien');
+        $candidats = Flight::testModel()->getCandidatsAvecSuccesTest(3);
+        $planningEntretien = Flight::planningEntretienModel();
+        $allVerified = $planningEntretien-> checkCandidatsInEntretien($candidats);
+        Flight::render('planning_entretien',["allVerified"=>$allVerified]);
     }
 }
 ?>
