@@ -47,21 +47,23 @@ class DateModel{
     }
 
     // Accéder directement à l'objet DateTime
-    public function getDateTime():\DateTime
-    {
-        return $this->dateTime;
-    }
-    public function addInterval(string $interval){
-        try{
-            if($interval!= null){
-                $this->$date=$this->$date->add(new DateInterval($interval));
-            }
-            else{
-                throw new Exception("l'intervalle n'existe pas ou est nul");
-            }
+        public function getDateTime():\DateTime
+        {
+            return $this->dateTime;
         }
-        catch(Exception $e){
-            echo "".$e->getMessage(); 
+    public function addInterval(string $interval): \DateTime {
+        try {
+            if ($interval != null) {
+                list($h, $m, $s) = explode(":", $interval);
+                $inter = new \DateInterval("PT{$h}H{$m}M{$s}S");
+                $this->dateTime = $this->dateTime->add($inter);
+                return $this->dateTime; // 🔥 retourne la DateTime
+            } else {
+                throw new \Exception("l'intervalle n'existe pas ou est nul");
+            }
+        } catch (\Exception $e) {
+            echo $e->getMessage();
+            return $this->dateTime; // ou null, selon ton choix
         }
     }
 
