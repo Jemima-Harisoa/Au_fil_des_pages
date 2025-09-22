@@ -14,7 +14,7 @@ use app\models\migration\HistoriqueContratModel;
 use app\models\ProfilsModel;
 use app\models\EtatModel;
 use app\models\ConnexionModel; // pour vérifier l'admin en session
-
+use app\models\MessagerieModel;
 class MigrationController {
 
     /**
@@ -118,6 +118,8 @@ class MigrationController {
             'profil' => null
         ];
 
+
+
         Flight::render('validation/form', ['data' => $data]);
     }
 
@@ -184,8 +186,8 @@ class MigrationController {
         $typeContrats     = Flight::TypeContrat();
 
         // Vérification du candidat
-        $personne = $personneModel->getBy('id_personne', $id_candidat);
         $candidat = $candidatModel->getBy('id_candidat', $id_candidat);
+        $personne = $personneModel->getBy('id_personne', $candidat['id_candidat']);
 
         if (!$personne || !$candidat) {
             Flight::halt(404, "Candidat non trouvé.");
@@ -305,6 +307,9 @@ class MigrationController {
                 $etat = $etatModel->getBy("nom", "Validé");
                 if (!$etat) { $etatModel->save(['nom'=>'Validé']); $etat = $etatModel->getBy("nom","Validé"); }
                 $actionLabel = "Validation";
+                    $messagerieModel=new MessagerieModel();
+                    $mess=$messagerieModel->repondreA($id_candidat,$candidat['id_annonce'],"Voici votre contrat.");
+                    $mess=$messagerieModel->repondreA($id_candidat,$candidat['id_annonce'],"<a href='{$existingContrat['url_contrat']}'></a>");
                 break;
             case 'refuser':
                 $etat = $etatModel->getBy("nom", "Non validé");

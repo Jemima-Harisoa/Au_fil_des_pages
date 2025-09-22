@@ -35,7 +35,7 @@ class EtatModel {
     }
 
     // --- Méthodes BDD ---
-    public function all(): array {
+    public function list(): array {
         $sql = "SELECT * FROM etat";
         $stmt = $this->db->query($sql);
         return $stmt->fetchAll(\PDO::FETCH_ASSOC);
