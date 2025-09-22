@@ -160,8 +160,6 @@ class PlanningEntretienModel{
                             $planningEntretien->setDateHeureEntretien (DisponibiliteEntretienModel::checkDateDisponible($dateHeureEntretien,$disponibilitesEntretien));
                         }
                         else{
-                            var_dump($lastPlanning);
-                            var_dump(gettype($lastPlanning));
                             $dateHeureEntretien = Flight::disponibiliteEntretienModel()->jourOuvrableEntretien($candidat,$disponibilitesEntretien);
                             $planningEntretien->setDateHeureEntretien($dateHeureEntretien);
                         }
@@ -175,5 +173,39 @@ class PlanningEntretienModel{
             throw new \Exception($e->getMessage());
         }
     }
+
+    public static function getEntretiensParEtat($etat) {
+        $db = Flight::db();
+
+        $sql = "
+          SELECT pe.*,
+       te.*,
+       vrp.nom as nom_responsable,
+       vrp.prenom as prenom_responsable
+    FROM planning_entretien pe
+    JOIN (
+        SELECT vcp.*,
+                te.score_test,  
+                te.date_test
+            FROM tests  te
+        join v_candidats_personnes vcp 
+        ON te.id_candidat = vcp.id_candidat
+    )
+    as te
+    ON pe.id_candidat = te.id_candidat
+    JOIN v_responsable_personnes vrp
+    on vrp.id_responsable = pe.id_responsable
+    WHERE pe.etat = ? ;
+        ";
+
+        try {
+            $stmt = $db->prepare($sql);
+            $stmt->execute([$etat]);
+            return $stmt->fetchAll(\PDO::FETCH_ASSOC);
+        } catch (\PDOException $e) {
+            Flight::halt(500, "Erreur DB: " . $e->getMessage());
+        }
+    }
+    
     
 }
