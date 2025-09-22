@@ -2,7 +2,7 @@
   $idUser = $_SESSION['utilisateur']['id_utilisateur'];
   $idAnnonce = $idAnnonce;
   $idProfil = $idProfil;
-  echo "Utilisateur: " . $idUser . " Annonce: " . $idAnnonce . " || Profil: " . $idProfil;
+//   echo "Utilisateur: " . $idUser . " Annonce: " . $idAnnonce . " || Profil: " . $idProfil;
 
   // Connexion via Flight (si tu as déjà configuré Flight::db())
   $db = Flight::db();

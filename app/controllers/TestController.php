@@ -48,6 +48,8 @@ error_log("dernier annonce traite : " . $idAnnonce);
     $reponses = $data['reponses'] ?? [];
 
     $score = $fonction->comparaisonReponse($reponses,$idCandidat, $idProfil, $idAnnonce);
+    $_SESSION['messagerie'] = $model->getTitresConversationsU($_SESSION['utilisateur']['id_utilisateur']);
+    
     //$message=$fonctionMess->getMessageAutomatique(1);
     Flight::render('accueilU'); //[
        // 'score' => $score,
