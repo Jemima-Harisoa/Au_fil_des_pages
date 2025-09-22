@@ -9,30 +9,30 @@
         "qualite_representant": "Directeur Général"
     },
     "employe": {
-        "resilliation": "2",
+        "resilliation": "1",
         "modalite": {
-            "debut_contrat": "2025-09-22",
+            "debut_contrat": "2025-09-29",
             "duree": null,
             "essai": "3"
         },
         "lieu": "Rue des Lilas, Antananarivo",
         "poste": {
-            "qualite": "Chef de projet",
+            "qualite": "Développeur Java",
             "class": ""
         },
         "remuneration": {
             "salaire": "1000000",
             "avantages": []
         },
-        "noms_prenoms": "Randriamahenina Paul",
-        "ne_le": "1988-11-02",
+        "noms_prenoms": "Rakoto Jean",
+        "ne_le": "1985-03-12",
         "ne_a": "Befelatanana",
         "fils_ou_fille_de": "Ray aman-dreniny",
         "nationalite": "Malagasy",
         "domicile": "Tananarive",
         "lieu_edition": "Antananarivo",
-        "date_edition": "21\/09\/2025",
-        "signature": "Randriamahenina Paul"
+        "date_edition": "22\/09\/2025",
+        "signature": "Rakoto Jean"
     },
     "clause_general": {
         "_comment": "Clause global pour tout contrat de travail",

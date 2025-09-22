@@ -10,6 +10,8 @@ use app\models\migration\ScoringModel;
 use app\models\migration\TypeContratModel;
 use app\models\migration\ContratModel;
 use app\models\EtatModel;
+use app\models\EmployeModel;
+
 use app\models\migration\HistoriqueValidationModel;
 use app\models\migration\HistoriqueContratModel;
 use app\models\ProfilsModel;
@@ -61,6 +63,10 @@ Flight::map('Contrat', function () {
 
 Flight::map('Etat', function () {
     return new EtatModel(Flight::db());
+});
+
+Flight::map('Employe', function () {
+    return new EmployeModel(Flight::db());
 });
 
 Flight::map('HistoriqueValidation', function () {

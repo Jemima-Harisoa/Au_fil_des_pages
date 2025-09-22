@@ -77,5 +77,10 @@ $router->group( "/migration" , function($router) use ($Migration_Controller){
 
 		// route vers la page d'editon des contrat pour retouche ou bien validation
 		$router->get("/contrat/edit", [$Migration_Controller, 'editContrat']);   
+		
+		// route vers la page de list des employes
+		$router->get("/employes", [$Migration_Controller, 'getEmploye']); 
+		$router->get("/contrats/validate", [$Migration_Controller, 'getEmploye']); 
+		  
 	}
 );

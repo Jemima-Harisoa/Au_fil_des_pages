@@ -59,7 +59,7 @@
                                             </td>
                                             <td>
                                                 <?php if (!empty($row['url_contrat'])): ?>
-                                                    <a href="..<?= htmlspecialchars($row['url_contrat']) ?>" class="btn btn-sm btn-primary btn-contrat">
+                                                    <a href="../..<?= htmlspecialchars($row['url_contrat']) ?>" class="btn btn-sm btn-primary btn-contrat">
                                                         <i class="fas fa-file-signature"></i> Contrat
                                                     </a>
                                                 <?php else: ?>

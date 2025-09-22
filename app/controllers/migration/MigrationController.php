@@ -63,6 +63,105 @@ class MigrationController {
         // admin OK
         return true;
     }
+    // Controlleur pour validation ajout de l'employe lien contrat accessible pour les candidats 
+    public function validate() {
+        // Pas besoin d’être admin ici → n'importe quel valideur peut l'appeler
+        $id_contrat = Flight::request()->query['id'] ?? null;
+        if (!$id_contrat) {
+            Flight::halt(400, "ID du contrat manquant !");
+            return;
+        }
+
+        // Modèles
+        $contratModel    = Flight::Contrat();
+        $candidatModel   = Flight::Candidat();
+        $personneModel   = Flight::Personne();
+        $profilModel     = Flight::Profils();
+        $historiqueModel = Flight::HistoriqueValidation();
+        $employeModel    = Flight::Employe();
+
+        // Récupérer contrat + candidat + personne
+        $contrat  = $contratModel->getBy("id_contrat", $id_contrat);
+        $candidat = $candidatModel->getBy("id_candidat", $contrat['id_candidat']);
+        $personne = $personneModel->getBy("id_personne", $candidat['id_personne']);
+
+        if (!$contrat || !$candidat || !$personne) {
+            Flight::halt(404, "Contrat ou candidat introuvable.");
+            return;
+        }
+
+        $id_candidat = $candidat['id_candidat'];
+
+        // Récupérer le profil pour savoir à quel département est lié le poste
+        $profil = $profilModel->getBy("id_profil", $candidat['id_profil']);
+        $id_departement_profil = $profil['id_departement'] ?? null;
+
+        // Récupérer validations déjà effectuées
+        $validations = $historiqueModel->getBy('id_candidat', $id_candidat);
+
+        // Flags (seulement candidat + département)
+        $candidatOK = false;
+        $depOK = false;
+
+        foreach ($validations as $val) {
+            if (!empty($val['id_candidat']) && $val['id_candidat'] == $id_candidat) {
+                $candidatOK = true;
+            }
+            if (!empty($val['id_employe'])) {
+                $emp = $employeModel->getBy("id_employe", $val['id_employe']);
+                if ($emp && $emp['id_departement'] == $id_departement_profil) {
+                    $depOK = true;
+                }
+            }
+        }
+
+        // === Vérification finale ===
+        if ($candidatOK && $depOK) {
+            // Transformation du candidat en employé
+            $employeData = [
+                'id_personne'    => $personne['id_personne'],
+                'id_contrat'     => $id_contrat,
+                'id_departement' => $id_departement_profil,
+                'poste'          => $candidat['poste'] ?? '',
+                'date_embauche'  => date('Y-m-d H:i:s')
+            ];
+            $employeModel->save($employeData);
+
+            $msg = urlencode("Le contrat a été validé par le candidat et son responsable de département. Le candidat devient employé.");
+            Flight::redirect("/migration/?id={$id_contrat}&msg={$msg}&msg_type=success");
+        } else {
+            $msg = urlencode("Validation enregistrée mais toutes les conditions (candidat + département) ne sont pas encore réunies.");
+            Flight::redirect("/migration/?id={$id_contrat}&msg={$msg}&msg_type=info");
+        }
+    }
+
+    // === Nouvelle méthode : lister les employés ===
+    public function getEmploye() {
+        if (!$this->requireAdmin()) return;
+
+        $employeModel = Flight::Employe();
+        $personneModel = Flight::Personne();
+
+        $employes = $employeModel->list();
+
+        // joindre les infos personne pour affichage simple
+        $rows = [];
+        foreach ($employes as $emp) {
+            $pers = $personneModel->getBy('id_personne', $emp['id_personne']);
+            $rows[] = [
+                'id_employe' => $emp['id_employe'],
+                'nom' => $pers['nom'] ?? '',
+                'prenom' => $pers['prenom'] ?? '',
+                'contact' => $pers['contact'] ?? '',
+                'poste' => $emp['poste'] ?? '',
+                'date_embauche' => $emp['date_embauche'] ?? '',
+                'id_contrat' => $emp['id_contrat'] ?? null,
+                'id_departement' => $emp['id_departement'] ?? null
+            ];
+        }
+
+        Flight::render('validation/listEmploye', ['employes' => $rows]);
+    }
 
     // Redirection vers la pages d'edition du contrat
     public function editContrat() {
