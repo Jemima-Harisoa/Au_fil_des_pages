@@ -85,11 +85,12 @@
 </style>
 
 <form id="qcmForm" action="/traitement-qcm" method="POST">
+     <input type="hidden" name="idCandidat" value="<?= htmlspecialchars($idCandidat) ?>">
+<input type="hidden" name="idAnnonce" value="<?= htmlspecialchars($idAnnonce) ?>">
 <?php if (!empty($qcm)) {
     foreach ($qcm as $index => $q): ?>
         <div class="question <?= $index === 0 ? 'active' : '' ?>">
             <p>Question <?= $index + 1 ?>: <?= htmlspecialchars($q['question']) ?></p>
-
             <?php foreach ($q['reponses'] as $r): ?>
                 <label class="reponse-card">
                     <input type="radio" 

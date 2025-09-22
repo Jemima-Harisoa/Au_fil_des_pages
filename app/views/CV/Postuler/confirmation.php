@@ -58,13 +58,14 @@
 
     <!-- Message conditionnel -->
     <?php if (isset($boolean_validation) && $boolean_validation) { ?>
-      <form action="/testAcceuil" method="post" >
-        <input type="hidden" name="idCandidat" value="<?= $idCandidat ?>">
-<input type="hidden" name="idAnnonce" value="<?= $idAnnonce ?>">
+      <form action="/testAccueil" method="GET" >
+       <input type="hidden" name="idCdt" value="<?= htmlspecialchars($idCandidat) ?>">
+      <input type="hidden" name="idAnn" value="<?= htmlspecialchars($idAnnonce) ?>">
 
       <div class="bg-green-50 border-l-4 border-green-500 p-4 mb-6 rounded" role="alert">
         <p class="text-green-700 font-semibold">
           Félicitations ! Votre CV correspond au profil recherché.
+         
         </p>
         <p class="similarity-score text-center my-6">
           <?= isset($note_similarite) ? htmlspecialchars(number_format($note_similarite * 100, 2)) . '%' : 'N/A' ?>
