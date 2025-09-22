@@ -147,8 +147,8 @@ SELECT *
 FROM planning_entretien 
 where date_heure_entretien in(
     SELECT MAX(date_heure_entretien)
-    FROM planning_entretien
-    group by id_responsable,date_heure_entretien
+    FROM  planning_entretien
+    group by id_responsable
 );
 
 INSERT INTO jour_ferie("date") VALUES
