@@ -55,6 +55,38 @@ INSERT INTO filieres (nom) VALUES
   ('Logistique'); 
 
 -- Profils
+INSERT INTO profilsCV (
+  titre, competences, skills, loisirs, id_diplome, filiere, experience_pro, certifications, langues, id_type_contrat, est_minimum, id_departement
+) VALUES
+('Caissier / Caissiere',
+ 'Accueillir et encaisser les clients; Assurer la rapidite et la fiabilite des transactions; Maintenir un espace de caisse organise et propre; Appliquer les procedures de securite et de controle',
+ 'Rigueur et honnetete; Rapidite d''execution; Gestion du stress',
+ 'Jeux de logique; Activites demandant precision',
+ 2, 'Commerce et Gestion', '1 an en caisse ou grande surface', NULL, NULL, 1, TRUE, NULL),
+
+('Comptable',
+ 'Assurer la tenue de la comptabilite generale et analytique; Etablir les bilans et declarations fiscales; Analyser les flux financiers; Conseiller la direction sur la gestion budgetaire',
+ 'Confidentialite; Esprit analytique; Minutie; Gestion des priorites',
+ 'Jeux strategiques; Sudoku; Activites de gestion',
+ 3, 'Finance et Comptabilite', '2 a 3 ans d''experience en cabinet ou PME', NULL, NULL, 1, TRUE, NULL),
+
+('Gerant / Manager',
+ 'Superviser et coordonner les equipes; Prendre des decisions strategiques; Assurer la rentabilite et le developpement de l''activite; Gerer les conflits et favoriser la cohesion',
+ 'Leadership; Prise de decision; Gestion des conflits; Vision strategique',
+ 'Lecture sur l''economie et entrepreneuriat; Sport collectif (leadership)',
+ 4, 'Management et Strategie', '3 a 5 ans d''experience en commerce ou gestion', NULL, NULL, 1, TRUE, NULL),
+
+('Magasinier',
+ 'Receptionner et stocker les marchandises; Preparer les commandes; Assurer le suivi des inventaires; Respecter les consignes de securite',
+ 'Organisation; Fiabilite; Resistance physique; Esprit d''equipe',
+ 'Sport (endurance, fitness); Bricolage (sens pratique)',
+ 2, 'Logistique et Approvisionnement', '1 a 2 ans en gestion de stock', NULL, NULL, 1, TRUE, NULL),
+
+('Vendeur / Vendeuse',
+ 'Accueillir et conseiller les clients; Assurer la mise en rayon et l''attractivite du magasin; Conclure les ventes et fideliser la clientele; Participer aux inventaires et a la gestion des stocks',
+ 'Sens du relationnel; Communication claire; Patience et ecoute; Dynamisme',
+ 'Lecture (interet pour les livres); Activites sociales (theatre, clubs de lecture)',
+ 2, 'Commerce et Relation Client', 'Debutant accepte, experience en relation client est un plus', NULL, NULL, 1, TRUE, NULL);
 
 
 INSERT INTO profils (
