@@ -1,8 +1,13 @@
 <?php
 use app\controllers\WelcomeController;
+
 use app\controllers\cvController;
 use app\controllers\ConnexionController;
 use app\controllers\AnnoncesController;
+
+use app\controllers\PlanningEntretienController;
+use app\controllers\ApiPlanningEntretienController;
+
 
 use app\controllers\TestController;
 use app\controllers\MessagerieController;
@@ -75,6 +80,7 @@ $Welcome_Controller = new WelcomeController();
 $Test_Controller = new TestController();
 
 $router->get('/', [ $Welcome_Controller, 'home' ]);
+
 $router->get('/testAccueil', [ $Test_Controller, 'QCM' ]); 
 $router->post('/traitement-qcm', [ $Test_Controller, 'traitementQCM' ]); 
 $router->get('/allTests', [ $Test_Controller, 'getList' ]); 
@@ -108,4 +114,14 @@ Flight::route('GET /messagerie/getCount', [MessagerieController::class, 'getNoti
 Flight::route('GET /messagerie/refresh', [MessagerieController::class, 'refreshNotifications']);
 Flight::route('POST /messagerie/markAsRead', [MessagerieController::class, 'markAsReadAndGetCount']);
 Flight::route('GET /messagerie/markAsRead/@id_candidat/@id_annonce', [MessagerieController::class, 'markConversationAsRead']);
+
+
+
+$planning_entretien_controller = new PlanningEntretienController();
+$router->get('/planning-entretien',[$planning_entretien_controller,'showPageEntretien']);
+
+$api_planning_entretien_controller = new ApiPlanningEntretienController();
+$router->get('/api/planifier-entretien',[$api_planning_entretien_controller,'planifierEntretien']);
+
+
 ?>

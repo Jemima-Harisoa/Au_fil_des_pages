@@ -1,0 +1,110 @@
+<?php
+namespace app\models;
+
+use Flight;
+use flight\Engine;
+use flight\database\PdoWrapper;
+use flight\debug\database\PdoQueryCapture;
+class DateModel{ 
+ private \DateTime $dateTime;
+ private const JourEnLettres = ['Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi','Dimache'];
+    // Constructeur : accepte soit un timestamp, soit une chaîne de date
+    public function __construct(int|string|null $timeOrDateTime = null)
+    {
+        if ($timeOrDateTime === null) {
+            $this->dateTime = new \DateTime(); // date actuelle
+        } elseif (is_int($timeOrDateTime)) {
+            $this->dateTime = (new \DateTime())->setTimestamp($timeOrDateTime);
+        } elseif (is_string($timeOrDateTime)) {
+            $this->dateTime = new \DateTime($timeOrDateTime);
+        } else {
+            throw new \InvalidArgumentException("Type non valide pour DateModel");
+        }
+    }
+
+    // Retourner le timestamp
+    public function getTimestamp(): int
+    {
+        return $this->dateTime->getTimestamp();
+    }
+
+    // Retourner la date formatée
+    public function format(string $format = "Y-m-d H:i:s"): string
+    {
+        return $this->dateTime->format($format);
+    }
+
+    // Modifier la date via un timestamp
+    public function setTimestamp(int $timestamp): void
+    {
+        $this->dateTime->setTimestamp($timestamp);
+    }
+
+    // Modifier la date via une chaîne
+    public function setDate(string $dateString): void
+    {
+        $this->dateTime = new \DateTime($dateString);
+    }
+
+    // Accéder directement à l'objet DateTime
+        public function getDateTime():\DateTime
+        {
+            return $this->dateTime;
+        }
+    public function addInterval(string $interval): \DateTime {
+        try {
+            if ($interval != null) {
+                list($h, $m, $s) = explode(":", $interval);
+                $inter = new \DateInterval("PT{$h}H{$m}M{$s}S");
+                $this->dateTime = $this->dateTime->add($inter);
+                return $this->dateTime; 
+            } else {
+                throw new \Exception("l'intervalle n'existe pas ou est nul");
+            }
+        } catch (\Exception $e) {
+            throw new \Exception($e->getMessage());
+            
+        }
+    }
+
+    //     "d" → jour du mois avec 2 chiffres (ex: 01 à 31)
+
+    // "j" → jour du mois sans zéro initial (ex: 1 à 31)
+
+    // "N" → jour de la semaine ISO (1 = lundi, 7 = dimanche)
+
+    // "w" → jour de la semaine (0 = dimanche, 6 = samedi)
+    public static function getJourLettreDate(\DateTime $datetime):string{
+        $indiceJour = (int) $datetime->format("N");
+        $jour = self::JourEnLettres[$indiceJour-1];
+        return $jour;
+    }
+    public static function getJourChiffreDate(\DateTime $datetime):int{
+        $indiceJour = (int) $datetime->format("N");
+        return $indiceJour;
+    }
+    public static function ajouterJours(\DateTime $date, int $nbJours): \DateTime {
+        $date->modify("+{$nbJours} days");
+        return $date;
+    }
+    public static function getJourLettreEnChiffre(string $jour):int{
+        for($i=0;$i<count(self::JourEnLettres);$i++){
+            if($jour === self::JourEnLettres[$i]){
+                $i++;
+                return $i;
+            }
+        }
+    }
+    public static function recupererHeure(\DateTime $dateHeure){
+        $resultat = $dateHeure->format("H:i:s");
+        return $resultat;
+    }
+    public static function changerHeure($datetime,$time){
+        $datetime->setTime(
+        (int)$time->format("H"),
+        (int)$time->format("i"),
+        (int)$time->format("s")
+        );
+    }
+}  
+
