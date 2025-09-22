@@ -178,10 +178,11 @@ class PlanningEntretienModel{
         $db = Flight::db();
 
         $sql = "
-          SELECT pe.*,
+        SELECT pe.*,
        te.*,
        vrp.nom as nom_responsable,
-       vrp.prenom as prenom_responsable
+       vrp.prenom as prenom_responsable,
+       e.nom
     FROM planning_entretien pe
     JOIN (
         SELECT vcp.*,
@@ -195,7 +196,9 @@ class PlanningEntretienModel{
     ON pe.id_candidat = te.id_candidat
     JOIN v_responsable_personnes vrp
     on vrp.id_responsable = pe.id_responsable
-    WHERE pe.etat = ? ;
+    JOIN etat e
+    ON e.id_etat = pe.etat
+    WHERE pe.etat = 3 ;
         ";
 
         try {
@@ -206,6 +209,18 @@ class PlanningEntretienModel{
             Flight::halt(500, "Erreur DB: " . $e->getMessage());
         }
     }
-    
-    
+    public function checkCandidatsInEntretien($candidats){
+        $candidatsModel = Flight::candidatModel();
+        $candidatsEntretien = self::all();
+        $compteur = 0;
+        foreach($candidats as $candidat){
+            if(CandidatModel::estDansLaListe($candidat,$candidatsEntretien)){
+                $compteur++;
+            }
+        }
+        if($compteur == count($candidatsEntretien)){
+            return true;
+        }
+        return false;
+    }
 }
