@@ -105,7 +105,7 @@ class ResponsableEntretienModel
         $db = $this->db;
         $stmt = $db->prepare($query);
         $stmt->execute([$responsable["id_responsable"]]);
-        return $stmt->fetchAll(\PDO::FETCH_ASSOC);
+        return $stmt->fetch(\PDO::FETCH_ASSOC);
         }
         catch(\Exception $e){
             throw new \Exception($e->getMessage());
