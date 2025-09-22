@@ -76,10 +76,11 @@ class PlanningEntretienModel{
             //code...
             $db->beginTransaction();
             if($this->date_heure_entretien!= null && $this->id_candidat!= null){
-                $stmt = $db->prepare("INSERT INTO planning_entretien (id_candidat, date_heure_entretien, score_entretien, etat, id_appreciation) 
-                                      VALUES (?, ?, ?, ?, ?)");
+                $stmt = $db->prepare("INSERT INTO planning_entretien (id_candidat, id_responsable,date_heure_entretien, score_entretien, etat, id_appreciation) 
+                                      VALUES (?, ?, ?, ?, ?, ?)");
                 $stmt->execute([
                     $this->id_candidat,
+                    $this->id_responsable,
                     $this->date_heure_entretien->format('Y-m-d H:i:s'),
                     $this->score_entretien,
                     $this->etat,
@@ -101,7 +102,7 @@ class PlanningEntretienModel{
     public static function all() {
         $db = Flight::db();
         $stmt = $db->query("SELECT * FROM planning_entretien");
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        return $stmt->fetchAll(\PDO::FETCH_ASSOC);
     }
 
     // Récupérer un entretien par ID
@@ -109,7 +110,7 @@ class PlanningEntretienModel{
         $db = Flight::db();
         $stmt = $db->prepare("SELECT * FROM planning_entretien WHERE id_entretien = ?");
         $stmt->execute([$id]);
-        return $stmt->fetch(PDO::FETCH_ASSOC);
+        return $stmt->fetch(\PDO::FETCH_ASSOC);
     }
     public function getLastPlanning($idResponsable) {
         try {
@@ -125,7 +126,8 @@ class PlanningEntretienModel{
 
             $stmt = $this->db->prepare($sql);
             $stmt->execute(['id_responsable' => $idResponsable]);
-            return $stmt->fetchAll(\PDO::FETCH_ASSOC);
+            $result = $stmt->fetch(\PDO::FETCH_ASSOC);
+            return $result ?: null; 
 
         } catch (\Exception $e) {
             throw new \Exception("Erreur lors de la récupération du planning : " . $e->getMessage());
@@ -133,7 +135,6 @@ class PlanningEntretienModel{
     }
 
     public function planifierEntretien($listeCandidats,$idResponsable){
-        $candidats;
         $idProfil = 0;
         $idCandidat = 0;
         $idResponsable = 0;
@@ -144,24 +145,28 @@ class PlanningEntretienModel{
                 foreach($listeCandidats as $candidat){
                     $idProfil = Flight::profilsModel()->getById($candidat["id_profil"]);
                     $responsables = Flight::responsableEntretienModel()->getResponsablesEntretienCandidat($candidat["id_profil"]);
-                    var_dump($responsables);
-                    // return;
-                    $i = 0;
                     foreach($responsables as $responsable){
                         $disponibilitesEntretien = Flight::disponibiliteEntretienModel()->getTempsDisponiblesEntretien($responsable["id_responsable"]);
                         $configEntretien = Flight::configEntretienModel()->getConfigurationEntretienResponsable($responsable);
                         $lastPlanning = Flight::planningEntretienModel()->getLastPlanning($responsable["id_responsable"]);
+                        
                         $planningEntretien = Flight::planningEntretienModel();
                         $planningEntretien->setIdCandidat($candidat["id_candidat"]);
                         $planningEntretien->setIdResponsable($responsable["id_responsable"]);
-                        if($lastPlanning != null){
-                            $dateHeureEntretien = $last_planning["date_test"]+$configEntretien["duree_planning"];
+                        if($lastPlanning && is_array($lastPlanning)){
+                            var_dump($lastPlanning);
+                            var_dump(gettype($lastPlanning));
+                            $dateModel= new DateModel($lastPlanning["date_heure_entretien"]);
+                            $dateHeureEntretien= $dateModel->addInterval($configEntretien["duree_entretien"]);
                             $planningEntretien->setDateHeureEntretien (DisponibiliteEntretienModel::checkDateDisponible($dateHeureEntretien,$disponibilitesEntretien));
                         }
                         else{
+                            var_dump($lastPlanning);
+                            var_dump(gettype($lastPlanning));
                             $dateHeureEntretien = Flight::disponibiliteEntretienModel()->jourOuvrableEntretien($candidat,$disponibilitesEntretien);
                             $planningEntretien->setDateHeureEntretien($dateHeureEntretien);
                         }
+                        $planningEntretien->setIdEntretien($responsable['id_responsable']);
                         $planningEntretien->save();
                     }
                 }
@@ -170,6 +175,6 @@ class PlanningEntretienModel{
         } catch (\Exception $e) {
             throw new \Exception($e->getMessage());
         }
-        
     }
+    
 }
