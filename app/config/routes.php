@@ -9,14 +9,11 @@ use app\controllers\TestController;
 use app\controllers\migration\MigrationController;
 
 use app\controllers\cvController;
-use app\controllers\ConnexionController;
-use app\controllers\AnnoncesController;
 
 use app\controllers\PlanningEntretienController;
 use app\controllers\ApiPlanningEntretienController;
 
 
-use app\controllers\TestController;
 use app\controllers\MessagerieController;
 use flight\Engine;
 use flight\net\Router;
@@ -155,14 +152,6 @@ $router->get('/planning-entretien',[$planning_entretien_controller,'showPageEntr
 
 $api_planning_entretien_controller = new ApiPlanningEntretienController();
 $router->get('/api/planifier-entretien',[$api_planning_entretien_controller,'planifierEntretien']);
-
-
-?>
-
-
-/***************Route Module RH / Features migration***************/
-
-// Contrat
 $Migration_Controller = new MigrationController(); 
 //$router->get('/migration/Redaction',  [ $Contrat_Controller, 'RedactionContrat' ]);
 $router->group( "/migration" , function($router) use ($Migration_Controller){
@@ -183,4 +172,8 @@ $router->group( "/migration" , function($router) use ($Migration_Controller){
 		$router->get("/contrat/edit", [$Migration_Controller, 'editContrat']);   
 	}
 );
+
+
+?>
+
 

@@ -18,14 +18,13 @@ use app\models\ProfilsModel;
 use app\models\PlanningEntretienModel;
 
 use app\models\migration\PersonneModel;
-use app\models\migration\CandidatModel;
 use app\models\migration\ScoringModel;
 use app\models\migration\TypeContratModel;
 use app\models\migration\ContratModel;
 use app\models\EtatModel;
 use app\models\migration\HistoriqueValidationModel;
 use app\models\migration\HistoriqueContratModel;
-use app\models\migration\EtatModel;
+
 
 
 /** 
