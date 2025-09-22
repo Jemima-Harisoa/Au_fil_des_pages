@@ -126,7 +126,7 @@ INSERT INTO candidats (id_personne, id_annonce, id_profil, cv_url, poste) VALUES
 (22, 1, 1, 'https://cv.example.com/quentin.pdf','Vendeur'),
 (23, 1, 1, 'https://cv.example.com/rita.pdf','Vendeur'),
 (24, 4, 4, 'https://cv.example.com/samuel.pdf','Comptable'),
-(25, 5, 5, 'https://cv.example.com/therese.pdf','Gerant');
+(25, 5, 5, 'https://cv.example.com/therese.pdf','Gerant'); *
 
 INSERT INTO contrats (id_candidat, id_type_contrat, url_contrat) VALUES
 -- Contrats employes existants
@@ -252,3 +252,11 @@ INSERT INTO jour_ferie("date") VALUES
 ('2025-11-01'), -- Toussaint
 ('2025-12-25'); -- Noël
 ('2025-02-20'); -- Noël
+
+
+INSERT INTO etat (nom) VALUES
+  ('rejete'),
+  ('reporte'),
+  ('en cours'),
+  ('à venir'),
+  ('acceptee');
