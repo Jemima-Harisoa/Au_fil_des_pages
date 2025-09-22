@@ -30,3 +30,7 @@
 [2025-09-22 13:56:37] Admin: [LU]
 [2025-09-22 14:01:42] Admin: [LU]
 [2025-09-22 14:01:46] Admin: [LU]
+[2025-09-22 14:48:51] Admin: Voici votre contrat.
+[2025-09-22 14:48:51] Admin: <a href='\json\contrats\contrat_travail/candidat_1/contrat_20250922_144733.json'></a>
+[2025-09-22 14:48:56] Admin: [LU]
+[2025-09-22 14:49:42] Admin: [LU]
