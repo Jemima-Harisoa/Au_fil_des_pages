@@ -47,4 +47,12 @@ class EtatModel {
         $stmt = $this->db->query($sql);
         return $stmt->fetchAll(\PDO::FETCH_ASSOC);
     }
+
+    // Rechercher un valeur precise dans la table 
+    public function search($field, $value){
+        $sql = "SELECT * FROM etat WHERE {$field} ilike :value";
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute(['value' => $value]);
+        return $stmt->fetch(\PDO::FETCH_ASSOC);
+    }
 }

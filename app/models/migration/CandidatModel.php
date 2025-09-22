@@ -17,8 +17,8 @@ class CandidatModel {
 
     // Enregistrer un candidat
     public function save($data) {
-        $sql = "INSERT INTO candidats (id_personne , id_annonce , cv_url, poste) 
-                VALUES (:id_personne, :id_annonce, :cv_url, :poste)";
+        $sql = "INSERT INTO candidats (id_personne , id_annonce ,id_profil ,cv_url , poste) 
+                VALUES (:id_personne, :id_annonce, :id_profil , :cv_url, :poste)";
         $stmt = $this->db->prepare($sql);
         return $stmt->execute($data);
     }
@@ -26,7 +26,7 @@ class CandidatModel {
     // Mettre à jour
     public function update($id, $data) {
         $sql = "UPDATE candidats 
-                SET id_personne=:id_personne, id_annonce=:id_annonce, cv_url=:cv_url, poste=:poste
+                SET id_personne=:id_personne, id_annonce=:id_annonce,d_profil=:id_profil,  cv_url=:cv_url, poste=:poste
                 WHERE id_candidat=:id";
         $stmt = $this->db->prepare($sql);
         $data['id'] = $id;

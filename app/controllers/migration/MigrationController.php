@@ -7,33 +7,36 @@ use app\models\migration\CandidatModel;
 use app\models\migration\ScoringModel;
 use app\models\migration\TypeContratModel;
 use app\models\migration\ContratModel;
-use app\models\migration\HistoriqueValidation;
+use app\models\migration\HistoriqueValidationModel;
+use app\models\EtatModel;
 
 
 class MigrationController {
+    // Redirection vers la liste des contrats classer par etat Valide / non valide / En attente de validation 
+    public function validation(){
+        Flight::render();
+    }
+
     // Redirection vers la page d'enregistrement des information du candidat dans json *brouillon
     public function registerContrat() {
-        // Récupérer l'id du candidat depuis le formulaire ou query string
         $id_candidat = Flight::request()->query['id_candidat'] ?? null;
-
         if (!$id_candidat) {
             Flight::halt(400, "ID du candidat manquant.");
             return;
         }
 
-        // Récupérer les données POST
+        // Récupération des données du formulaire (POST)
         $data = Flight::request()->data;
 
-        // Récupérer la personne et le candidat
+        // Modèles
         $personneModel = Flight::Personne();
         $candidatModel = Flight::Candidat();
-
-        // Récupérer le model de contrat
         $contratModel = Flight::Contrat();
-
-        // Récupérer le model historique de validation
         $historiqueModel = Flight::HistoriqueValidation(); 
-        
+        $etatModel = Flight::Etat();
+
+        // Chercher le candidat et son état
+        $etat = $etatModel->search('nom', 'En attente de validation');
         $personne = $personneModel->getBy('id_personne', $id_candidat);
         $candidat  = $candidatModel->getBy('id_candidat', $id_candidat);
 
@@ -42,72 +45,98 @@ class MigrationController {
             return;
         }
 
-        // Chemin relatif vers public/json/contrats/contrat_travail/candidat_X
-        $basePath = realpath(__DIR__ . "/../../../public/json/contrats/contrat_travail");
-        if (!$basePath) {
-            Flight::halt(500, "Répertoire des contrats introuvable.");
+        // Charger le contrat modèle
+        $modelePath = realpath(__DIR__ . "/../../../public/json/contrats/contrat_travail/contrat_exemple.json");
+        if (!$modelePath || !file_exists($modelePath)) {
+            Flight::halt(500, "Fichier modèle introuvable.");
+            return;
+        }
+        $modele = json_decode(file_get_contents($modelePath), true);
+
+        if (!$modele) {
+            Flight::halt(500, "Erreur lors du chargement du modèle de contrat.");
             return;
         }
 
-        $dir = $basePath . "/candidat_" . $id_candidat;
-        if (!file_exists($dir)) {
-            mkdir($dir, 0777, true);
-        }
-
-        // Structuration du JSON
-        $contrat = [
-            "_comment" => "fichier avec les clauses du contrat general pour un employee donne",
-            "type" => $data['typeContrat'] ?? 'CDD',
+        // Remplacer la partie employe avec les données du formulaire
+        $modele["employe"] = [
+            "resilliation" => $data['typeContrat'] ?? 'cdd',
             "modalite" => [
                 "debut_contrat" => $data['dateDebut'] ?? '',
-                "duree" => $data['dureeCDD'] ?? null, // si CDI → null
+                "duree" => $data['dureeCDD'] ?? null,
                 "essai" => $data['essai'] ?? null
             ],
             "lieu" => $data['lieuEmploi'] ?? '',
             "poste" => [
-                "qualité" => $data['poste'] ?? '',
+                "qualite" => $data['poste'] ?? '',
                 "class" => $data['classification'] ?? ''
             ],
             "remuneration" => [
                 "salaire" => $data['salaire'] ?? '',
-                "avantages" => isset($data['avantages']) ? explode(',', $data['avantages']) : []
+                "avantages" => isset($data['avantages']) 
+                    ? (is_array($data['avantages']) 
+                        ? array_map('trim', $data['avantages']) 
+                        : array_map('trim', explode(',', $data['avantages'])))
+                    : []
             ],
-            "resiliation" => [
-                "type" => $data['typeContrat'] ?? 'CDD',
-                "indemnite" => $data['indemnite'] ?? ''
-            ],
-            "engagement" => "Les parties s'engagent à respecter les dispositions du Code du Travail et de ses textes d'application pour tout ce qui n'est pas prévu dans ce contrat",
+            "noms_prenoms" => "{$personne['nom']} {$personne['prenom']}",
+            "ne_le" => $data['dateNaissance'] ?? '',
+            "ne_a" => $data['lieuNaissance'] ?? '',
+            "fils_ou_fille_de" => $data['parents'] ?? '',
+            "nationalite" => $data['nationalite'] ?? '',
+            "domicile" => $data['domicile'] ?? '',
             "lieu_edition" => $data['lieuEdition'] ?? 'Antananarivo',
             "date_edition" => date('d/m/Y'),
-            "signature" => $data['signature'] ?? "{$personne['nom']} {$personne['prenom']}, {$data['poste']}",
+            "signature" => $data['signature'] ?? "{$personne['nom']} {$personne['prenom']}"
         ];
 
-        // Nom du fichier JSON
+        // Créer le répertoire du candidat si inexistant
+        $basePath = realpath(__DIR__ . "/../../../public/json/contrats/contrat_travail");
+        $dir = $basePath . "/candidat_" . $id_candidat;
+        
+        if (file_exists($dir)) {
+            // Le dossier existe déjà
+            // -> tu peux soit empêcher la création
+            // -> soit ajouter une logique différente
+            Flight::json([
+                "success" => false,
+                "message" => "Le dossier du candidat existe déjà."
+            ]);
+            return; // on arrête ici si on veut empêcher la suite
+        } else {
+            // Sinon, on crée le dossier
+            mkdir($dir, 0777, true);
+        }
+
+        // Nom du nouveau fichier JSON
         $file = $dir . "/contrat_" . date('Ymd_His') . ".json";
 
-        // Enregistrer le JSON// Enregistrer le JSON
-        if (file_put_contents($file, json_encode($contrat, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE))) {
-            
+        // Enregistrement du contrat final
+        if (file_put_contents($file, json_encode($modele, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE))) {
+            $publicDir = DIRECTORY_SEPARATOR . 'json' . DIRECTORY_SEPARATOR;
+            $pos = strpos($file, $publicDir);
+            $url_contrat = ($pos !== false) ? substr($file, $pos) : $file;
+
+            // Sauvegarde en base
             $contratData = [
-                "id_candidat" => $id_candidat ,
-                "id_type_contrat" => $data["id_type_contrat"] , // Cdd temp
-                "url_contrat" =>  str_replace(getcwd() . '/public', '/public', $file) // lien relatif depuis /public
+                "id_candidat" => $id_candidat,
+                "id_type_contrat" => $data["id_type_contrat"] ?? null,
+                "url_contrat" => $url_contrat
             ];
             $contratModel->save($contratData);
 
-            //  Création de l'historique de validation
             $historiqueData = [
-                'id_employe' => $contrat['id_employe'] ?? null,   // adapte selon ton modèle
-                'id_candidat' => $contratData['id_candidat'] ?? null, // adapte selon ton modèle
+                'id_employe' => $contratData['id_candidat'],
+                'id_candidat' => $contratData['id_candidat'],
                 'date_heure_validation' => date('Y-m-d H:i:s'),
-                'id_etat' => 5, // Etat "Brouillon"
+                'id_etat' => $data['id_etat'] 
+                    ?? ($etat && isset($etat['id_etat']) ? $etat['id_etat'] : null)
             ];
-            
             $historiqueModel->save($historiqueData);
 
             Flight::json([
                 "success" => true,
-                "message" => "Contrat enregistré avec succès.",
+                "message" => "Contrat enregistré avec succès à partir du modèle.",
                 "file" => $file,
                 "etat" => "Brouillon"
             ]);
@@ -117,9 +146,7 @@ class MigrationController {
                 "message" => "Erreur lors de l'enregistrement du contrat."
             ]);
         }
-
     }
-
 
     // Redirection vers la page de generation de contrat 
     public function createContrat() {
@@ -136,7 +163,7 @@ class MigrationController {
         $candidatModel   = Flight::Candidat();
         $contratModel    = Flight::Contrat();
         $typeContratModel = Flight::TypeContrat();
-
+        $etatModel        = Flight::Etat();
         // Récupérer le candidat
         $candidat = $candidatModel->getBy('id_candidat', $id_candidat);
 
@@ -151,12 +178,14 @@ class MigrationController {
 
         // Récupérer la liste des types de contrats
         $typeContrats = $typeContratModel->list();
-
+        // Récupérer la liste des états
+        $etats = $etatModel->list();
         // Préparer les données pour le formulaire
         $data = [
             'candidat' => $candidat,
             'personne' => $personne,
-            'type_contrats' => $typeContrats
+            'type_contrats' => $typeContrats,
+            'etats' => $etats
         ];
 
         Flight::render('migration/form', ['data' => $data]);
@@ -190,7 +219,7 @@ class MigrationController {
 
             if ($contrat) {
                 // Contrat déjà généré → lien de consultation
-                $contratUrl = $contrat['url_contrat'];
+                $contratUrl = ".." . $contrat['url_contrat'];
                 $contratLabel = "Voir Contrat";
                 $contratBtnClass = "btn-primary";
             } else {
@@ -204,7 +233,7 @@ class MigrationController {
                 'id_personne'  => $pers['id_personne'],
                 'nom'       => $pers['nom'] ?? '',
                 'poste'     => $cand['poste'] ?? '',
-                'adresse'   => $pers['contact'] ?? '',
+                'contact'   => $pers['contact'] ?? '',
                 'score_test'      => $score['score_test'] ?? null,
                 'score_entretien' => $score['score_entretien'] ?? null,
                 'cv'        => $cand['cv_url'] ?? '',
@@ -216,7 +245,6 @@ class MigrationController {
 
         Flight::render('migration/list', ['rows' => $rows]);
     }
-
 
     // Test des modèles
     public function test(){

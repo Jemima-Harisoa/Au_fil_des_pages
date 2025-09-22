@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8"/>
+  <title>Test — génération contrat (art. n)</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.70/pdfmake.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.70/vfs_fonts.js"></script>
+  <style>
+    body{font-family:Arial; padding:12px}
+    button{padding:8px 12px; margin-right:8px}
+    iframe{width:100%; height:80vh; border:0; margin-top:12px; background:#fff}
+  </style>
+</head>
+<body>
+  <h3>Cas de test — génération contrat (art. n)</h3>
+  <div>
+    <button id="gen">Générer aperçu</button>
+    <button id="dl" disabled>Télécharger PDF</button>
+  </div>
+
+  <iframe id="viewer" title="aperçu pdf"></iframe>
+
+<script>
+
+/* ---------------------------
+   Données test
+   --------------------------- */
+const employeur = {
+  "denomination": "Au fil des pages",
+  "statut_juridique": "SARL",
+  "capital_social": "10 000 000 Ar",
+  "adresse": "Rue des Lilas, Antananarivo",
+  "identification_statique": "NIF 123456789",
+  "representant": "Rabe Tahiana",
+  "qualite_representant": "Directeur Général"
+};
+
+const employe = {
+  "resilliation": "cdi",
+  "modalite": { "debut_contrat": "01/10/2025",  "duree": 0, "essai": "1" },
+  "lieu": "Antananarivo",
+  "poste": { "qualité": "chef de projet", "class": "HC" },
+  "remuneration": {
+    "salaire": 5000000,
+    "avantages": [
+      { "type": "Transport", "description": "Prise en charge du transport domicile-travail (50%)" },
+      { "type": "Assurance", "description": "Couverture santé complémentaire pour le salarié" }
+    ]
+  },
+  "noms_prenoms": "Randriamahenina Paul",
+  "ne_le": "01/01/1990",
+  "ne_a": "Antananarivo",
+  "fils_ou_fille_de": "Rasoa & Rakoto",
+  "nationalite": "Malagasy",
+  "domicile": "Antananarivo",
+  "lieu_edition": "Antananarivo",
+  "date_edition": "20/09/2025",
+  "signature": "Randriamahenina Paul"
+};
+
+const clauses = {
+  "_comment": "Clause global pour tout contrat de travail",
+  "sous_titre": "DISPOSITIONS GENERALES",
+  "modalite": "Le présent contrat prend effet à compter du {{employe.modalite.debut_contrat}}. Pour une durée de {{employe.modalite.duree}}. Le travailleur accomplira une période d'essai de {{employe.modalite.essai}} mois pendant laquelle le contrat peut être rompu sans préavis.",
+  "lieu": "Le lieu d'emploi est : {{employe.lieu}}",
+  "poste": "Le travailleur est recruté en qualité de {{employe.poste.qualité}} \n Classification professionnelle : {{employe.poste.class}}",
+  "remuneration": "Il percevra la rémunération suivante  \n Salaire de base : {{employe.remuneration.salaire}} Ar \n",
+  "conge": "Le travailleur bénéficie des congés payés conformément à la réglementation en vigueur.",
+  "fond_social": "Affiliation à la CNaPS et prise en charge des soins selon la loi.",
+  "resilliation": {
+    "cdi": "La résiliation du contrat à durée indéterminée est subordonnée à un préavis écrit conforme.",
+    "cdd": "Pour un CDD, chaque partie doit aviser l'autre de son intention ou non de renouveler le contrat."
+  },
+  "indemnite": "À défaut, une indemnité équivalente au préavis sera due.",
+  "engagement": "Les parties s'engagent à respecter les dispositions du Code du Travail.",
+  "edition": "Fait à {{employe.lieu_edition}}, {{le employe.date_edition}}",
+  "signature": {
+    "employe": "SIGNATURE DU TRAVAILLEUR (Noms et qualité, cachet)",
+    "employeur": "SIGNATURE DE L'EMPLOYEUR"
+  }
+};
+
+/* ---------------------------
+   UI : générer & télécharger
+   --------------------------- */
+let lastBlobUrl = null;
+document.getElementById('gen').addEventListener('click', () => {
+  try {
+    const doc = buildContractDoc(clauses, employeur, employe, {});
+    pdfMake.createPdf(doc).getBlob(function(blob){
+      if (lastBlobUrl) URL.revokeObjectURL(lastBlobUrl);
+      lastBlobUrl = URL.createObjectURL(blob);
+      document.getElementById('viewer').src = lastBlobUrl + '#toolbar=0';
+      document.getElementById('dl').disabled = false;
+      window.__lastBlob = blob;
+    });
+  } catch (e) {
+    alert('Erreur génération: ' + (e.message || e));
+    console.error(e);
+  }
+});
+
+document.getElementById('dl').addEventListener('click', () => {
+  if (!window.__lastBlob) return alert('Génère d’abord le PDF');
+  const a = document.createElement('a');
+  a.href = lastBlobUrl;
+  a.download = 'contrat-test.pdf';
+  a.click();
+});
+</script>
+</body>
+</html>

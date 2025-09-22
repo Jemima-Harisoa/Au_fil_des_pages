@@ -1,8 +1,4 @@
--- Se connecter à la base
-\c aufildespages
 
-------------------- DROP VUES -----------------
-DROP VIEW IF EXISTS view_scoring CASCADE;
 
 -- ----------------- DROP TABLES -----------------
 DROP TABLE IF EXISTS historique_validation CASCADE;

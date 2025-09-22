@@ -18,6 +18,12 @@ INSERT INTO personnes (nom, prenom, date_naissance, contact, lien_image) VALUES
   ('Andriantsitoha', 'Lova', '1995-01-15', '0344567890', 'images/lova.jpg'),
   ('Rakotondrazaka', 'Hery', '1992-05-30', '0345678901', 'images/hery.jpg');
 
+
+-- Table candidats
+INSERT INTO candidats (id_personne, id_annonce, cv_url, poste) VALUES
+(1, null, '/cv/ema.pdf', 'Développeur Java'),
+(2, null, '/cv/jean.pdf', 'Analyste'),
+(3, null, '/cv/sophie.pdf', 'Chef de projet');
 -- Employes
 INSERT INTO employes (id_personne, id_contrat, id_departement, poste, date_embauche) VALUES
   (1, NULL, 1, 'Directeur', '2020-01-15'),  
@@ -46,6 +52,35 @@ INSERT INTO diplomes (nom, niveau) VALUES
 ('Licence (Bacc+3)', 3),
 ('Master (Bacc+5)', 5),
 ('Doctorat', 6);
+-- Etat potentiel des entretient pour les tests (non definitif) 
+INSERT INTO etat (nom) VALUES
+('Planifié'),       -- 1
+('Réalisé'),        -- 2
+('Annulé'),         -- 3
+('En attente de note'), -- 4 
+('Brouillon'), --5
+('Validé'), -- 6
+('Non validé'); -- 7 
+
+-- Niveau d'appreciation 
+INSERT INTO appreciation (type_appreciation, code) VALUES
+('Excellent', 5),
+('Très Bien', 4),
+('Bien', 3),
+('Passable', 2),
+('Insuffisant', 1);
+
+-- Table tests (pour alimenter view_scoring)
+INSERT INTO tests (id_candidat, score_test, date_test) VALUES
+(1, 85.50, '2025-09-10'),
+(2, 70.00, '2025-09-11'),
+(3, 90.25, '2025-09-12');
+
+-- Table planning_entretien (pour alimenter view_scoring)
+INSERT INTO planning_entretien (id_candidat, date_heure_entretien, score_entretien, etat, id_appreciation) VALUES
+(1, '2025-09-15 10:00:00', 80.00, 1, 2),
+(2, '2025-09-16 14:30:00', 75.00, 1, 3),
+(3, '2025-09-17 09:00:00', NULL, null, NULL); -- Entretien non noté
 
 -- Filieres
 INSERT INTO filieres (nom) VALUES
@@ -125,3 +160,4 @@ INSERT INTO personnes (nom, prenom, date_naissance, contact, lien_image) VALUES
 
 -- INSERT INTO candidats (id_personne, id_annonce, id_profil, poste) VALUES
 -- (1, 1, 1 , 'Caissier / Caissiere');
+

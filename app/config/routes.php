@@ -56,22 +56,21 @@ $router->get('/allTests', [ $Test_Controller, 'getList' ]);
 $router->get('/triMetier', [ $Test_Controller, 'getListByJob' ]); 
 $router->get('/triageTests', [ $Test_Controller, 'getListSorted' ]); 
 
-
-$router->get('/', [ $Welcome_Controller, 'home' ]);
-
 /***************Route Module RH / Features migration***************/
 
 // Contrat
 $Migration_Controller = new MigrationController(); 
 //$router->get('/migration/Redaction',  [ $Contrat_Controller, 'RedactionContrat' ]);
 $router->group( "/migration" , function($router) use ($Migration_Controller){
-	// route de configuration 
-	$router->get("/test", [$Migration_Controller, "test"]);
-	// route vers la liste des candidat apres le scoring  
-	$router->get("/candidats", [$Migration_Controller , 'getCandidatRetenu']);
-	// route vers le formulaire de soumission de contrat de travail 
-	$router->get("/contrat/create", [$Migration_Controller , 'createContrat']);
-	// enregister le brouillon du contrat avant validation
-	$router->post("/contrat/register", [$Migration_Controller, 'registerContrat']);
-}
+		// route de configuration 
+		$router->get("/test", [$Migration_Controller, "test"]);
+		// route vers la liste des candidat apres le scoring  
+		$router->get("/candidats", [$Migration_Controller , 'getCandidatRetenu']);
+		// route vers le formulaire de soumission de contrat de travail 
+		$router->get("/contrat/create", [$Migration_Controller , 'createContrat']);
+		// enregister le brouillon du contrat avant validation
+		$router->post("/contrat/register", [$Migration_Controller, 'registerContrat']);
+		// apercus du contrat en js ajax avec voir contrat 
+		$router->get("/contrat/sketch", [$Migration_Controller, 'apercuContrat']);
+	}
 );

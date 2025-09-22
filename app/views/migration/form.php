@@ -32,8 +32,9 @@
                             <form class="user" method="post" action="/migration/contrat/register?id_candidat=<?= htmlspecialchars($data['candidat']['id_candidat'] ?? '') ?>">
                                 <!-- Type de contrat -->
                                 <h5 class="mb-3">Type de contrat</h5>
+                                <!-- Type de contrat -->
                                 <div class="form-group mb-3">
-                                    <select class="form-control" id="typeContrat">
+                                    <select class="form-control" id="typeContrat" name="typeContrat">
                                         <option value="">Sélectionner le type</option>
                                         <?php if (!empty($data['type_contrats'])): ?>
                                             <?php foreach ($data['type_contrats'] as $tc): ?>
@@ -48,31 +49,39 @@
                                 <!-- Informations Travailleur -->
                                 <h5 class="mb-3">Informations sur le travailleur</h5>
                                 <div class="form-group">
-                                    <input type="text" class="form-control form-control-user" placeholder="Noms et prénoms"
-                                           value="<?= htmlspecialchars(($data['personne']['nom'] ?? '') . ' ' . ($data['personne']['prenom'] ?? '')) ?>">
+                                    <input type="text" class="form-control form-control-user" 
+                                        name="noms_prenoms"
+                                        placeholder="Noms et prénoms"
+                                        value="<?= htmlspecialchars(($data['personne']['nom'] ?? '') . ' ' . ($data['personne']['prenom'] ?? '')) ?>">
                                 </div>
                                 <div class="form-group row">
                                     <div class="col-sm-6 mb-3 mb-sm-0">
-                                        <input type="date" class="form-control form-control-user" placeholder="Date de naissance"
-                                               value="<?= htmlspecialchars($data['personne']['date_naissance'] ?? '') ?>">
+                                        <input type="date" class="form-control form-control-user" 
+                                            name="dateNaissance"
+                                            placeholder="Date de naissance"
+                                            value="<?= htmlspecialchars($data['personne']['date_naissance'] ?? '') ?>">
                                     </div>
                                     <div class="col-sm-6">
-                                        <input type="text" class="form-control form-control-user" placeholder="Lieu de naissance"
-                                               value="">
+                                        <input type="text" class="form-control form-control-user" 
+                                            name="lieuNaissance"
+                                            placeholder="Lieu de naissance" value="">
                                     </div>
                                 </div>
                                 <div class="form-group">
-                                    <input type="text" class="form-control form-control-user" placeholder="Fils ou fille de"
-                                           value="">
+                                    <input type="text" class="form-control form-control-user" 
+                                        name="parents"
+                                        placeholder="Fils ou fille de" value="">
                                 </div>
                                 <div class="form-group row">
                                     <div class="col-sm-6 mb-3 mb-sm-0">
-                                        <input type="text" class="form-control form-control-user" placeholder="Nationalité"
-                                               value="">
+                                        <input type="text" class="form-control form-control-user" 
+                                            name="nationalite"
+                                            placeholder="Nationalité" value="">
                                     </div>
                                     <div class="col-sm-6">
-                                        <input type="text" class="form-control form-control-user" placeholder="Domicile à Madagascar"
-                                               value="">
+                                        <input type="text" class="form-control form-control-user" 
+                                            name="domicile"
+                                            placeholder="Domicile à Madagascar" value="">
                                     </div>
                                 </div>
 
@@ -80,29 +89,37 @@
                                 <h5 class="mb-3">Dispositions générales</h5>
                                 <div class="form-group row">
                                     <div class="col-sm-6 mb-3 mb-sm-0">
-                                        <input type="date" class="form-control form-control-user" placeholder="Date de prise d’effet"
-                                               value="">
+                                        <input type="date" class="form-control form-control-user" 
+                                            name="dateDebut"
+                                            placeholder="Date de prise d’effet" value="">
                                     </div>
                                     <div class="col-sm-6">
-                                        <input type="number" class="form-control form-control-user" placeholder="Durée période d’essai (mois)"
-                                               value="">
+                                        <input type="number" class="form-control form-control-user" 
+                                            name="essai"
+                                            placeholder="Durée période d’essai (mois)" value="">
                                     </div>
                                 </div>
                                 <div class="form-group">
-                                    <input type="text" class="form-control form-control-user" placeholder="Lieu d’emploi"
-                                           value="<?= htmlspecialchars($data['candidat']['poste'] ?? '') ?>">
+                                    <input type="text" class="form-control form-control-user" 
+                                        name="lieuEmploi"
+                                        placeholder="Lieu d’emploi"
+                                        value="<?= htmlspecialchars($data['candidat']['poste'] ?? '') ?>">
                                 </div>
                                 <div class="form-group">
-                                    <input type="text" class="form-control form-control-user" placeholder="Poste occupé / Fonctions"
-                                           value="<?= htmlspecialchars($data['candidat']['poste'] ?? '') ?>">
+                                    <input type="text" class="form-control form-control-user" 
+                                        name="poste"
+                                        placeholder="Poste occupé / Fonctions"
+                                        value="<?= htmlspecialchars($data['candidat']['poste'] ?? '') ?>">
                                 </div>
 
                                 <!-- Rémunération -->
                                 <h5 class="mb-3">Rémunération</h5>
                                 <div class="form-group row">
                                     <div class="col-sm-6 mb-3 mb-sm-0">
-                                        <input type="number" class="form-control form-control-user" id="salaire"
-                                               placeholder="Salaire mensuel (Ar)" value="">
+                                        <input type="number" class="form-control form-control-user" 
+                                            name="salaire"
+                                            id="salaire"
+                                            placeholder="Salaire mensuel (Ar)" value="">
                                     </div>
                                 </div>
 

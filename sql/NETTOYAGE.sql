@@ -3,26 +3,31 @@
 CREATE OR REPLACE FUNCTION nettoyer()
 RETURNS void AS $$
 BEGIN
-    TRUNCATE TABLE historique_validation RESTART IDENTITY CASCADE;
-    TRUNCATE TABLE disponibilite_employe RESTART IDENTITY CASCADE;
-    TRUNCATE TABLE employes RESTART IDENTITY CASCADE;
-    TRUNCATE TABLE essais RESTART IDENTITY CASCADE;
-    TRUNCATE TABLE contrats RESTART IDENTITY CASCADE;
-    TRUNCATE TABLE notifications RESTART IDENTITY CASCADE;
-    TRUNCATE TABLE planning_entretien RESTART IDENTITY CASCADE;
-    TRUNCATE TABLE tests RESTART IDENTITY CASCADE;
-    TRUNCATE TABLE candidats RESTART IDENTITY CASCADE;
-    TRUNCATE TABLE reponses_question RESTART IDENTITY CASCADE;
-    TRUNCATE TABLE questions RESTART IDENTITY CASCADE;
-    TRUNCATE TABLE profils RESTART IDENTITY CASCADE;
-    TRUNCATE TABLE personnes RESTART IDENTITY CASCADE;
-    TRUNCATE TABLE annonces RESTART IDENTITY CASCADE;
-    TRUNCATE TABLE diplomes RESTART IDENTITY CASCADE;
-    TRUNCATE TABLE departements RESTART IDENTITY CASCADE;
-    TRUNCATE TABLE etat RESTART IDENTITY CASCADE;
-    TRUNCATE TABLE appreciation RESTART IDENTITY CASCADE;
-    TRUNCATE TABLE message_automatique RESTART IDENTITY CASCADE;
-    TRUNCATE TABLE type_contrats RESTART IDENTITY CASCADE;
+   -- Truncate toutes les tables avec remise à zéro des identifiants
+    TRUNCATE TABLE 
+        historique_validation,
+        disponibilite_employe,
+        employes,
+        essais,
+        contrats,
+        notifications,
+        planning_entretien,
+        tests,
+        candidats,
+        reponses_question,
+        questions,
+        profils,
+        utilisateurs,
+        admins,
+        personnes,
+        annonces,
+        diplomes,
+        departements,
+        etat,
+        appreciation,
+        type_contrats
+    RESTART IDENTITY CASCADE;
+
 END;
 $$ LANGUAGE plpgsql;
 
