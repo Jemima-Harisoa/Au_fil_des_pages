@@ -14,8 +14,8 @@ class TestController {
 	public function traitementQCM() {
     $fonction = new fonctionTest(Flight::db());
     $fonctionMess=new MessagerieModel(Flight::db());
-    $idCandidat = 1;
-    $idAnnonce = 1;
+    $idCandidat = Flight::request()->query['idCandidat'];  
+    $idAnnonce = Flight::request()->query['idAnnonce'];  
     $profilData = $fonction->getIdProfil($idCandidat, $idAnnonce);
     $idProfil = $profilData[0]['id_profil'];
 
@@ -36,12 +36,12 @@ class TestController {
     $reponses = $data['reponses'] ?? [];
 
     $score = $fonction->comparaisonReponse($reponses, $idProfil, $idAnnonce);
-    $message=$fonctionMess->getMessageAutomatique(1);
-    Flight::render('accueilU', [
+    //$message=$fonctionMess->getMessageAutomatique(1);
+    Flight::render('accueil U', [
         'score' => $score,
         'reponses' => $reponses,
-        'qcm' => $qcm,
-        'messagerie'=>$message
+        'qcm' => $qcm
+       // 'messagerie'=>$message
 
     ]);
 }

@@ -43,6 +43,7 @@
     }
   </style>
 </head>
+
 <body class="bg-gray-100 min-h-screen flex items-center justify-center p-4">
   <div class="bg-white rounded-2xl shadow-xl p-8 max-w-md w-full container">
     <!-- En-tête -->
@@ -57,6 +58,10 @@
 
     <!-- Message conditionnel -->
     <?php if (isset($boolean_validation) && $boolean_validation) { ?>
+      <form action="/testAcceuil" method="post" >
+        <input type="hidden" name="idCandidat" value="<?= $idCandidat ?>">
+<input type="hidden" name="idAnnonce" value="<?= $idAnnonce ?>">
+
       <div class="bg-green-50 border-l-4 border-green-500 p-4 mb-6 rounded" role="alert">
         <p class="text-green-700 font-semibold">
           Félicitations ! Votre CV correspond au profil recherché.
@@ -71,11 +76,11 @@
           <a href="/accueilU" class="btn bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600" aria-label="Reporter l'action">
             Plus tard
           </a>
-          <a href="#" class="btn bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700" aria-label="Passer le test">
-            Passer le test
-          </a>
+          <input class="btn bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700" aria-label="Passer le test" type="submit" value="Passer le test">
+
         </div>
       </div>
+      </form>
     <?php } else { ?>
       <div class="bg-red-50 border-l-4 border-red-500 p-4 mb-6 rounded" role="alert">
         <p class="text-red-700 font-semibold">

@@ -1,4 +1,4 @@
-<?php include "headerU.php" ?>
+
 
 <style>
     form {
@@ -146,4 +146,3 @@
 </script>
 
 
-<?php include "footerU.php" ?>
