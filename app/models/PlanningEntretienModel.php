@@ -76,6 +76,7 @@ class PlanningEntretienModel{
             //code...
             $db->beginTransaction();
             if($this->date_heure_entretien!= null && $this->id_candidat!= null){
+                $etatModel = new EtatModel();
                 $stmt = $db->prepare("INSERT INTO planning_entretien (id_candidat, id_responsable,date_heure_entretien, score_entretien, etat, id_appreciation) 
                                       VALUES (?, ?, ?, ?, ?, ?)");
                 $stmt->execute([
@@ -83,7 +84,7 @@ class PlanningEntretienModel{
                     $this->id_responsable,
                     $this->date_heure_entretien->format('Y-m-d H:i:s'),
                     $this->score_entretien,
-                    $this->etat,
+                    $etatModel->findById(3)["id_etat"],
                     $this->id_appreciation
                 ]);
                 $db->commit();
@@ -154,8 +155,6 @@ class PlanningEntretienModel{
                         $planningEntretien->setIdCandidat($candidat["id_candidat"]);
                         $planningEntretien->setIdResponsable($responsable["id_responsable"]);
                         if($lastPlanning && is_array($lastPlanning)){
-                            var_dump($lastPlanning);
-                            var_dump(gettype($lastPlanning));
                             $dateModel= new DateModel($lastPlanning["date_heure_entretien"]);
                             $dateHeureEntretien= $dateModel->addInterval($configEntretien["duree_entretien"]);
                             $planningEntretien->setDateHeureEntretien (DisponibiliteEntretienModel::checkDateDisponible($dateHeureEntretien,$disponibilitesEntretien));
