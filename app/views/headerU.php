@@ -1,3 +1,4 @@
+
 <?php 
 $nbNonLus = 0;
 if(!empty($_SESSION['messagerie'])) {
@@ -7,6 +8,7 @@ if(!empty($_SESSION['messagerie'])) {
         }
     }
 } ?>
+
 <!DOCTYPE html>
 <html lang="en">
 
@@ -31,6 +33,7 @@ if(!empty($_SESSION['messagerie'])) {
     
     <!-- Custom styles for this page -->
     <link href="/vendor/datatables/dataTables.bootstrap4.min.css" rel="stylesheet">
+
 
     <style>
 .dropdown-header {
@@ -112,11 +115,13 @@ if(!empty($_SESSION['messagerie'])) {
                     <i class="fas fa-fw fa-tachometer-alt"></i>
                     <span>Annonces</span></a>
             </li>
+
              <li class="nav-item">
                 <a class="nav-link" href="/testAccueil">
                     <i class="fas fa-fw fa-tachometer-alt"></i>
                     <span>Test</span></a>
             </li>
+
 
 
             <!-- Divider -->
@@ -204,13 +209,16 @@ if(!empty($_SESSION['messagerie'])) {
                             </div>
                         </li>
 
+
                         <!-- Nav Item - User Information -->
                         <li class="nav-item dropdown no-arrow">
                             <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button"
                                 data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                                 <span class="mr-2 d-none d-lg-inline text-gray-600 small"><?= $_SESSION['utilisateur']['nom'] ?> <br></span>
                                 <img class="img-profile rounded-circle"
+
                                     src="https://cdn-icons-png.flaticon.com/512/3135/3135715.png">
+
                             </a>
                             <!-- Dropdown - User Information -->
                             <div class="dropdown-menu dropdown-menu-right shadow animated--grow-in"
@@ -225,7 +233,6 @@ if(!empty($_SESSION['messagerie'])) {
                     </ul>
 
                 </nav>
-                <!-- End of Topbar -->
 
-                <!-- Begin Page Content -->
                 <div class="container-fluid">
+

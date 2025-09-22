@@ -27,6 +27,7 @@ class ProfilsModel {
 
     public function getAll()
 {
+
 /*
     $sql = "SELECT 
     p.id_profil, 
@@ -47,6 +48,7 @@ LEFT JOIN diplomes d ON p.id_diplome = d.id_diplome
 LEFT JOIN filieres f ON p.id_filiere = f.id_filiere
 LEFT JOIN type_contrats tc ON p.id_type_contrat = tc.id_type_contrat;
 ";
+
 */
     $sql = "SELECT p.id_profil, p.titre, p.competences, p.skills, p.loisirs,
                    d.nom AS diplome, d.niveau AS niveau_diplome,

@@ -4,6 +4,7 @@ use flight\Engine;
 use flight\database\PdoWrapper;
 use flight\debug\database\PdoQueryCapture;
 use Tracy\Debugger;
+
 use app\models\ProductModel;
 use app\models\InscriptionModel;
 use app\models\ConnexionModel;
@@ -15,6 +16,17 @@ use app\models\CandidatModel;
 use app\models\TestModel;
 use app\models\ProfilsModel;
 use app\models\PlanningEntretienModel;
+
+use app\models\migration\PersonneModel;
+use app\models\migration\CandidatModel;
+use app\models\migration\ScoringModel;
+use app\models\migration\TypeContratModel;
+use app\models\migration\ContratModel;
+use app\models\EtatModel;
+use app\models\migration\HistoriqueValidationModel;
+use app\models\migration\HistoriqueContratModel;
+use app\models\migration\EtatModel;
+
 
 /** 
  * @var array $config This comes from the returned array at the bottom of the config.php file
@@ -43,6 +55,7 @@ $app->register('db', $pdoClass, [ $dsn, $config['database']['user'] ?? null, $co
 
 // Redis? This is where you'd set that up
 // $app->register('redis', Redis::class, [ $config['redis']['host'], $config['redis']['port'] ]);
+
 
 
 //
@@ -79,3 +92,41 @@ Flight::map('planningEntretienModel', function () {
 //Flight::map('AdminModel', function () {
 //    return new AdminModel(Flight::db());
 //});
+
+// Map dans features migration
+Flight::map('Personne', function () {
+    return new PersonneModel(Flight::db());
+});
+
+Flight::map('Candidat', function () {
+    return new CandidatModel(Flight::db());
+});
+
+Flight::map('Scoring', function () {
+    return new ScoringModel(Flight::db());
+});
+
+Flight::map('TypeContrat', function () {
+    return new TypeContratModel(Flight::db());
+});
+
+Flight::map('Contrat', function () {
+    return new ContratModel(Flight::db());
+});
+
+Flight::map('Etat', function () {
+    return new EtatModel(Flight::db());
+});
+
+Flight::map('HistoriqueValidation', function () {
+    return new HistoriqueValidationModel(Flight::db());
+});
+
+Flight::map("Profils", function(){
+    return new ProfilsModel(Flight::db());
+});
+
+Flight::map("HistoriqueContrat", function(){
+    return new HistoriqueContratModel(Flight::db());
+});
+

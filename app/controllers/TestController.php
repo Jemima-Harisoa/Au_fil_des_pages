@@ -3,7 +3,9 @@
 namespace app\controllers;
 
 use app\models\fonctionTest;
+
 use app\models\MessagerieModel;
+
 use Flight;
 
 class TestController {
@@ -11,6 +13,7 @@ class TestController {
 	public function __construct() {
 
 	}
+
 	public function traitementQCM() {
     $fonction = new fonctionTest(Flight::db());
     $fonctionMess=new MessagerieModel(Flight::db());
@@ -63,6 +66,7 @@ $idAnnonce = Flight::request()->query['idAnn'];
 
 error_log("dernier candidat : " . $idCandidat);
 error_log("dernier annonce : " . $idAnnonce);
+
         $profilData = $fonction->getIdProfil($idCandidat,$idAnnonce);
         if (empty($profilData)) {
             Flight::halt(404, "Profil non trouvé pour ce candidat");
@@ -83,6 +87,7 @@ error_log("dernier annonce : " . $idAnnonce);
                 'reponses' => $reponses 
             ];
         }
+
         Flight::render('formulaireTest', ['qcm' => $qcm,'idCandidat'=>$idCandidat,'idAnnonce'=>$idAnnonce]);
     }
    
@@ -129,6 +134,7 @@ error_log("dernier annonce : " . $idAnnonce);
         'jobs' => $jobs
     ]);
 }
+
 
     public function getAllQstWtRep() {
         $fonction = new fonctionTest(Flight::db());

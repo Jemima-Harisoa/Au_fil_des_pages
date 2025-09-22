@@ -61,6 +61,7 @@
 
     <!-- Page level custom scripts -->
     <script src="/js/demo/datatables-demo.js"></script>
+
     <script>
         .then(data => {
     if (data.success) {
@@ -71,6 +72,7 @@
     }
 })
     </script>
+
 </body>
 
 </html>
