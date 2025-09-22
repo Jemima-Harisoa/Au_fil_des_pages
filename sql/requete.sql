@@ -1,16 +1,30 @@
+--recuperer les candidats avec leurs informatiions 
+CREATE OR REPLACE VIEW v_candidats_personnes AS
+SELECT per.*,
+        ca.id_candidat,
+        ca.id_annonce,
+        ca.id_profil,
+        ca.cv_url,
+        ca.poste
+FROM  candidats ca 
+JOIN personnes per
+on ca.id_personne = per.id_personne;
 --recuperer les planning_entretiens 
-SELECT * 
+SELECT pe.*,
+       candidat.nom,
     FROM planning_entretien pe
     JOIN (
-        SELECT id_candidat,
-                score_test 
-            FROM tests         
+        SELECT te.id_candidat,
+                te.score_test,  
+            FROM tests  te,
+        join v_candidats_personnes vcp 
+        ON ca.id_candidat = te.id_candidat
     )
     as te
     ON pe.id_candidat = te.id_candidat
-    WHERE pe.etat != 'rejete' 
-    and 
-        pe.date_heure_entretien>=now();
+    JOIN profils pr
+    WHERE pe.etat != 1 ;
+    
 
 --recuperer les temps de disponibilites pour l'entretien dans un département
 CREATE OR REPLACE VIEW v_disponibilite_employe_valide as(
@@ -151,12 +165,6 @@ where date_heure_entretien in(
     group by id_responsable
 );
 
-INSERT INTO jour_ferie("date") VALUES
-('2025-01-01'), -- Jour de l'an
-('2025-03-29'), -- Fête nationale
-('2025-05-01'), -- Fête du travail
-('2025-06-26'), -- Indépendance
-('2025-08-15'), -- Assomption
-('2025-11-01'), -- Toussaint
-('2025-12-25'); -- Noël
-('2025-02-20'); -- Noël
+
+SELECT 
+FROM planning_entretien
