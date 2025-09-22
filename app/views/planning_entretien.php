@@ -364,7 +364,7 @@
                 <div class="container-fluid">
                     
                     <!-- Page Heading -->
-                    <button class="btn btn-primary btn-icon-split" id="bouton-planification" type="button" type="button">
+                    <button class="btn btn-primary btn-icon-split" id="bouton-planification" type="button">
                         <span class="icon text-white-50">
                             <i class="fas fa-calendar-alt"></i>
                         </span>
@@ -382,8 +382,9 @@
                                 <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
                                     <thead>
                                         <tr>
-                                            <th>Nom</th>
-                                            <th>Prenoms</th>
+                                            <th>Candidats</th>
+                                            <th>Age Candidats</th>
+                                            <th>Responsables</th>
                                             <th>Profil</th>
                                             <th>ScoreTest</th>
                                             <th>DateTest</th>
@@ -393,15 +394,6 @@
                                     </thead>
 
                                     <tbody>
-                                        <tr>
-                                            <td>Tiger Nixon</td>
-                                            <td>System Architect</td>
-                                            <td>Edinburgh</td>
-                                            <td>61</td>
-                                            <td>2011/04/25</td>
-                                            <td>$320,800</td>
-                                        </tr>
-                                        </tr>
                                     </tbody>
                                 </table>
                             </div>
@@ -471,7 +463,7 @@
 
     <!-- Page level custom scripts -->
     <script src="js/demo/datatables-demo.js"></script>
-    <script src="js/demo/planning-entretien.js"></script>
+    <script src="js/planning-entretien.js"></script>
 
 </body>
 
