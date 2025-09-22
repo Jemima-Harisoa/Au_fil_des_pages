@@ -1,3 +1,4 @@
+
 <?php include "headerA.php" ?>
    
  <style>
@@ -131,6 +132,7 @@ document.addEventListener("click", (e) => {
 <form action="/triageTests" method="get">
     <form action="/triMetier" method="get">
         <label for="metier"class="metier" >Choisir un métier pour commencer le triage :</label>
+
         <select name="metier" id="metier">
             <?php if (!empty($jobs)) {
                 foreach ($jobs as $job) { ?>
@@ -142,10 +144,12 @@ document.addEventListener("click", (e) => {
                 <option value="">Aucun métier trouvé</option>
             <?php } ?>
         </select>
+
         <input type="submit" class="choixButt" value="CHOISIR">
         
     
         <label for="critere" class="triLabel">Trier par :</label>
+
         <select name="critere" id="critere">
             <option value="score">Score</option>
             <option value="nom">Nom</option>
@@ -157,10 +161,12 @@ document.addEventListener("click", (e) => {
             <option value="croi">Croissant</option>
         </select>
 
+
         <ul class="list">
             <?php if (!empty($list)) {
                 foreach ($list as $l) { ?>
                     <li  class="listTest" data-id="<?= htmlspecialchars($l['id_candidat']) ?>">
+
                         <?= htmlspecialchars($l['nom']) ?> 
                         <?= htmlspecialchars($l['prenom']) ?> 
                         - Score : <?= htmlspecialchars($l['score_test']) ?>

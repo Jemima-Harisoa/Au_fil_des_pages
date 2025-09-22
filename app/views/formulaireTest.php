@@ -13,6 +13,7 @@
     }
 
     .question {
+
         display: none; 
         margin-bottom: 30px;
         padding: 15px;
@@ -23,7 +24,9 @@
     }
 
     .question.active {
+
         display: block; 
+
     }
 
     .question p {
@@ -85,22 +88,27 @@
 </style>
 
 <form id="qcmForm" action="/traitement-qcm" method="POST">
+
      <input type="hidden" name="idCandidat" value="<?= htmlspecialchars($idCandidat) ?>">
 <input type="hidden" name="idAnnonce" value="<?= htmlspecialchars($idAnnonce) ?>">
+
 <?php if (!empty($qcm)) {
     foreach ($qcm as $index => $q): ?>
         <div class="question <?= $index === 0 ? 'active' : '' ?>">
             <p>Question <?= $index + 1 ?>: <?= htmlspecialchars($q['question']) ?></p>
+
             <?php foreach ($q['reponses'] as $r): ?>
                 <label class="reponse-card">
                     <input type="radio" 
                            name="reponses[<?= $q['id_question'] ?>]"  
                            value="<?= htmlspecialchars($r['reponse']) ?>">
+
                     <?= htmlspecialchars($r['reponse']) ?>
                 </label>
             <?php endforeach; ?>
 
             <div class="nav-buttons">
+
                 <?php if ($index < count($qcm) - 1): ?>
                      <button type="button" class="btn-nav next-btn">Suivant</button>
                 <?php endif; ?>
@@ -108,6 +116,7 @@
                     <button type="button" class="btn-nav prev-btn">Précédent</button>
                 <?php endif; ?>
                 <?php if ($index == count($qcm) - 1): ?>
+
                     <button type="submit" class="btn-nav">ENVOYER LE TEST</button>
                 <?php endif; ?>
             </div>
@@ -132,6 +141,7 @@
                 showQuestion(index);
             });
         });
+
                 document.querySelectorAll(".next-btn").forEach((btn, index) => {
             btn.addEventListener("click", () => {
                 showQuestion(index + 1);
@@ -145,5 +155,4 @@
         });
     });
 </script>
-
 

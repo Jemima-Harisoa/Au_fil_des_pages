@@ -1,3 +1,4 @@
+
 <?php
 // var_dump($_SESSION['messagerie']);
 $nbNonLus = 0;
@@ -8,6 +9,7 @@ if(!empty($_SESSION['messagerie'])) {
         }
     }
 }?>
+
 <!DOCTYPE html>
 <html lang="en">
 
@@ -32,6 +34,7 @@ if(!empty($_SESSION['messagerie'])) {
     
     <!-- Custom styles for this page -->
     <link href="/vendor/datatables/dataTables.bootstrap4.min.css" rel="stylesheet">
+
 
     <style>
 .dropdown-header {
@@ -124,6 +127,7 @@ if(!empty($_SESSION['messagerie'])) {
                     </div>
                 </div>
             </li>
+
             <!-- Nav Item - Pages Collapse Menu -->
             <li class="nav-item">
                 <a class="nav-link" href="/allTests"  aria-expanded="true"
@@ -140,7 +144,30 @@ if(!empty($_SESSION['messagerie'])) {
                     <span>Liste CV</span></a>
             </li>
 
-            
+    
+            <!-- Parite pour la migration -->
+            <li class="nav-item">
+                <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseRH" aria-expanded="false" aria-controls="collapseRH">
+                    <i class="fas fa-fw fa-briefcase"></i>
+                    <span>RH / Migration</span>
+                </a>
+                <div id="collapseRH" class="collapse" aria-labelledby="headingRH" data-parent="#accordionSidebar">
+                    <div class="bg-white py-2 collapse-inner rounded">
+                        <h6 class="collapse-header">Gestion RH:</h6>
+                        
+                        <!-- Candidats -->
+                        <a class="collapse-item" href="/migration/candidats">Candidats retenus</a>
+                        
+                        <!-- Contrats -->
+                        <a class="collapse-item" href="/migration/contrats">Liste des contrats</a>
+                        <a class="collapse-item" href="/migration/contrat/create">Créer un contrat</a>
+                        
+                        <!-- Action -->
+                        <a class="collapse-item" href="/migration/contrat/edit">Éditer un contrat</a>
+                    </div>
+                </div>
+            </li>
+
 
 
             <!-- Divider -->
@@ -179,6 +206,7 @@ if(!empty($_SESSION['messagerie'])) {
                                 <i class="fas fa-search fa-fw"></i>
                             </a>
                         </li>
+
 
                         <li class="nav-item dropdown no-arrow mx-1">
                             <a class="nav-link dropdown-toggle" href="#" id="messagesDropdown" role="button"
@@ -227,13 +255,16 @@ if(!empty($_SESSION['messagerie'])) {
                         </li>
 
 
+
                         <!-- Nav Item - User Information -->
                         <li class="nav-item dropdown no-arrow">
                             <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button"
                                 data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                                 <span class="mr-2 d-none d-lg-inline text-gray-600 small"><?= $_SESSION['infoAdmin']['nom'] ?> <br> <?= $_SESSION['infoAdmin']['prenom'] ?></span>
                                 <img class="img-profile rounded-circle"
+
                                     src="/img/undraw_profile_1.svg">
+
                             </a>
                             <!-- Dropdown - User Information -->
                             <div class="dropdown-menu dropdown-menu-right shadow animated--grow-in"
@@ -251,4 +282,6 @@ if(!empty($_SESSION['messagerie'])) {
                 <!-- End of Topbar -->
 
                 <!-- Begin Page Content -->
+
                 <div class="container-fluid">
+

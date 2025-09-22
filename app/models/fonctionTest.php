@@ -21,7 +21,9 @@ class fonctionTest {
         return $repQstVrai;
     }
     public function getRepQst($idQst) {
+
         $repQst = Query::query("SELECT * FROM Reponses_Question WHERE id_question = ? ORDER BY id_reponse ASC", [$idQst]);
+
         return $repQst;
     }
     public function getIdProfil($idCandidat,$idAnnonce) {
@@ -34,6 +36,7 @@ class fonctionTest {
         file_put_contents($filePath, $jsonData);
         return $filePath;
     }
+
 
   public function comparaisonReponse($data,$idCandidat, $idProfil, $idAnnonce) {
     $score = 0; 
@@ -76,7 +79,7 @@ JOIN personnes  ON candidats.id_personne = personnes.id_personne
 WHERE annonces.titre = ?",[$job]);
         return $j;
     }
-    
+
     public function getAllJobs(){
          $test = Query::query("Select *from Profils");
         return $test;
@@ -90,6 +93,7 @@ JOIN personnes  ON candidats.id_personne = personnes.id_personne
 WHERE annonces.titre = ? ORDER BY $colonne $ordre",[$job]);
         return $j;
     }
+
     
     public function listeTests(){
          $j=Query::query("select *from Questions ORDER BY id_question ASC");

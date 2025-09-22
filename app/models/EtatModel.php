@@ -1,10 +1,8 @@
 <?php
+
 namespace app\models;
 
 use Flight;
-use flight\Engine;
-use flight\database\PdoWrapper;
-use flight\debug\database\PdoQueryCapture;
 
 class EtatModel {
     private $id_etat;
@@ -43,6 +41,35 @@ class EtatModel {
         return $stmt->fetchAll(\PDO::FETCH_ASSOC);
     }
 
+    public function save($data) {
+        $sql = "INSERT INTO etat (nom) VALUES (:nom)";
+        $stmt = $this->db->prepare($sql);
+        return $stmt->execute($data);
+    }
+
+    // Mettre à jour un état
+    public function updateById($id, $data) {
+        $sql = "UPDATE etat SET nom=:nom WHERE id_etat=:id";
+        $stmt = $this->db->prepare($sql);
+        $data['id'] = $id;
+        return $stmt->execute($data);
+    }
+
+    // Supprimer un état
+    public function deleteById($id) {
+        $sql = "DELETE FROM etat WHERE id_etat=:id";
+        $stmt = $this->db->prepare($sql);
+        return $stmt->execute(['id' => $id]);
+    }
+
+    // Chercher par champ
+    public function getBy($field, $value) {
+        $sql = "SELECT * FROM etat WHERE {$field} = :value";
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute(['value' => $value]);
+        return $stmt->fetch(\PDO::FETCH_ASSOC);
+    }
+
     public function findById(int $id): ?array {
         $sql = "SELECT * FROM etat WHERE id_etat = :id";
         $stmt = $this->db->prepare($sql);
@@ -76,5 +103,13 @@ class EtatModel {
         $sql = "DELETE FROM etat WHERE id_etat = :id";
         $stmt = $this->db->prepare($sql);
         return $stmt->execute(['id' => $this->id_etat]);
+    }
+
+    // Rechercher une valeur précise dans la table
+    public function search($field, $value) {
+        $sql = "SELECT * FROM etat WHERE {$field} ILIKE :value";
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute(['value' => $value]);
+        return $stmt->fetch(\PDO::FETCH_ASSOC);
     }
 }

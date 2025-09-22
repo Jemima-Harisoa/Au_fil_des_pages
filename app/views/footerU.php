@@ -1,4 +1,6 @@
+
 </div>
+
                 <!-- /.container-fluid -->
 
             </div>
@@ -45,7 +47,7 @@
 
     <!-- Custom scripts for all pages-->
     <script src="/js/sb-admin-2.min.js"></script>
-    
+
     <script>
         // Script existant pour autre fonctionnalité
         // (corrigé pour éviter l'erreur de syntaxe)
@@ -452,6 +454,7 @@
         
         console.log('=== SCRIPT NOTIFICATIONS MESSAGERIE CHARGÉ ===');
     </script>
+
 </body>
 
 </html>

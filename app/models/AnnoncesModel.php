@@ -21,9 +21,11 @@ class AnnoncesModel {
     }
 
     public function getAllNonExpire() {
+
         $stmt = $this->db->prepare("SELECT * FROM annonces WHERE date_expiration IS NULL OR date_expiration >= CURRENT_DATE ORDER BY date_publication DESC");
         $stmt->execute();
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
+
     }
 
     
@@ -83,7 +85,6 @@ class AnnoncesModel {
         $this->add($titre, $filename, $date_publication, $date_expiration, $nombrePoste, $idProfil);
         return $filename;
     }
-    
 
 public function createFichier($contenuAnnonce, $nombrePoste, $idProfil, $titre = "Nouvelle annonce", $date_publication = null) {
     // Structure de l’annonce
