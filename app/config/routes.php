@@ -64,7 +64,7 @@ $Migration_Controller = new MigrationController();
 $router->group( "/migration" , function($router) use ($Migration_Controller){
 		// route de configuration 
 		$router->get("/", function(){
-			Flight::redirect("/accueilA");
+			Flight::redirect("/migration/candidats");
 		});
 		// route vers la liste des candidat apres le scoring  
 		$router->get("/candidats", [$Migration_Controller , 'getCandidatRetenu']);

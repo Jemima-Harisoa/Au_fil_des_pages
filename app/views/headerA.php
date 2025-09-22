@@ -71,6 +71,29 @@
                     </div>
                 </div>
             </li>
+            <!-- Parite pour la migration -->
+            <li class="nav-item">
+                <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseRH" aria-expanded="false" aria-controls="collapseRH">
+                    <i class="fas fa-fw fa-briefcase"></i>
+                    <span>RH / Migration</span>
+                </a>
+                <div id="collapseRH" class="collapse" aria-labelledby="headingRH" data-parent="#accordionSidebar">
+                    <div class="bg-white py-2 collapse-inner rounded">
+                        <h6 class="collapse-header">Gestion RH:</h6>
+                        
+                        <!-- Candidats -->
+                        <a class="collapse-item" href="/migration/candidats">Candidats retenus</a>
+                        
+                        <!-- Contrats -->
+                        <a class="collapse-item" href="/migration/contrats">Liste des contrats</a>
+                        <a class="collapse-item" href="/migration/contrat/create">Créer un contrat</a>
+                        
+                        <!-- Action -->
+                        <a class="collapse-item" href="/migration/contrat/edit">Éditer un contrat</a>
+                    </div>
+                </div>
+            </li>
+
 
             <!-- Divider -->
             <hr class="sidebar-divider d-none d-md-block">
