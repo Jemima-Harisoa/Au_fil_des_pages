@@ -54,5 +54,12 @@ class CandidatModel {
         $stmt = $this->db->query($sql);
         return $stmt->fetchAll(\PDO::FETCH_ASSOC);
     }
-    
+    public static function estDansLaListe($candidat,$candidats){
+        $compte = 0;
+        foreach($candidats as $cand){
+            if($candidat["id_candidat"] == $candidat["id_candidat"]){
+                return true;
+            }
+        }
+    }
 }
