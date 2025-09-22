@@ -162,7 +162,7 @@ class CVModel {
     //     echo "<h2>Détails des informations Profil ↔ CV</h2>";
     //     foreach ($allInformation as $key => $types) {
     //         echo "<h3>" . ucfirst($key) . "</h3>";
-    //         echo "<strong>Profil :</strong> " . implode(', ', $types['profils']) . "<br>";
+    //         echo "<strong>Profil :</strong> " . implode(', ', $types['profilsCV']) . "<br>";
     //         echo "<strong>CV :</strong> " . implode(', ', $types['cv']) . "<hr>";
     //     }
     
@@ -174,7 +174,7 @@ class CVModel {
     //     $db = Flight::db();
 
     //     // Récupérer les compétences du profil
-    //     $stmtProfil = $db->prepare("SELECT competences FROM profils WHERE id_profil = :idProfil");
+    //     $stmtProfil = $db->prepare("SELECT competences FROM profilsCV WHERE id_profil = :idProfil");
     //     $stmtProfil->execute([':idProfil' => $idProfil]);
     //     $profilRow = $stmtProfil->fetch(PDO::FETCH_ASSOC);
     //     $competencesProfil = $profilRow['competences'] ?? null;
@@ -272,7 +272,7 @@ class CVModel {
             dp.niveau AS niveau_profil, dc.niveau AS niveau_cv
                 FROM cv_candidats cv
                 JOIN candidats c ON cv.id_candidat = c.id_candidat
-                JOIN profils p ON c.id_profil = p.id_profil
+                JOIN profilsCV p ON c.id_profil = p.id_profil
                 JOIN diplomes dp ON p.id_diplome = dp.id_diplome
                 JOIN diplomes dc ON cv.id_diplome = dc.id_diplome
                 WHERE cv.id_candidat = (SELECT MAX(id_candidat) FROM candidats)
@@ -304,7 +304,7 @@ class CVModel {
         c.experience_pro AS experience_pro_cv, c.certifications AS certifications_cv, 
         c.langues AS langues_cv
         FROM candidats cand
-        JOIN profils p ON cand.id_profil = p.id_profil
+        JOIN profilsCV p ON cand.id_profil = p.id_profil
         JOIN cv_candidats c ON cand.id_candidat = c.id_candidat
         WHERE cand.id_candidat = (SELECT MAX(id_candidat) FROM candidats)";
 
@@ -319,19 +319,19 @@ class CVModel {
         }
     
         $allInformation = [
-            'competences' => ['cv' => [], 'profils' => []],
-            'skills' => ['cv' => [], 'profils' => []],
-            'loisirs' => ['cv' => [], 'profils' => []],
-            'filiere' => ['cv' => [], 'profils' => []],
-            'experience_pro' => ['cv' => [], 'profils' => []],
-            'certifications' => ['cv' => [], 'profils' => []],
-            'langues' => ['cv' => [], 'profils' => []]
+            'competences' => ['cv' => [], 'profilsCV' => []],
+            'skills' => ['cv' => [], 'profilsCV' => []],
+            'loisirs' => ['cv' => [], 'profilsCV' => []],
+            'filiere' => ['cv' => [], 'profilsCV' => []],
+            'experience_pro' => ['cv' => [], 'profilsCV' => []],
+            'certifications' => ['cv' => [], 'profilsCV' => []],
+            'langues' => ['cv' => [], 'profilsCV' => []]
         ];
     
         foreach ($result as $row) {
             foreach ($allInformation as $key => $value) {
                 $allInformation[$key]['cv'][] = $row[$key . '_cv'];
-                $allInformation[$key]['profils'][] = $row[$key . '_profil'];
+                $allInformation[$key]['profilsCV'][] = $row[$key . '_profil'];
             }
         }
     
@@ -351,7 +351,7 @@ class CVModel {
     
         // echo "<h2>Détails des comparaisons Profil ↔ CV</h2>";
         foreach ($allInformation as $key => $types) {
-            $profilText = implode(' || ', $types['profils']);
+            $profilText = implode(' || ', $types['profilsCV']);
             $cvText = implode(' || ', $types['cv']);
     
             // echo "<h3>" . ucfirst($key) . "</h3>";
@@ -449,7 +449,7 @@ class CVModel {
             FROM personnes p
             JOIN candidats c ON p.id_personne = c.id_personne
             JOIN annonces a ON c.id_annonce = a.id_annonce
-            JOIN profils pr ON c.id_profil = pr.id_profil
+            JOIN profilsCV pr ON c.id_profil = pr.id_profil
             JOIN cv_candidats cv ON c.id_candidat = cv.id_candidat
             JOIN validation_cv vc ON cv.id_cv_candidats = vc.id_cv_candidat
             JOIN status_validation_cv svc ON vc.id_status_validation_cv = svc.id_status_validation_cv

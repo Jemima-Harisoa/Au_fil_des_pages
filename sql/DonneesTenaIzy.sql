@@ -55,6 +55,7 @@ INSERT INTO filieres (nom) VALUES
   ('Logistique'); 
 
 -- Profils
+
 INSERT INTO profils (
   titre, competences, skills, loisirs, id_diplome, id_filiere, experience_pro, certifications, langues, id_type_contrat, est_minimum
 ) VALUES
@@ -124,12 +125,71 @@ INSERT INTO personnes (nom, prenom, date_naissance, contact, lien_image) VALUES
 ('Hanitra', 'Lina', '2000-01-15', '0342223334', 'https://img.com/lina.jpg');
 
 
--- INSERT INTO candidats (id_personne, id_annonce, id_profil , id_utilisateur , poste) VALUES
--- (1, 1, 1 , 1, 'Caissier / Caissiere');
 
 INSERT INTO message_automatique (message) 
 VALUES ('Merci d avoir complete le test. Vos reponses ont ete enregistrees.Les responsables d Au fil des Page vont analyser vos resultats et vous serez recontacte prochainement.');
 
-INSERT INTO candidats (id_personne, id_annonce, id_profil, cv_url, poste, id_utilisateur) VALUES
-(1, 1, 1, 'https://cv.com/lia.pdf', 'Caissier', 101),
-(2, 2, 2, 'https://cv.com/sophie.pdf', 'Comptable', 102);
+
+INSERT INTO profilsCV (
+  titre, competences, skills, loisirs, id_diplome, filiere, experience_pro, certifications, langues, id_type_contrat, est_minimum
+) VALUES
+('Caissier / Caissiere',
+ 'Accueillir et encaisser les clients; Assurer la rapidite et la fiabilite des transactions; Maintenir un espace de caisse organise et propre; Appliquer les procedures de securite et de controle',
+ 'Rigueur et honnetete; Rapidite d''execution; Gestion du stress',
+ 'Jeux de logique; Activites demandant precision',
+ 2, 'Toutes series', '1 an en caisse ou grande surface', NULL, NULL, 1, TRUE),
+
+('Comptable',
+ 'Assurer la tenue de la comptabilite generale et analytique; Etablir les bilans et declarations fiscales; Analyser les flux financiers; Conseiller la direction sur la gestion budgetaire',
+ 'Confidentialite; Esprit analytique; Minutie; Gestion des priorites',
+ 'Jeux strategiques; Sudoku; Activites de gestion',
+ 3, 'Comptabilite et Finance', '2 a 3 ans d''experience en cabinet ou PME', NULL, NULL, 1, TRUE),
+
+('Gerant / Manager',
+ 'Superviser et coordonner les equipes; Prendre des decisions strategiques; Assurer la rentabilite et le developpement de l''activite; Gerer les conflits et favoriser la cohesion',
+ 'Leadership; Prise de decision; Gestion des conflits; Vision strategique',
+ 'Lecture sur l''economie et entrepreneuriat; Sport collectif (leadership)',
+ 4, 'Management et Commerce', '3 a 5 ans d''experience en commerce ou gestion', NULL, NULL, 1, TRUE),
+
+('Magasinier',
+ 'Receptionner et stocker les marchandises; Preparer les commandes; Assurer le suivi des inventaires; Respecter les consignes de securite',
+ 'Organisation; Fiabilite; Resistance physique; Esprit d''equipe',
+ 'Sport (endurance, fitness); Bricolage (sens pratique)',
+ 2, 'Logistique', '1 a 2 ans en gestion de stock', NULL, NULL, 1, TRUE),
+
+('Vendeur / Vendeuse',
+ 'Accueillir et conseiller les clients; Assurer la mise en rayon et l''attractivite du magasin; Conclure les ventes et fideliser la clientele; Participer aux inventaires et a la gestion des stocks',
+ 'Sens du relationnel; Communication claire; Patience et ecoute; Dynamisme',
+ 'Lecture (interet pour les livres); Activites sociales (theatre, clubs de lecture)',
+ 2, 'Toutes series', 'Debutant accepte, experience en relation client est un plus', NULL, NULL, 1, TRUE),
+
+('Developpeur Web',
+ 'PHP, JavaScript, SQL', 
+ 'React, Node.js', 
+ 'Lecture, Jeux video', 
+ 4, 'Management et Commerce', '2 ans en startup', 'Certification PHP Zend', 'Francais, Anglais', 1, TRUE),
+
+('Charge de Recrutement',
+ 'Sourcing, Entretiens', 
+ 'Communication, Negociation', 
+ 'Voyages', 
+ 5, 'Management et Commerce', '3 ans en cabinet RH', 'Certification RH CIPD', 'Francais, Anglais', 2, TRUE),
+
+('Analyste Financier',
+ 'Analyse, Reporting', 
+ 'Excel, PowerBI', 
+ 'Echecs', 
+ 5, 'Comptabilite et Finance', '5 ans en banque', 'CFA Level 1', 'Francais, Anglais', 1, TRUE),
+
+('Community Manager',
+ 'Strategie digitale', 
+ 'Photoshop, SEO', 
+ 'Photographie', 
+ 4, 'Management et Commerce', '2 ans en agence digitale', 'Google Digital Marketing', 'Francais, Anglais', 1, TRUE),
+
+('Agent Logistique',
+ 'Gestion stock, Transport', 
+ 'SAP, Excel', 
+ 'Football', 
+ 3, 'Logistique', '3 ans en entrepot', 'Formation Supply Chain', 'Francais', 2, TRUE);
+
