@@ -15,7 +15,7 @@
         background-color:  #4e73df;;
         border-radius: 10px ;
     }
-    input{
+    .entretien,input{
          margin: 20px 5px 0 5px;
         font-size: 20px;
         color: grey;
@@ -107,8 +107,9 @@
 <div class="dropdown">
   <button id="btnMenu" class="option">OPTIONS ▼</button>
   <div class="dropdown-content" id="menu">
-    <a href="/createTest">Creer un test</a>
-    <a href="/listTest">Voir la liste de tous les tests</a>
+    <a href="/createTest" class="entretien">Creer un test</a>
+    <a href="/listTest" class="entretien">Voir la liste de tous les tests</a>
+    <a href="/planning-entretien" class="entretien">PLANNIFIER LES ENTRETIENS</a>
   </div>
 </div>
 
@@ -142,7 +143,7 @@ document.addEventListener("click", (e) => {
             <?php } ?>
         </select>
         <input type="submit" class="choixButt" value="CHOISIR">
-    
+        
     
         <label for="critere" class="triLabel">Trier par :</label>
         <select name="critere" id="critere">
