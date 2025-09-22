@@ -63,7 +63,9 @@ $Migration_Controller = new MigrationController();
 //$router->get('/migration/Redaction',  [ $Contrat_Controller, 'RedactionContrat' ]);
 $router->group( "/migration" , function($router) use ($Migration_Controller){
 		// route de configuration 
-		$router->get("/test", [$Migration_Controller, "test"]);
+		$router->get("/", function(){
+			Flight::redirect("/accueilA");
+		});
 		// route vers la liste des candidat apres le scoring  
 		$router->get("/candidats", [$Migration_Controller , 'getCandidatRetenu']);
 		// route vers le formulaire de soumission de contrat de travail 

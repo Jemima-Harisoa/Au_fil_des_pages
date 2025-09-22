@@ -14,6 +14,8 @@
 </head>
 
 <body class="bg-gradient-primary">
+    <?php Flight::render("headerA")?>
+
 <div class="container-fluid">
     <h1 class="h3 mb-2 text-gray-800">Liste des Contrats par État</h1>
     <p class="mb-4">Informations sur les candidats et leurs contrats selon l’état de validation.</p>
@@ -100,6 +102,7 @@
     </div>
     <iframe id="contractIframe" style="width:100%; height:95%;" frameborder="0"></iframe>
 </div>
+    <?php Flight::render("footerA")?>
 
 <!-- Scripts -->
 <script src="../js/skecth/pdf.js"></script>

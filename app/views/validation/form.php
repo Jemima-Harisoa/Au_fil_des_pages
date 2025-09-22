@@ -47,6 +47,8 @@ $profil = $data['profil'] ?? [];
     <link href="../../css/sb-admin-2.min.css" rel="stylesheet">
 </head>
 <body class="bg-gradient-primary">
+    <?php Flight::render("headerA")?>
+
 <div class="">
     <div class="card o-hidden border-0 shadow-lg my-5">
 
@@ -310,6 +312,7 @@ $profil = $data['profil'] ?? [];
         </div>
     </div>
 </div>
+    <?php Flight::render("footerA")?>
 
 
 <!-- Scripts nécessaires -->

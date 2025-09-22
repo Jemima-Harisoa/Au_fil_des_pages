@@ -14,6 +14,7 @@
 </head>
 
 <body class="bg-gradient-primary">
+    <?php Flight::render("headerA")?>
     <div class="container">
         <div class="card o-hidden border-0 shadow-lg my-5">
             <div class="card-body p-0">
@@ -164,6 +165,7 @@
             </div>
         </div>
     </div>
+    <?php Flight::render("footerA")?>
 
     <!-- Scripts -->
     <script src="../../vendor/jquery/jquery.min.js"></script>
