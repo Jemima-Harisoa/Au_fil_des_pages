@@ -193,3 +193,82 @@ INSERT INTO profilsCV (
  'Football', 
  3, 'Logistique', '3 ans en entrepot', 'Formation Supply Chain', 'Francais', 2, TRUE);
 
+
+
+INSERT INTO config_entretien (id_departement, duree_entretien) VALUES
+(1, INTERVAL '00:30:00'), -- Vente : entretiens courts (30 min)
+(2, INTERVAL '00:40:00'), -- Stock : un peu plus long pour tester organisation et logistique
+(3, INTERVAL '01:00:00'), -- Comptabilite : plus technique, 1 heure
+(4, INTERVAL '01:15:00'); -- Direction : entretien approfondi (1h15)
+
+-- Vente
+INSERT INTO responsable_entretien (id_profil, id_employe, ordre_passage) VALUES
+(1, 1, 1),  -- Vendeur senior evalue en 1er
+(1, 5, 2);  -- Gerant valide ensuite
+
+-- Stock
+INSERT INTO responsable_entretien (id_profil, id_employe, ordre_passage) VALUES
+(3, 3, 1),  -- Magasinier principal
+(3, 5, 2);  -- Gerant valide ensuite
+
+-- Comptabilite
+INSERT INTO responsable_entretien (id_profil, id_employe, ordre_passage) VALUES
+(4, 4, 1),  -- Comptable principal
+(4, 5, 2);  -- Gerant valide ensuite
+
+-- Direction
+INSERT INTO responsable_entretien (id_profil, id_employe, ordre_passage) VALUES
+(5, 5, 1);  -- Gerant en direct (pas besoin de 2e passage ici)
+
+
+-- Responsable 1 (Vendeur senior)
+INSERT INTO disponibilite_entretien (id_responsable, heure_debut, heure_fin, jour) VALUES
+(1, '09:00', '12:00', 1),
+(1, '09:00', '12:00', 2),
+(1, '09:00', '12:00', 3),
+(1, '09:00', '12:00', 4),
+(1, '09:00', '12:00', 5);
+
+-- Responsable 2 (Gerant pour Vente)
+INSERT INTO disponibilite_entretien (id_responsable, heure_debut, heure_fin, jour) VALUES
+(2, '14:00', '17:00', 1),
+(2, '14:00', '17:00', 2),
+(2, '14:00', '17:00', 3),
+(2, '14:00', '17:00', 4),
+(2, '14:00', '17:00', 5);
+
+-- Responsable 3 (Magasinier principal)
+INSERT INTO disponibilite_entretien (id_responsable, heure_debut, heure_fin, jour) VALUES
+(3, '08:00', '11:00', 1),
+(3, '08:00', '11:00', 2),
+(3, '08:00', '11:00', 3),
+(3, '08:00', '11:00', 4),
+(3, '08:00', '11:00', 5);
+
+-- Responsable 4 (Comptable)
+INSERT INTO disponibilite_entretien (id_responsable, heure_debut, heure_fin, jour) VALUES
+(4, '10:00', '13:00', 2),
+(4, '10:00', '13:00', 3),
+(4, '10:00', '13:00', 4),
+(4, '10:00', '13:00', 5),
+(4, '10:00', '13:00', 6);
+
+-- Responsable 5 (Gerant global)
+INSERT INTO disponibilite_entretien (id_responsable, heure_debut, heure_fin, jour) VALUES
+(5, '15:00', '18:00', 1),
+(5, '15:00', '18:00', 2),
+(5, '15:00', '18:00', 3),
+(5, '15:00', '18:00', 4),
+(5, '15:00', '18:00', 5),
+(5, '15:00', '18:00', 6),
+(5, '15:00', '18:00', 7);
+
+INSERT INTO jour_ferie("date") VALUES
+('2025-01-01'), -- Jour de l'an
+('2025-03-29'), -- Fête nationale
+('2025-05-01'), -- Fête du travail
+('2025-06-26'), -- Indépendance
+('2025-08-15'), -- Assomption
+('2025-11-01'), -- Toussaint
+('2025-12-25'), -- Noël
+('2025-02-20'); -- Noël
