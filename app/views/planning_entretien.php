@@ -364,7 +364,7 @@
                 <div class="container-fluid">
                     
                     <!-- Page Heading -->
-                    <a href="/api/planifier-entretien" class="btn btn-primary btn-icon-split">
+                    <a href="/api/planifier-entretien" class="btn btn-primary btn-icon-split" id="bouton-planification">
                         <span class="icon text-white-50">
                             <i class="fas fa-calendar-alt"></i>
                         </span>
