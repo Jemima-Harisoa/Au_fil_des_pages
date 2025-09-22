@@ -184,17 +184,17 @@ INSERT INTO config_entretien (id_departement, duree_entretien) VALUES
 -- Vente
 INSERT INTO responsable_entretien (id_profil, id_employe, ordre_passage) VALUES
 (1, 1, 1),  -- Vendeur senior evalue en 1er
-(5, 5, 2);  -- Gerant valide ensuite
+(1, 5, 2);  -- Gerant valide ensuite
 
 -- Stock
 INSERT INTO responsable_entretien (id_profil, id_employe, ordre_passage) VALUES
 (3, 3, 1),  -- Magasinier principal
-(5, 5, 2);  -- Gerant valide ensuite
+(3, 5, 2);  -- Gerant valide ensuite
 
 -- Comptabilite
 INSERT INTO responsable_entretien (id_profil, id_employe, ordre_passage) VALUES
 (4, 4, 1),  -- Comptable principal
-(5, 5, 2);  -- Gerant valide ensuite
+(4, 5, 2);  -- Gerant valide ensuite
 
 -- Direction
 INSERT INTO responsable_entretien (id_profil, id_employe, ordre_passage) VALUES
