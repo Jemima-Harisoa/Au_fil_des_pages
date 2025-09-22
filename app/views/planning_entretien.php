@@ -364,12 +364,12 @@
                 <div class="container-fluid">
                     
                     <!-- Page Heading -->
-                    <a href="/api/planifier-entretien" class="btn btn-primary btn-icon-split" id="bouton-planification">
+                    <button class="btn btn-primary btn-icon-split" id="bouton-planification" type="button" type="button">
                         <span class="icon text-white-50">
                             <i class="fas fa-calendar-alt"></i>
                         </span>
                         <span class="text">Planifier entretien</span>
-                    </a>
+                    </button>       
                     <div id="message-container">
 
                     </div>
@@ -382,7 +382,8 @@
                                 <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
                                     <thead>
                                         <tr>
-                                            <th>Name</th>
+                                            <th>Nom</th>
+                                            <th>Prenoms</th>
                                             <th>Profil</th>
                                             <th>ScoreTest</th>
                                             <th>DateTest</th>
