@@ -84,7 +84,7 @@
                             <img src="/img/undraw_profile_1.svg" width="22" style="margin-right:4px;">
                             <?= htmlspecialchars($msg['date']) ?>
                         </div>
-                        <?= nl2br(htmlspecialchars($msg['message'])) ?>
+                        <?= htmlspecialchars($msg['message']) ?>
                     </div>
                 </div>
             <?php else: ?>
@@ -94,7 +94,7 @@
                             <img src="https://cdn-icons-png.flaticon.com/512/3135/3135715.png" width="22" style="margin-right:4px;">
                             <?= htmlspecialchars($msg['date']) ?>
                         </div>
-                        <?= nl2br(htmlspecialchars($msg['message'])) ?>
+                        <?= htmlspecialchars($msg['message']) ?>
                     </div>
                 </div>
             <?php endif; ?>
