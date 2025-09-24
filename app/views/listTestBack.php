@@ -180,6 +180,4 @@ document.addEventListener("click", (e) => {
         <input type="submit" class="tri"  value="TRIER">
     </form>
 </form>
-
-    
 <?php include "footerA.php" ?>
