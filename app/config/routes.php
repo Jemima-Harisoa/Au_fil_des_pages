@@ -144,7 +144,8 @@ Flight::route('GET /messagerie/getCount', [MessagerieController::class, 'getNoti
 Flight::route('GET /messagerie/refresh', [MessagerieController::class, 'refreshNotifications']);
 Flight::route('POST /messagerie/markAsRead', [MessagerieController::class, 'markAsReadAndGetCount']);
 Flight::route('GET /messagerie/markAsRead/@id_candidat/@id_annonce', [MessagerieController::class, 'markConversationAsRead']);
-
+// Route pour SSE
+Flight::route('GET /messagerie/sse', [MessagerieController::class, 'sseNotifications']);
 
 
 $planning_entretien_controller = new PlanningEntretienController();
@@ -172,7 +173,8 @@ $router->group( "/migration" , function($router) use ($Migration_Controller){
 		$router->get("/contrat/edit", [$Migration_Controller, 'editContrat']);   
 	}
 );
-
+// Route pour SSE
+Flight::route('GET /messagerie/sse', [MessagerieController::class, 'sseNotifications']);
 
 ?>
 
