@@ -213,4 +213,4 @@ dateFilter.addEventListener('input', filterAnnonces);
 posteFilter.addEventListener('input', filterAnnonces);
 </script>
 
-<?php include "footerU.php"; ?>
+<?php include "footer.php"; ?>

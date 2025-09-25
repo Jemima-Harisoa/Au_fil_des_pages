@@ -174,4 +174,4 @@ function resetFilters() {
 }
 </script>
 
-<?php include "footerFormAnnonces.php" ?>
+<?php include "footer.php" ?>
