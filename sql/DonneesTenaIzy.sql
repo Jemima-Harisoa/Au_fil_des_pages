@@ -377,3 +377,4 @@ INSERT INTO jour_ferie("date") VALUES
 ('2025-11-01'), -- Toussaint
 ('2025-12-25'), -- Noël
 ('2025-02-20'); -- Noël
+
