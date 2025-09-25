@@ -1,13 +1,8 @@
 
-<?php 
-$nbNonLus = 0;
-if(!empty($_SESSION['messagerie'])) {
-    foreach($_SESSION['messagerie'] as $msg) {
-        if(($msg['dernier_auteur'] ?? '') === 'Admin' && empty($msg['lu'])) {
-            $nbNonLus++;
-        }
-    }
-} ?>
+<?php
+var_dump($_SESSION['messagerie']); 
+echo $_SESSION['nbNonLus'];
+?>
 
 <!DOCTYPE html>
 <html lang="en">
@@ -162,8 +157,8 @@ if(!empty($_SESSION['messagerie'])) {
                                data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                                 <i class="fas fa-envelope fa-fw"></i>
                                 <!-- Counter - Messages -->
-                                    <?php if($nbNonLus > 0): ?>
-                                        <span id="unreadBadge" class="badge badge-danger badge-counter"><?= $nbNonLus ?></span>
+                                    <?php if($_SESSION['nbNonLus'] > 0): ?>
+                                        <span id="unreadBadge" class="badge badge-danger badge-counter"><?= $_SESSION['nbNonLus'] ?></span>
                                     <?php endif; ?>
 
                             </a>
@@ -182,19 +177,19 @@ if(!empty($_SESSION['messagerie'])) {
                                 </h6>
                                 <?php if(!empty($_SESSION['messagerie'])): ?>
                                     <?php foreach($_SESSION['messagerie'] as $msg): ?>
-                                        <a class="dropdown-item d-flex align-items-center" href="/messagerieU/<?= $msg['id_candidat'] ?>/<?= $msg['id_annonce'] ?>">
-                                            <div class="dropdown-list-image mr-3">
-                                                <img class="rounded-circle" src="/img/undraw_profile_1.svg" alt="Profil">
-                                                <?php if(($msg['dernier_auteur'] ?? '') === 'Admin' && empty($msg['lu'])): ?>
+                                <a class="dropdown-item d-flex align-items-center" href="/messagerieU/<?= $msg['id_candidat'] ?>/<?= $msg['id_annonce'] ?>">
+    <div class="dropdown-list-image mr-3">
+        <img class="rounded-circle" src="/img/undraw_profile_1.svg" alt="Profil">
+        <?php if(($msg['dernier_auteur'] ?? '') === 'Admin' && empty($msg['lu'])): ?>
     <span class="badge badge-danger badge-counter unread-dot" style="position:absolute;top:0;right:0;font-size:0.7rem;">●</span>
 <?php endif; ?>
+    </div>
+    <div class="<?= (!empty($msg['nouveaux_messages']) && $msg['nouveaux_messages'] === true) ? 'font-weight-bold' : '' ?>">
+        <div class="text-truncate"><?= htmlspecialchars($msg['titre']) ?></div>
+        <div class="small text-gray-500"><?= htmlspecialchars($msg['nom_entreprise']) ?></div>
+    </div>
+</a>
 
-                                            </div>
-                                            <div class="<?= (($msg['dernier_auteur'] ?? '') === 'Admin' && empty($msg['lu'])) ? 'font-weight-bold' : '' ?>">
-                                                <div class="text-truncate"><?= htmlspecialchars($msg['titre']) ?></div>
-                                                <div class="small text-gray-500"><?= htmlspecialchars($msg['nom_entreprise']) ?></div>
-                                            </div>
-                                        </a>
                                     <?php endforeach; ?>
                                 <?php else: ?>
                                     <div class="dropdown-item text-center text-muted">
