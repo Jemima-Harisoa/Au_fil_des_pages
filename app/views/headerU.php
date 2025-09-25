@@ -1,7 +1,7 @@
 
 <?php
-var_dump($_SESSION['messagerie']); 
-echo $_SESSION['nbNonLus'];
+// var_dump($_SESSION['messagerie']); 
+// echo $_SESSION['nbNonLus'];
 ?>
 
 <!DOCTYPE html>
