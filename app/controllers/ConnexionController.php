@@ -115,12 +115,17 @@ class ConnexionController {
     
     public function deconnexion() {
         $model = new ConnexionModel(Flight::db());
-        $model->deconnexion();
+
+       
         if(isset($_SESSION['admin']))
         {
+            $model->deconnexion();
             Flight::redirect('/admin');
-        }
+        }else{
+                    $model->deconnexion();
         Flight::redirect('/');
+        }
+
     }
 
     
