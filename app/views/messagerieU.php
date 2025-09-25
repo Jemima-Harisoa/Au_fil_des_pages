@@ -72,7 +72,7 @@
 </style>
 <div class="container my-4">
     <h4 class="mb-3">
-        <img src="/img/undraw_profile_1.svg" width="32" style="margin-bottom:6px;">
+        <img src="/img/undraw_profile_1.svg" width="72" style="margin-bottom:6px;">
         <?= $titre ?>
     </h4>
     <div class="messagerie-container d-flex flex-column-reverse" id="messagerieScroll">
@@ -82,7 +82,7 @@
                 <div class="d-flex mb-2">
                     <div class="message-bubble message-admin">
                         <div class="message-meta">
-                            <img src="/img/undraw_profile_1.svg" width="22" style="margin-right:4px;">
+                            <img src="/img/undraw_profile_1.svg" width="32" style="margin-right:4px;">
                              <?= htmlspecialchars($msg['date']) ?>
                         </div>
                         <?= $msg['message'] ?>
@@ -92,7 +92,7 @@
                 <div class="d-flex justify-content-end mb-2">
                     <div class="message-bubble message-user">
                         <div class="message-meta text-end">
-                            <img src="https://cdn-icons-png.flaticon.com/512/3135/3135715.png" width="22" style="margin-right:4px;">
+                            <img src="https://cdn-icons-png.flaticon.com/512/3135/3135715.png" width="32" style="margin-right:4px;">
                              <?= htmlspecialchars($msg['date']) ?>
                         </div>
                         <?= $msg['message'] ?>

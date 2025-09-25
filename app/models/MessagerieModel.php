@@ -211,7 +211,7 @@ class MessagerieModel {
     }
 
     public function getTitresConversationsA() {
-        $sql = "SELECT candidats.id_candidat, annonces.id_annonce, annonces.lien, personnes.nom, personnes.prenom
+        $sql = "SELECT candidats.id_candidat, annonces.id_annonce, annonces.lien, personnes.nom, personnes.prenom , personnes.lien_image
                 FROM candidats
                 JOIN annonces ON candidats.id_annonce = annonces.id_annonce
                 JOIN personnes ON candidats.id_personne = personnes.id_personne";
@@ -260,7 +260,9 @@ class MessagerieModel {
                 'nom' => $row['nom'],
                 'prenom' => $row['prenom'],
                 'dernier_auteur' => $dernierAuteur,
-                'nouveaux_messages' => $nouveauxMessages
+                'nouveaux_messages' => $nouveauxMessages,
+                'lien_image' => $row['lien_image'],
+
             ];
         }
 

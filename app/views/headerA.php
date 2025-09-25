@@ -232,9 +232,13 @@ if(!empty($_SESSION['messagerie'])) {
                                 </h6>
                                 <?php if(!empty($_SESSION['messagerie'])): ?>
                                     <?php foreach($_SESSION['messagerie'] as $msg): ?>
-                               <a class="dropdown-item d-flex align-items-center" href="/messagerieA/<?= $msg['id_candidat'] ?>/<?= $msg['id_annonce'] ?>">
+          <a class="dropdown-item d-flex align-items-center" 
+   href="/messagerieA/<?= $msg['id_candidat'] ?>/<?= $msg['id_annonce'] ?>?id_candidat=<?= $msg['id_candidat'] ?>&nom=<?= urlencode($msg['nom']) ?>&prenom=<?= urlencode($msg['prenom']) ?>&lien_image=<?= urlencode($msg['lien_image'] ?? '') ?>">
+
     <div class="dropdown-list-image mr-3" style="position: relative;">
-        <img class="rounded-circle" src="https://cdn-icons-png.flaticon.com/512/3135/3135715.png" alt="Profil">
+        
+    <img class="rounded-circle" src="/<?= $msg['lien_image'] ?? 'https://cdn-icons-png.flaticon.com/512/3135/3135715.png' ?>" alt="Profil">
+
         <?php if(($msg['dernier_auteur'] ?? '') === 'Utilisateur' && empty($msg['lu'])): ?>
             <span class="badge badge-danger badge-counter unread-dot" style="position:absolute;top:0;right:0;font-size:0.7rem;">●</span>
         <?php endif; ?>
