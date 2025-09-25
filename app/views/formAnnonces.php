@@ -140,4 +140,4 @@ document.getElementById('annonceForm').onsubmit = function(e) {
 };
 </script>
 
-<?php include "footerFormAnnonces.php" ?>
+<?php include "footer.php" ?>

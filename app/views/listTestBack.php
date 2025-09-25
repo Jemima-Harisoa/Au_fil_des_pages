@@ -182,4 +182,4 @@ document.addEventListener("click", (e) => {
 </form>
 
     
-<?php include "footerA.php" ?>
+<?php include "footer.php" ?>

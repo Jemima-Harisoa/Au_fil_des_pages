@@ -398,4 +398,4 @@ btnSuppr.addEventListener("click", () => {
 </script>
 
 
-<?php include "footerA.php" ?>
+<?php include "footer.php" ?>

@@ -20,7 +20,7 @@ class MessagerieController {
         $titre = $AnnoncesModel->get($id_annonce)['titre'];
 
         // MAJ session APRÈS avoir marqué comme lu
-        $_SESSION['messagerie'] = $model->getTitresConversationsU($_SESSION['utilisateur']['id_utilisateur']);
+        $messagerie = $model->getTitresConversationsU($_SESSION['utilisateur']['id_utilisateur']);
 
         // Calcul du badge avec la nouvelle méthode
         $nbNonLus = $model->countNouveauxMessagesU($_SESSION['utilisateur']['id_utilisateur']);
@@ -31,7 +31,8 @@ class MessagerieController {
             'id_candidat'  => $id_candidat,
             'id_annonce'   => $id_annonce,
             'titre'        => $titre,
-            'nbNonLus'     => $nbNonLus
+            'nbNonLus'     => $nbNonLus ,
+            'messagerie'     => $messagerie 
         ]);
     }
 
@@ -53,7 +54,7 @@ class MessagerieController {
             
             echo json_encode([
                 'success' => true,
-                'newCount' => $newCount
+                'newCount' => $newCount,
             ]);
         } else {
             echo json_encode(['success' => false]);
@@ -320,96 +321,23 @@ public function getMessagerie($id_candidat, $id_annonce) {
 
     return $conversation;
 }
+public function refreshConversation() {
+    $model = new MessagerieModel();
 
-/**
- * Version améliorée de sanitizeMessage pour supporter plus de balises HTML
- */
-public static function sanitizeMessage($message) {
-    // D'abord, échapper tout le HTML
-    $message = htmlspecialchars($message, ENT_QUOTES, 'UTF-8');
-    
-    // Patterns pour différents types de balises autorisées
-    $patterns = [
-        // Liens avec href
-        '/&lt;a\s+href=([\'&quot;])([^\'&quot;]+)\1[^&gt;]*&gt;([^&lt;]*)&lt;\/a&gt;/i',
-        // Liens sans texte (self-closing ou vides)
-        '/&lt;a\s+href=([\'&quot;])([^\'&quot;]+)\1[^&gt;]*&gt;&lt;\/a&gt;/i',
-        // Support pour d'autres balises si nécessaire (gras, italique, etc.)
-        '/&lt;(strong|b)&gt;([^&lt;]+)&lt;\/\1&gt;/i',
-        '/&lt;(em|i)&gt;([^&lt;]+)&lt;\/\1&gt;/i',
-    ];
-    
-    $replacements = [
-        // Remplacer les liens avec texte
-        function($matches) {
-            $quote = $matches[1];
-            $url = $matches[2];
-            $text = $matches[3];
-            
-            if (self::isValidUrl($url)) {
-                // Si pas de texte, utiliser l'URL comme texte
-                $linkText = !empty($text) ? htmlspecialchars($text, ENT_QUOTES) : htmlspecialchars($url, ENT_QUOTES);
-                return '<a href="' . htmlspecialchars($url, ENT_QUOTES) . '" target="_blank" rel="noopener noreferrer">' . $linkText . '</a>';
-            } else {
-                return htmlspecialchars($text ?: $url, ENT_QUOTES);
-            }
-        },
-        // Remplacer les liens sans texte
-        function($matches) {
-            $quote = $matches[1];
-            $url = $matches[2];
-            
-            if (self::isValidUrl($url)) {
-                return '<a href="' . htmlspecialchars($url, ENT_QUOTES) . '" target="_blank" rel="noopener noreferrer">' . htmlspecialchars($url, ENT_QUOTES) . '</a>';
-            } else {
-                return htmlspecialchars($url, ENT_QUOTES);
-            }
-        },
-        // Gras
-        '<$1>$2</$1>',
-        // Italique  
-        '<$1>$2</$1>',
-    ];
-    
-    // Appliquer les patterns avec callbacks pour les liens
-    $message = preg_replace_callback($patterns[0], $replacements[0], $message);
-    $message = preg_replace_callback($patterns[1], $replacements[1], $message);
-    
-    // Appliquer les autres patterns simples
-    for ($i = 2; $i < count($patterns); $i++) {
-        $message = preg_replace($patterns[$i], $replacements[$i], $message);
-    }
-    
-    // Convertir les retours à la ligne
-    return nl2br($message);
-}
-
-/**
- * Version améliorée de isValidUrl pour supporter les chemins relatifs
- */
-private static function isValidUrl($url) {
-    // Nettoyer l'URL des entités HTML si présentes
-    $url = html_entity_decode($url, ENT_QUOTES, 'UTF-8');
-    
-    // Autoriser les URLs relatives (commençant par /)
-    if (strpos($url, '/') === 0) {
-        return true;
-    }
-    
-    // Autoriser les chemins relatifs (sans / au début)
-    if (!preg_match('/^[a-z]+:\/\//i', $url)) {
-        // Vérifier que c'est un chemin valide (pas de caractères dangereux)
-        if (preg_match('/^[a-zA-Z0-9\/_.-]+$/', $url)) {
-            return true;
+    try {
+        if (isset($_SESSION['utilisateur'])) {
+            $_SESSION['messagerie'] = $model->getTitresConversationsU($_SESSION['utilisateur']['id_utilisateur']);
+            echo json_encode(['success' => true, 'messagerie' => $_SESSION['messagerie']]);
+        } elseif (isset($_SESSION['admin'])) {
+            $_SESSION['messagerie'] = $model->getTitresConversationsA();
+            echo json_encode(['success' => true, 'messagerie' => $_SESSION['messagerie']]);
+        } else {
+            echo json_encode(['success' => false]);
         }
+    } catch (Exception $e) {
+        echo json_encode(['success' => false, 'message' => $e->getMessage()]);
     }
-    
-    // Autoriser les URLs HTTP/HTTPS
-    if (filter_var($url, FILTER_VALIDATE_URL) && 
-        (strpos($url, 'http://') === 0 || strpos($url, 'https://') === 0)) {
-        return true;
-    }
-    
-    return false;
+    exit;
 }
+
 }

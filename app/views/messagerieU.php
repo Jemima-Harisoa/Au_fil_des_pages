@@ -148,4 +148,4 @@ window.onload = function() {
     messagerieScroll.scrollTop = messagerieScroll.scrollHeight;
 };
 </script>
-<?php include "footerU.php" ?>
+<?php include "footer.php" ?>

@@ -30,7 +30,7 @@ class MessagerieModel {
             // Message vide = indicateur de lecture
             $log = "[$date] $destinateur: [LU]\n";
         } else {
-            // Vrai message
+            // Vrai message - AUCUN ÉCHAPPEMENT, HTML BRUT AUTORISÉ
             $log = "[$date] $destinateur: $message\n";
         }
         
@@ -182,41 +182,33 @@ class MessagerieModel {
         return $titres;
     }
 
-public function getMessagerie($id_candidat, $id_annonce) {
-    $file = __DIR__ . '/../../public/conversations/conversation_' . $id_candidat . '_' . $id_annonce . '.txt';
+    public function getMessagerie($id_candidat, $id_annonce) {
+        $file = __DIR__ . '/../../public/conversations/conversation_' . $id_candidat . '_' . $id_annonce . '.txt';
 
-    $conversation = [];
+        $conversation = [];
 
-    if (file_exists($file)) {
-        $lines = array_filter(file($file, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES));
-        foreach ($lines as $line) {
-            if (preg_match('/^\[(.*?)\]\s+([^:]+):\s*(.*)$/', $line, $matches)) {
-                $dateMsg = $matches[1];
-                $auteurMsg = trim($matches[2]);
-                $contenu = trim($matches[3]);
-                
-                // N'afficher que les vrais messages, pas les indicateurs de lecture
-                if ($contenu !== '[LU]' && !empty($contenu)) {
-                    $conversation[] = [
-                        'date'    => $dateMsg,
-                        'auteur'  => $auteurMsg,
-                        'message' => $contenu // <-- PAS D'ÉCHAPPEMENT, HTML BRUT
-                    ];
+        if (file_exists($file)) {
+            $lines = array_filter(file($file, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES));
+            foreach ($lines as $line) {
+                if (preg_match('/^\[(.*?)\]\s+([^:]+):\s*(.*)$/', $line, $matches)) {
+                    $dateMsg = $matches[1];
+                    $auteurMsg = trim($matches[2]);
+                    $contenu = trim($matches[3]);
+                    
+                    // N'afficher que les vrais messages, pas les indicateurs de lecture
+                    if ($contenu !== '[LU]' && !empty($contenu)) {
+                        $conversation[] = [
+                            'date'    => $dateMsg,
+                            'auteur'  => $auteurMsg,
+                            'message' => $contenu // HTML BRUT - AUCUN ÉCHAPPEMENT
+                        ];
+                    }
                 }
             }
         }
+
+        return $conversation;
     }
-
-    return $conversation;
-}
-
-// Supprimer ou commenter la méthode sanitizeMessage() si elle n'est plus utilisée
-// Ou la garder mais ne plus l'appeler
-
-// public static function sanitizeMessage($message) {
-//     // Cette méthode n'est plus utilisée pour l'affichage direct
-//     return $message;
-// }
 
     public function getTitresConversationsA() {
         $sql = "SELECT candidats.id_candidat, annonces.id_annonce, annonces.lien, personnes.nom, personnes.prenom
@@ -319,56 +311,4 @@ public function getMessagerie($id_candidat, $id_annonce) {
             'titre'        => $titre
         ]);
     }
-
-// Ajouter cette fonction dans MessagerieModel.php ou créer une classe utilitaire
-    
-    /**
-     * Filtre et sécurise le contenu des messages
-     * Permet uniquement les liens <a> avec des attributs sécurisés
-     */
-    public static function sanitizeMessage($message) {
-        // D'abord, échapper tout le HTML
-        $message = htmlspecialchars($message, ENT_QUOTES, 'UTF-8');
-        
-        // Ensuite, autoriser spécifiquement les liens avec une regex sécurisée
-        $message = preg_replace_callback(
-            '/&lt;a\s+href=&quot;([^&quot;]+)&quot;&gt;([^&lt;]+)&lt;\/a&gt;/i',
-            function($matches) {
-                $url = $matches[1];
-                $text = $matches[2];
-                
-                // Valider l'URL (autoriser seulement http/https et chemins relatifs)
-                if (self::isValidUrl($url)) {
-                    // Ajouter target="_blank" et rel="noopener" pour la sécurité
-                    return '<a href="' . htmlspecialchars($url, ENT_QUOTES) . '" target="_blank" rel="noopener noreferrer">' . htmlspecialchars($text, ENT_QUOTES) . '</a>';
-                } else {
-                    // Si l'URL n'est pas valide, retourner juste le texte
-                    return htmlspecialchars($text, ENT_QUOTES);
-                }
-            },
-            $message
-        );
-        
-        // Convertir les retours à la ligne
-        return nl2br($message);
-    }
-    
-    /**
-     * Valide si une URL est sécurisée
-     */
-    private static function isValidUrl($url) {
-        // Autoriser les URLs relatives (commençant par /)
-        if (strpos($url, '/') === 0) {
-            return true;
-        }
-        
-        // Autoriser les URLs HTTP/HTTPS
-        if (filter_var($url, FILTER_VALIDATE_URL) && 
-            (strpos($url, 'http://') === 0 || strpos($url, 'https://') === 0)) {
-            return true;
-        }
-        
-        return false;
-    }
 }
-

@@ -11,6 +11,7 @@
     display: flex;
     flex-direction: column;
 }
+
 .message-bubble {
     border-radius: 18px;
     padding: 12px 18px;
@@ -21,21 +22,25 @@
     max-width: 48%;
     word-break: break-word;
 }
+
 .message-admin {
-    background: #619ffc;
-    color: #fff;
-    align-self: flex-end;
-}
-.message-user {
     background: #e3eafc;
     color: #2c3e50;
-    align-self: flex-start;
+    align-self: flex-end; /* Admin à droite */
 }
+
+.message-user {
+    background: #619ffc;
+    color: #fff;
+    align-self: flex-start; /* Utilisateur à gauche */
+}
+
 .message-meta {
     font-size: 0.8rem;
     color: #888;
     margin-bottom: 2px;
 }
+
 .send-box {
     display: flex;
     align-items: center;
@@ -43,6 +48,7 @@
     margin-top: 18px;
     margin-bottom: 10px;
 }
+
 .send-input {
     flex: 1;
     border-radius: 20px;
@@ -51,6 +57,7 @@
     font-size: 1rem;
     background: #f8fbff;
 }
+
 .send-btn {
     background: #619ffc;
     border: none;
@@ -65,42 +72,48 @@
     cursor: pointer;
     transition: background 0.2s;
 }
+
 .send-btn:hover {
     background: #4176c2;
 }
 </style>
+
 <div class="container my-4">
     <h4 class="mb-3">
-        <img src="https://cdn-icons-png.flaticon.com/512/3135/3135715.png" width="32" style="margin-bottom:6px;">
+        <img src="/img/undraw_profile_1.svg" width="32" style="margin-bottom:6px;">
         <?= $titre ?>
     </h4>
+
     <div class="messagerie-container d-flex flex-column-reverse" id="messagerieScroll">
         <?php foreach (array_reverse($messages) as $msg): ?>
             <?php if (empty(trim($msg['message']))) continue; // Ne pas afficher les messages vides ?>
+            
             <?php if ($msg['auteur'] === 'Admin'): ?>
                 <div class="d-flex justify-content-end mb-2">
                     <div class="message-bubble message-admin">
                         <div class="message-meta text-end">
-                            <img src="/img/undraw_profile_1.svg" width="22" style="margin-right:4px;">
+                            <img src="https://cdn-icons-png.flaticon.com/512/3135/3135715.png" width="22" style="margin-left:4px;">
                             <?= htmlspecialchars($msg['date']) ?>
                         </div>
-                        <?= htmlspecialchars($msg['message']) ?>
+                        <?= $msg['message'] ?>
                     </div>
                 </div>
             <?php else: ?>
                 <div class="d-flex mb-2">
                     <div class="message-bubble message-user">
                         <div class="message-meta">
-                            <img src="https://cdn-icons-png.flaticon.com/512/3135/3135715.png" width="22" style="margin-right:4px;">
+                            <img src="/img/undraw_profile_1.svg" width="22" style="margin-right:4px;">
                             <?= htmlspecialchars($msg['date']) ?>
                         </div>
-                        <?= htmlspecialchars($msg['message']) ?>
+                        <?= $msg['message'] ?>
                     </div>
                 </div>
             <?php endif; ?>
         <?php endforeach; ?>
     </div>
+
     <div style="height:30px;"></div>
+
     <form id="sendMessageForm" class="send-box mt-2" autocomplete="off">
         <input type="text" name="message" id="messageInput" class="send-input" placeholder="Votre message..." required>
         <button type="submit" class="send-btn" title="Envoyer">
@@ -108,6 +121,7 @@
         </button>
     </form>
 </div>
+
 <script src="https://kit.fontawesome.com/2c36e9b7b1.js" crossorigin="anonymous"></script>
 <script>
 const form = document.getElementById('sendMessageForm');
@@ -147,4 +161,5 @@ window.onload = function() {
     messagerieScroll.scrollTop = messagerieScroll.scrollHeight;
 };
 </script>
-<?php include "footerA.php" ?>
+
+<?php include "footer.php" ?>
