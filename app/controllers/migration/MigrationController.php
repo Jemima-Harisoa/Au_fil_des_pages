@@ -309,7 +309,7 @@ class MigrationController {
                 $actionLabel = "Validation";
                     $messagerieModel=new MessagerieModel();
                     $mess=$messagerieModel->repondreA($id_candidat,$candidat['id_annonce'],"Voici votre contrat.");
-                    $mess=$messagerieModel->repondreA($id_candidat,$candidat['id_annonce'],"<a href='{$existingContrat['url_contrat']}'></a>");
+                    $mess=$messagerieModel->repondreA($id_candidat,$candidat['id_annonce'],"<a href='{$existingContrat['url_contrat']}'>contrat</a>");
                 break;
             case 'refuser':
                 $etat = $etatModel->getBy("nom", "Non validé");

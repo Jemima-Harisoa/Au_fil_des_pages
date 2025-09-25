@@ -11,28 +11,28 @@
     "employe": {
         "resilliation": "1",
         "modalite": {
-            "debut_contrat": "2025-11-23",
+            "debut_contrat": "",
             "duree": null,
-            "essai": "6"
+            "essai": ""
         },
         "lieu": "Rue des Lilas, Antananarivo",
         "poste": {
-            "qualite": "Comptable",
+            "qualite": "Gerant \/ Manager",
             "class": ""
         },
         "remuneration": {
-            "salaire": "4000000",
+            "salaire": "",
             "avantages": []
         },
-        "noms_prenoms": "Rasoanaivo Marie",
+        "noms_prenoms": "Rakoto Jean",
         "ne_le": "2009-01-01",
         "ne_a": "",
-        "fils_ou_fille_de": "BENOIS Goerges , RAKOTOARILALA Marie",
-        "nationalite": "MALAGASY",
-        "domicile": "Lot II B 33 YUV",
+        "fils_ou_fille_de": "",
+        "nationalite": "",
+        "domicile": "",
         "lieu_edition": "Antananarivo",
-        "date_edition": "22\/09\/2025",
-        "signature": "Rasoanaivo Marie"
+        "date_edition": "25\/09\/2025",
+        "signature": "Rakoto Jean"
     },
     "clause_general": {
         "_comment": "Clause global pour tout contrat de travail",
