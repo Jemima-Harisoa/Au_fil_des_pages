@@ -2,6 +2,7 @@
 use app\controllers\WelcomeController;
 use app\controllers\PlanningEntretienController;
 use app\controllers\ApiPlanningEntretienController;
+use app\controllers\ConnexionController;
 
 use flight\Engine;
 use flight\net\Router;
@@ -16,9 +17,15 @@ use flight\net\Router;
 	$app->render('welcome', [ 'message' => 'It works!!' ]);
 });*/
 
-$Welcome_Controller = new WelcomeController();
-$router->get('/', [ $Welcome_Controller, 'home' ]);
+$ConnexionController = new ConnexionController();
+$router->get('/', [ $ConnexionController, 'AppelLoginU' ]);
+$router->post('/inscriptionU', [ $ConnexionController, 'InscrireU' ]);
+$router->post('/loginU', [ $ConnexionController, 'VerificationConnectionU' ]);
+$router->get('/deconnexion', [ $ConnexionController, 'deconnexion' ]);
 
+$router->get('/admin', [ $ConnexionController, 'AppelLoginA' ]);
+$router->post('/inscriptionA', [ $ConnexionController, 'InscrireA' ]);
+$router->post('/loginA', [ $ConnexionController, 'VerificationConnectionA' ]);
 $planning_entretien_controller = new PlanningEntretienController();
 $router->get('/planning-entretien',[$planning_entretien_controller,'showPageEntretien']);
 
