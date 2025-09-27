@@ -94,7 +94,7 @@ abbr[data-original-title] {
   text-decoration: underline;
   -webkit-text-decoration: underline dotted;
   text-decoration: underline dotted;
-  cursor: help;
+  cursor: help; 
   border-bottom: 0;
   -webkit-text-decoration-skip-ink: none;
   text-decoration-skip-ink: none;
@@ -215,7 +215,7 @@ table {
 caption {
   padding-top: 0.75rem;
   padding-bottom: 0.75rem;
-  color: #858796;
+  color: #595e7e;
   text-align: left;
   caption-side: bottom;
 }
@@ -228,6 +228,7 @@ th {
 label {
   display: inline-block;
   margin-bottom: 0.5rem;
+  
 }
 
 button {
