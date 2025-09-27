@@ -1,6 +1,7 @@
 --recuperer les candidats avec leurs informatiions 
 CREATE OR REPLACE VIEW v_candidats_personnes AS
-SELECT per.*,
+SELECT per.nom as nom_candidat,
+        per.prenom as prenom_candidat,
         ca.id_candidat,
         ca.id_annonce,
         ca.id_profil,

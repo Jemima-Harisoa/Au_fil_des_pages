@@ -198,7 +198,7 @@ class PlanningEntretienModel{
     on vrp.id_responsable = pe.id_responsable
     JOIN etat e
     ON e.id_etat = pe.etat
-    WHERE pe.etat = 3 ;
+    WHERE pe.etat = ? ;
         ";
 
         try {
@@ -210,7 +210,6 @@ class PlanningEntretienModel{
         }
     }
     public function checkCandidatsInEntretien($candidats){
-        $candidatsModel = Flight::candidatModel();
         $candidatsEntretien = self::all();
         $compteur = 0;
         foreach($candidats as $candidat){
@@ -218,7 +217,7 @@ class PlanningEntretienModel{
                 $compteur++;
             }
         }
-        if($compteur == count($candidatsEntretien)){
+        if($compteur == count($candidats)){
             return true;
         }
         return false;

@@ -359,12 +359,18 @@
 
                 </nav>
                 <!-- End of Topbar -->
-
+                 <?php 
+                 if(isset($allVerified) && $allVerified): ?>
+                    <div class="alert alert-info" role="alert">
+                        Tous les candidats ont chacun un entretien planifié.
+                    </div>
+                <?php endif;
+                 ?>   
                 <!-- Begin Page Content -->
                 <div class="container-fluid">
                     
                     <!-- Page Heading -->
-                    <button class="btn btn-primary btn-icon-split" id="bouton-planification" type="button" <?php $allVerified ? "disabled":""?>>
+                    <button class="btn btn-primary btn-icon-split" id="bouton-planification" type="button" <?php echo $allVerified ? "disabled":""?>>
                         <span class="icon text-white-50">
                             <i class="fas fa-calendar-alt"></i>
                         </span>
@@ -374,9 +380,6 @@
 
                     </div>
                     <div class="card shadow mb-4">
-                        <div class="card-header py-3">
-                            <h6 class="m-0 font-weight-bold text-primary">Entretiens à venir</h6>
-                        </div>
                         <div class="card-body">
                             <div class="table-responsive">
                                 <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
@@ -399,58 +402,6 @@
                             </div>
                         </div>
                     </div>
-                    <div class="card shadow mb-4">
-                        <div class="card-header py-3">
-                            <h6 class="m-0 font-weight-bold text-primary"> Entretiens en retard</h6>
-                        </div>
-                        <div class="card-body">
-                            <div class="table-responsive">
-                                <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
-                                    <thead>
-                                        <tr>
-                                            <th>Candidats</th>
-                                            <th>Age Candidats</th>
-                                            <th>Responsables</th>
-                                            <th>Profils Candidats</th>
-                                            <th>ScoreTest</th>
-                                            <th>DateTest</th>
-                                            <th>dateHeureEntretien</th>
-                                            <th>Action</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="card shadow mb-4">
-                        <div class="card-header py-3">
-                            <h6 class="m-0 font-weight-bold text-primary">Entretiens réalisés</h6>
-                        </div>
-                        <div class="card-body">
-                            <div class="table-responsive">
-                                <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
-                                    <thead>
-                                        <tr>
-                                            <th>Candidats</th>
-                                            <th>Age Candidats</th>
-                                            <th>Responsables</th>
-                                            <th>Profils Candidats</th>
-                                            <th>ScoreTest</th>
-                                            <th>DateTest</th>
-                                            <th>dateHeureEntretien</th>
-                                            <th>Action</th>
-                                        </tr>
-                                    </thead>
-
-                                    <tbody>
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                    </div>
-
                 </div>
                 <!-- /.container-fluid -->
 

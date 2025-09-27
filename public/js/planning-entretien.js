@@ -22,7 +22,7 @@ button.addEventListener('click', function(e) {
         if (data.resultat && data.resultat.length > 0) {
             data.resultat.forEach(candidat => {
                 table.row.add([
-                    `${candidat.nom} ${candidat.prenom}` || "",
+                    `${candidat.nom_candidat} ${candidat.prenom_candidat}` || "",
                     date.getFullYear() - new Date(candidat.date_naissance).getFullYear() || "",
                     `${candidat.nom_responsable} ${candidat.prenom_responsable}` || "",
                     candidat.titre || "",
