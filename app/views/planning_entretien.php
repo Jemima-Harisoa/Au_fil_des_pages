@@ -376,6 +376,60 @@
                         </span>
                         <span class="text">Planifier entretien</span>
                     </button>       
+                    <form action="/planning" method="post" id="form-filtre" class="p-4 border rounded shadow-sm bg-light">
+                    <div class="mb-3">
+                        <label for="candidat" class="form-label">Candidat</label>
+                        <input type="text" class="form-control" placeholder="ex. Rakoto Jean" name="candidat" id="candidat">
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                        <label for="age-min" class="form-label">Âge minimal</label>
+                        <input type="number" class="form-control" name="age-min" id="age-min">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                        <label for="age-max" class="form-label">Âge maximal</label>
+                        <input type="number" class="form-control" name="age-max" id="age-max">
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="responsable" class="form-label">Responsable</label>
+                        <input type="text" class="form-control" name="responsable" id="responsable">
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="profil-candidat" class="form-label">Profil Candidat</label>
+                        <input type="text" class="form-control" placeholder="ex. Vendeur" name="profil-candidat" id="profil-candidat">
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                        <label for="score-min" class="form-label">Score test minimal</label>
+                        <input type="number" class="form-control" name="score-min" id="score-min">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                        <label for="score-max" class="form-label">Score test maximal</label>
+                        <input type="number" class="form-control" name="score-max" id="score-max">
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="date-test" class="form-label">Date test</label>
+                        <input type="date" class="form-control" name="date-test" id="date-test">
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="date-entretien" class="form-label">Date & Heure Entretien</label>
+                        <input type="datetime-local" class="form-control" name="date-entretien" id="date-entretien">
+                    </div>
+
+                    <div class="d-flex justify-content-end">
+                        <button type="submit" class="btn btn-primary">Filtrer</button>
+                        <button type="reset" class="btn btn-secondary ms-2">Réinitialiser</button>
+                    </div>
+                    </form>
+
                     <div id="message-container">
 
                     </div>
@@ -404,7 +458,6 @@
                     </div>
                 </div>
                 <!-- /.container-fluid -->
-
             </div>
             <!-- End of Main Content -->
 

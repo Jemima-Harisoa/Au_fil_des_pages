@@ -14,7 +14,7 @@ planning_entretien.php
 
 		4-checkCandidatsInEntretien($candidats)(ok) 5min
 
-		5-save(dans la classe nomme HistoriquePlanningEntretienModel)10min
+		5-save(dans la classe nomme HistoriquePlanningEntretienModel)10min(ok)
 
 		6- filtrerEntretien($criteres)20min
 
