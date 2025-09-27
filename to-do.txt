@@ -10,28 +10,26 @@ planning_entretien.php
 
 		2-save()(ecrit dans la classe PlanningEntretienModel)(ok)
 
-		3-getLastPlanning($responsable)(ok)
+		3-getLastPlanning($responsable)(ok)10min
 
-		4-checkCandidatsInEntretien($candidats)
+		4-checkCandidatsInEntretien($candidats)(ok) 5min
 
-		5-listerEntretien()(ok)
+		5-save(dans la classe nomme HistoriquePlanningEntretienModel)10min
 
-		6-save(dans la classe nomme HistoriquePlanningEntretienModel)
+		6- filtrerEntretien($criteres)20min
 
-		7-filtrerEntretien($criteres)
+		7-envoyerMessage($emetteur , $recepteur)(ok)
 
-		8-envoyerMessage($emetteur , $recepteur)
+		8-checkValiditeDate($dateProposee)20min
 
-		9-checkValiditeDate($dateProposee)
+		9-voirAgendaResponsable($id_responsable)(calendrier)(30min)
 
-		10-voirAgendaResponsable($id_responsable)(calendrier)
-
-		11-getListeEntretiens($id_responsable)
+		10-getListeEntretiens($id_responsable) 15 min
 
 	Affichage:
-		-bouton pour planification automatique(ok)
+		-bouton pour planification automatique(ok)5min
 		-table(Datatable) liste des entretiens avec derniere colonne ,
-		actions(boutons:reporter ,rejeter,accepter)(ok) derniere colonne  valide si etat annule ou rejete
+		actions(boutons:reporter ,rejeter,accepter)(ok) derniere colonne  valide si etat annule ou rejete 2min
 		-un formulaire recherche multi critere
 	Integration:
 		-un employe se connecte avec son compte  et son id est stocké dans une session,

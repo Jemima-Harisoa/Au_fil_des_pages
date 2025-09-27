@@ -218,6 +218,7 @@ INSERT INTO config_entretien (id_departement, duree_entretien) VALUES
 (2, INTERVAL '00:40:00'), -- Stock : un peu plus long pour tester organisation et logistique
 (3, INTERVAL '01:00:00'), -- Comptabilite : plus technique, 1 heure
 (4, INTERVAL '01:15:00'); -- Direction : entretien approfondi (1h15)
+(5, INTERVAL '00:45:00'); -- Direction : entretien approfondi (1h15)
 
 -- Vendeur (profil 1)
 INSERT INTO responsable_entretien (id_profil, id_admin, ordre_passage) VALUES
