@@ -6,29 +6,96 @@ planning_entretien.php
 		-Etat
 		-historique_planning_entretien
 	Fonction:
-		-planifierEntretien($listeCandidat,$id_responsable)
-		-save()(ecrit dans la classe PlanningEntretienModel)(ok)
-		-listerEntretien()(ok)
-		-save (dans la classe nomme HistoriquePlanningEntretienModel)
-		-filtrerEntretien($criteres)
-		-envoyerMessageCandidat()
-		-
+		1-planifierEntretien($listeCandidat,$id_responsable)
+
+		2-save()(ecrit dans la classe PlanningEntretienModel)(ok)
+
+		3-getLastPlanning($responsable)(ok)
+
+		4-checkCandidatsInEntretien($candidats)
+
+		5-listerEntretien()(ok)
+
+		6-save(dans la classe nomme HistoriquePlanningEntretienModel)
+
+		7-filtrerEntretien($criteres)
+
+		8-envoyerMessage($emetteur , $recepteur)
+
+		9-checkValiditeDate($dateProposee)
+
+		10-voirAgendaResponsable($id_responsable)(calendrier)
+
+		11-getListeEntretiens($id_responsable)
+
 	Affichage:
-		-bouton qui sert à faire une planification automatique(ok)
-		-table(Datatable) montrant la liste des entretiens avec avec les colonnes candidats,ages candidats,
-		profils candidats,score test,date test,date heure entretien,etat_actuel,
-		actions(boutons:reporter ,rejeter,accepter)(ok).La derniere colonne est valide si l'entretien n'est annule ou rejete
-		-un formulaire de recherche multi critere
+		-bouton pour planification automatique(ok)
+		-table(Datatable) liste des entretiens avec derniere colonne ,
+		actions(boutons:reporter ,rejeter,accepter)(ok) derniere colonne  valide si etat annule ou rejete
+		-un formulaire recherche multi critere
 	Integration:
 		-un employe se connecte avec son compte  et son id est stocké dans une session,
-		-il arrive sur une page où on trouve le bouton planifier entretien
-		-si les entretiens dont l'employé s'occupe ont été déjà planifiés le bouton devient non cliquable
-		Sinon quand il clique sur le bouton, appel ajax pour planning entretien, affichage des entretiens planifies dans la table
-		-Sur chaque ligne on a une colonne actions:rejeter,accepter et reporter ,l'url appele est le meme "/api/planning-entretien/edit/id=?"
-		avec 
-		Si accpete,:on change l'etat de l'entretien en accpeté,l'id url = 4
-		Si reporter:un popup qui s'affiche et on entre une nouvelle date pour l'entretien,l'id url = 2
-		Si rejeter: l'id url = 1
+
+		-il arrive sur une page où on trouve le bouton planifier entretien,appel de la fonction planifierEntretien($listeCandidat,$id_responsable)
+
+		-si les entretiens déjà planifiés =>le bouton planifier entretien non cliquable
+
+		Sinon :
+		-chaque ligne avec une colonne actions:rejeter,accepter et reporter , url commun="/api/planning-entretien/edit/id=?"
+		:
+			il clique sur le bouton, appel fonction planifierEntretien , affichage des entretiens planifies dans la table
+			si responsable est RH:[$_session==null]
+				-Si n'appartient pas:
+					*clic  reporter:(apres avoir recu un message venant d'un candidat ou d'un responsable entretien):
+					appel de la fonction voirAgendaResponsable()
+
+					un popup qui s'affiche :
+						-nouvelle date[apres avoir vu l'agenda d'un responsable] pour l'entretien,l'id url = 2
+						-un text area pour la raison de modification
+
+					,appel de la fonction save dans HistoriquePlanningEntretienModel avec:
+						$historique_Planning_Entretien={
+							id_entretien: id_entretien à modifier,
+							date_modification:date saisie dans le popup
+							raison_modification:...
+						}
+
+					*Si annuler: même principe que précédemment mais l'id url = 3 un meme popup s'affiche
+				-Sinon:
+					*il peut rejeter
+					*accepter: id url = 1 ,appel de la fonction save dans HistoriquePlanningEntretienModel:
+						$historique_Planning_Entretien={
+							id_entretien: id_entretien à modifier,
+							date_modification:date du jour
+							raison_modification:...
+						}
+			sinon:[$session != null]
+				-appel de la fonction getListeEntretien($session["id_responsables]):
+				clic rejeter:
+
+				afficher  popup : 
+					raison modidfication: input type text area,
+					bouton valider et annuler
+					input type hidden = id_entretien
+						$historique_Planning_Entretien={
+							id_entretien: id_entretien à modifier,
+							date_modification:date du jour
+							raison_modification:...
+						}
+				-cliquer  valider:
+				alert("ete vous sur de valider cet entretien):
+					Si oui: 
+					$historique_Planning_Entretien={
+							id_entretien: id_entretien à modifier,
+							date_modification:date du jour
+							raison_modification:vide
+					}
+				appel de la fonction save() de HistoriquePlanningEntretienModel
+			appel de la fonction envoyerMessage($responsable,$candidat)
+			
+
+				
+
 
 
 

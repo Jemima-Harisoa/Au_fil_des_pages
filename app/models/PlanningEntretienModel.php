@@ -142,32 +142,31 @@ class PlanningEntretienModel{
         $dateHeureEntretien = null;
         try {
             if(empty($idResponsable)){
-            if(count($listeCandidats) != 0){
-                foreach($listeCandidats as $candidat){
-                    $idProfil = Flight::profilsModel()->getById($candidat["id_profil"]);
-                    $responsables = Flight::responsableEntretienModel()->getResponsablesEntretienCandidat($candidat["id_profil"]);
-                    foreach($responsables as $responsable){
-                        $disponibilitesEntretien = Flight::disponibiliteEntretienModel()->getTempsDisponiblesEntretien($responsable["id_responsable"]);
-                        $configEntretien = Flight::configEntretienModel()->getConfigurationEntretienResponsable($responsable);
-                        $lastPlanning = Flight::planningEntretienModel()->getLastPlanning($responsable["id_responsable"]);
-                        
-                        $planningEntretien = Flight::planningEntretienModel();
-                        $planningEntretien->setIdCandidat($candidat["id_candidat"]);
-                        $planningEntretien->setIdResponsable($responsable["id_responsable"]);
-                        if($lastPlanning && is_array($lastPlanning)){
-                            $dateModel= new DateModel($lastPlanning["date_heure_entretien"]);
-                            $dateHeureEntretien= $dateModel->addInterval($configEntretien["duree_entretien"]);
-                            $planningEntretien->setDateHeureEntretien (DisponibiliteEntretienModel::checkDateDisponible($dateHeureEntretien,$disponibilitesEntretien));
+                if(count($listeCandidats) != 0){
+                    foreach($listeCandidats as $candidat){
+                        $idProfil = Flight::profilsModel()->getById($candidat["id_profil"]);
+                        $responsables = Flight::responsableEntretienModel()->getResponsablesEntretienCandidat($candidat["id_profil"]);
+                        foreach($responsables as $responsable){
+                            $disponibilitesEntretien = Flight::disponibiliteEntretienModel()->getTempsDisponiblesEntretien($responsable["id_responsable"]);
+                            $configEntretien = Flight::configEntretienModel()->getConfigurationEntretienResponsable($responsable);
+                            $lastPlanning = Flight::planningEntretienModel()->getLastPlanning($responsable["id_responsable"]);
+                            
+                            $planningEntretien = Flight::planningEntretienModel();
+                            $planningEntretien->setIdCandidat($candidat["id_candidat"]);
+                            $planningEntretien->setIdResponsable($responsable["id_responsable"]);
+                            if($lastPlanning && is_array($lastPlanning)){
+                                $dateModel= new DateModel($lastPlanning["date_heure_entretien"]);
+                                $dateHeureEntretien= $dateModel->addInterval($configEntretien["duree_entretien"]);
+                                $planningEntretien->setDateHeureEntretien (DisponibiliteEntretienModel::checkDateDisponible($dateHeureEntretien,$disponibilitesEntretien));
+                            }
+                            else{
+                                $dateHeureEntretien = Flight::disponibiliteEntretienModel()->jourOuvrableEntretien($candidat,$disponibilitesEntretien);
+                                $planningEntretien->setDateHeureEntretien($dateHeureEntretien);
+                            }
+                            $planningEntretien->save();
                         }
-                        else{
-                            $dateHeureEntretien = Flight::disponibiliteEntretienModel()->jourOuvrableEntretien($candidat,$disponibilitesEntretien);
-                            $planningEntretien->setDateHeureEntretien($dateHeureEntretien);
-                        }
-                        $planningEntretien->setIdEntretien($responsable['id_responsable']);
-                        $planningEntretien->save();
                     }
                 }
-            }
             }
         } catch (\Exception $e) {
             throw new \Exception($e->getMessage());

@@ -24,6 +24,7 @@ INSERT INTO departements (nom) VALUES
 ('Vente'),
 ('Stock'),
 ('Comptabilite'),
+('RH'),
 ('Direction');
 
 INSERT INTO type_contrats (nom) VALUES
@@ -112,28 +113,51 @@ INSERT INTO personnes (nom, prenom, date_naissance, contact, lien_image) VALUES
 ('Rakotomaharo','Samuel','1994-01-14','0331234019',''),
 ('Rasolo','Therese','1993-05-30','0331234020','');
 
+INSERT INTO utilisateurs (nom, mdp) VALUES
+('alice', 'hashedpwd_alice'),
+('bob', 'hashedpwd_bob'),
+('caroline', 'hashedpwd_caroline'),
+('david', 'hashedpwd_david'),
+('evelyne', 'hashedpwd_evelyne'),
+('fabrice', 'hashedpwd_fabrice'),
+('gina', 'hashedpwd_gina'),
+('hery', 'hashedpwd_hery'),
+('isabelle', 'hashedpwd_isabelle'),
+('jules', 'hashedpwd_jules'),
+('karen', 'hashedpwd_karen'),
+('leo', 'hashedpwd_leo'),
+('mireille', 'hashedpwd_mireille'),
+('nicolas', 'hashedpwd_nicolas'),
+('olivia', 'hashedpwd_olivia'),
+('patrick', 'hashedpwd_patrick'),
+('quentin', 'hashedpwd_quentin'),
+('rita', 'hashedpwd_rita'),
+('samuel', 'hashedpwd_samuel'),
+('therese', 'hashedpwd_therese');
 
-INSERT INTO candidats (id_personne, id_annonce, id_profil, cv_url, poste) VALUES
-(6, 1, 1, 'https://cv.example.com/alice.pdf','Vendeur'),
-(7, 1, 1, 'https://cv.example.com/bob.pdf','Vendeur'),
-(8, 1, 1, 'https://cv.example.com/caroline.pdf','Vendeur'),
-(9, 1, 1, 'https://cv.example.com/david.pdf','Vendeur'),
-(10, 2, 2, 'https://cv.example.com/evelyne.pdf','Caissier'),
-(11, 2, 2, 'https://cv.example.com/fabrice.pdf','Caissier'),
-(12, 3, 3, 'https://cv.example.com/gina.pdf','Magasinier'),
-(13, 3, 3, 'https://cv.example.com/hery.pdf','Magasinier'),
-(14, 4, 4, 'https://cv.example.com/isabelle.pdf','Comptable'),
-(15, 4, 4, 'https://cv.example.com/jules.pdf','Comptable'),
-(16, 5, 5, 'https://cv.example.com/karen.pdf','Gerant'),
-(17, 5, 5, 'https://cv.example.com/leo.pdf','Gerant'),
-(18, 1, 1, 'https://cv.example.com/mireille.pdf','Vendeur'),
-(19, 1, 1, 'https://cv.example.com/nicolas.pdf','Vendeur'),
-(20, 2, 2, 'https://cv.example.com/olivia.pdf','Caissier'),
-(21, 3, 3, 'https://cv.example.com/patrick.pdf','Magasinier'),
-(22, 1, 1, 'https://cv.example.com/quentin.pdf','Vendeur'),
-(23, 1, 1, 'https://cv.example.com/rita.pdf','Vendeur'),
-(24, 4, 4, 'https://cv.example.com/samuel.pdf','Comptable'),
-(25, 5, 5, 'https://cv.example.com/therese.pdf','Gerant'); *
+
+INSERT INTO candidats (id_personne, id_annonce, id_profil, cv_url, poste, id_utilisateur) VALUES
+(6, 1, 1, 'https://cv.example.com/alice.pdf','Vendeur', 1),
+(7, 1, 1, 'https://cv.example.com/bob.pdf','Vendeur', 2),
+(8, 1, 1, 'https://cv.example.com/caroline.pdf','Vendeur', 3),
+(9, 1, 1, 'https://cv.example.com/david.pdf','Vendeur', 4),
+(10, 2, 2, 'https://cv.example.com/evelyne.pdf','Caissier', 5),
+(11, 2, 2, 'https://cv.example.com/fabrice.pdf','Caissier', 6),
+(12, 3, 3, 'https://cv.example.com/gina.pdf','Magasinier', 7),
+(13, 3, 3, 'https://cv.example.com/hery.pdf','Magasinier', 8),
+(14, 4, 4, 'https://cv.example.com/isabelle.pdf','Comptable', 9),
+(15, 4, 4, 'https://cv.example.com/jules.pdf','Comptable', 10),
+(16, 5, 5, 'https://cv.example.com/karen.pdf','Gerant', 11),
+(17, 5, 5, 'https://cv.example.com/leo.pdf','Gerant', 12),
+(18, 1, 1, 'https://cv.example.com/mireille.pdf','Vendeur', 13),
+(19, 1, 1, 'https://cv.example.com/nicolas.pdf','Vendeur', 14),
+(20, 2, 2, 'https://cv.example.com/olivia.pdf','Caissier', 15),
+(21, 3, 3, 'https://cv.example.com/patrick.pdf','Magasinier', 16),
+(22, 1, 1, 'https://cv.example.com/quentin.pdf','Vendeur', 17),
+(23, 1, 1, 'https://cv.example.com/rita.pdf','Vendeur', 18),
+(24, 4, 4, 'https://cv.example.com/samuel.pdf','Comptable', 19),
+(25, 5, 5, 'https://cv.example.com/therese.pdf','Gerant', 20);
+
 
 INSERT INTO contrats (id_candidat, id_type_contrat, url_contrat) VALUES
 -- Contrats employes existants
@@ -254,14 +278,14 @@ INSERT INTO disponibilite_entretien (id_responsable, heure_debut, heure_fin, jou
 
 -- Comptable, Lina (RH) = id_responsable 8
 (8, '13:00', '15:00', 2),
-(8, '13:00', '15:00', 4);
+(8, '13:00', '15:00', 4),
 
 -- Gérant, Jean (principal) = id_responsable 9
-INSERT INTO disponibilite_entretien (9, '09:00', '11:00', 1),
-(9, '09:00', '11:00', 3);
+(9, '09:00', '11:00', 1),
+(9, '09:00', '11:00', 3),
 
 -- Gérant, Lina (RH) = id_responsable 10
-INSERT INTO disponibilite_entretien (10, '13:00', '15:00', 1),
+(10, '13:00', '15:00', 1),
 (10, '13:00', '15:00', 3);
 
 

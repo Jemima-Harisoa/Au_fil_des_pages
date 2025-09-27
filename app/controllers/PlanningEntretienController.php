@@ -7,7 +7,6 @@ class PlanningEntretienController {
         $candidats = Flight::testModel()->getCandidatsAvecSuccesTest(4);
         $planningEntretien = Flight::planningEntretienModel();
         $allVerified = $planningEntretien-> checkCandidatsInEntretien($candidats);
-        var_dump($allVerified);
         Flight::render('planning_entretien',["allVerified"=>$allVerified]);
     }
 }

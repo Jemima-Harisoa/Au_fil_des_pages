@@ -19,17 +19,19 @@ JOIN profils pr
 CREATE OR REPLACE VIEW v_responsable_personnes AS
 SELECT per.*,
         re.*
-FROM  employes em
+FROM  "admins" ad
 JOIN (SELECT 
         DISTINCT
-        id_responsable,id_employe
+        id_responsable,id_admin
         FROM responsable_entretien
         where id_responsable in(
             SELECT MAX(id_responsable) 
             FROM responsable_entretien
-            group by id_employe
+            group by id_admin
         )) re
-ON re.id_employe = em.id_employe
+ON re.id_admin = ad.id_admin
+JOIN employes em
+ON em.id_employe = ad.id_employe
 JOIN personnes per
 ON per.id_personne = em.id_personne;
 
@@ -131,19 +133,21 @@ SELECT * FROM responsable_entretien where id_profil = ?;
 CREATE OR REPLACE VIEW v_responsable_avec_departement AS
     SELECT 
         re.id_responsable,
-        re.id_employe,
+        re.id_admin,
         em_de.nom as nom_departement,
         em_de.id_departement
     FROM responsable_entretien re
     JOIN (
-        SELECT EM.*,de.nom
-        FROM (SELECT *
+        SELECT Em.*,de.nom
+        FROM (SELECT em.*,ad.id_admin
         FROM employes em
+            join "admins" ad
+            ON ad.id_employe = em.id_employe
         )Em
         JOIN departements de
         ON de.id_departement = Em.id_departement
     )em_de
-    ON em_de.id_employe = re.id_employe;
+    ON em_de.id_admin = re.id_admin;
 
 
 --Recuperer la configuraion d'entretiens pour un responsable
@@ -162,11 +166,16 @@ SELECT re.*,de.*
 FROM (SELECT * 
         FROM responsable_entretien  
         WHERE  id_responsable = ?
-)re
-JOIN employes em 
-ON em.id_employe = re.id_employe
-JOIN departements de 
-ON de.id_departement = em.id_departement;
+    )re
+    JOIN (
+        SELECT em.*,ad.id_admin
+        from admins ad
+        join employes em 
+        on em.id_employe = ad.id_employe
+    )em
+    on em.id_admin = re.id_admin
+    JOIN departements de 
+    ON de.id_departement = em.id_departement;
 
 --recuperer le planning d'entretien le plus recent pour un responsable d'enetretien
 CREATE OR REPLACE VIEW v_planning_entretien_recent_responsable as

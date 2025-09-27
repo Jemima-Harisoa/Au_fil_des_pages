@@ -90,14 +90,19 @@ class ResponsableEntretienModel
     }
     public function getDepartement(array $responsable): ?array{
         $query = "SELECT re.*,de.*
-        FROM (SELECT * 
-                FROM responsable_entretien  
-                WHERE  id_responsable = ?
-        )re
-        JOIN employes em 
-        ON em.id_employe = re.id_employe
-        JOIN departements de 
-        ON de.id_departement = em.id_departement";
+FROM (SELECT * 
+        FROM responsable_entretien  
+        WHERE  id_responsable = ?
+    )re
+    JOIN (
+        SELECT em.*,ad.id_admin
+        from admins ad
+        join employes em 
+        on em.id_employe = ad.id_employe
+    )em
+    on em.id_admin = re.id_admin
+    JOIN departements de 
+    ON de.id_departement = em.id_departement";
         try{
             if($responsable == null){
                 throw new \Exception("aucun responsable n'a ete trouve");
