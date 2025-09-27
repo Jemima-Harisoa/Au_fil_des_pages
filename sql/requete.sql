@@ -88,26 +88,7 @@ SELECT  pe.*,e.id_departement;
     ON e.poste = c.poste
     WHERE pe.date_heure_entretien >=""
 );
---Recuperation disponibilite_employe valide pour tous les id_departements
-CREATE OR REPLACE VIEW v_disponibilite_employe_valide as(
-SELECT de.*,em.id_departement,em.poste,CASE jour
-    WHEN 'Lundi'THEN 1
-    WHEN 'Mardi'THEN 2
-    WHEN 'Mercredi'THEN 3
-    WHEN 'Jeudi'THEN 4
-    WHEN 'Vendredi'THEN 5
-    WHEN 'Samedi'THEN 6
-    WHEN 'Dimanche'THEN 7
-    END as numero_jour
-    FROM  disponibilite_entretien de 
-    JOIN (
-        SELECT 
-        id_employe,poste,id_departement
-        FROM employes
-    )em
-    ON em.id_employe = de.id_employe
-    and de.est_valide
-);
+
 
 --Recuperation disponibilite_employe valide pour un id_deparement par ordre chronologique
 select  id_employe,

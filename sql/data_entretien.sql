@@ -76,11 +76,18 @@ INSERT INTO annonces (id_profil, titre, date_publication, date_expiration, nombr
 
 -- Employes (exemple)
 INSERT INTO personnes (nom, prenom, date_naissance, contact, lien_image) VALUES
-('Rakoto', 'Jean', '1985-03-15', '0321234567', ''),
-('Andriamatoa', 'Marie', '1990-07-22', '0322234567', ''),
-('Rasoa', 'Luc', '1988-11-05', '0323234567', ''),
-('Randria', 'Sofia', '1992-01-17', '0324234567', ''),
-('Rabe', 'Paul', '1983-09-30', '0325234567', '');
+-- Gérant
+('Rakoto', 'Jean', '1985-03-15', '0341234567', 'images/jean.jpg'),
+-- Comptable admin / RH
+('Rasoanaivo', 'Claire', '1990-07-22', '0349876543', 'images/claire.jpg'),
+-- Magasinier principal
+('Randria', 'Paul', '1995-11-05', '0341928374', 'images/paul.jpg'),
+-- Vendeuse
+('Ravel', 'Sophie', '1998-02-12', '0345647382', 'images/sophie.jpg'),
+-- Caissier
+('Rak', 'Lucas', '1997-09-01', '0348765432', 'images/lucas.jpg'),
+-- RH distinct
+('Andrianarisoa', 'Lina', '1992-04-10', '0345556677', 'images/lina.jpg');
 
 -- Candidats (20 exemples)
 INSERT INTO personnes (nom, prenom, date_naissance, contact, lien_image) VALUES
@@ -135,21 +142,28 @@ INSERT INTO contrats (id_candidat, id_type_contrat, url_contrat) VALUES
 (3, 1, 'https://contrats.example.com/contrat_luc.pdf'),     -- Magasinier
 (4, 1, 'https://contrats.example.com/contrat_sofia.pdf'),   -- Comptable
 (5, 1, 'https://contrats.example.com/contrat_paul.pdf'),    -- Gerant
+(6, 1, 'https://contrats.example.com/contrat_lina.pdf');      -- RH
 
--- Contrats candidats embauches (exemple)
-(6, 1, 'https://contrats.example.com/contrat_alice.pdf'),   -- Vendeur
-(10, 1, 'https://contrats.example.com/contrat_evelyne.pdf'), -- Caissier
-(12, 1, 'https://contrats.example.com/contrat_gina.pdf'),   -- Magasinier
-(14, 1, 'https://contrats.example.com/contrat_isabelle.pdf'), -- Comptable
-(16, 1, 'https://contrats.example.com/contrat_karen.pdf');  -- Gerant
+-- -- Contrats candidats embauches (exemple)
+-- (6, 1, 'https://contrats.example.com/contrat_alice.pdf'),   -- Vendeur
+-- (10, 1, 'https://contrats.example.com/contrat_evelyne.pdf'), -- Caissier
+-- (12, 1, 'https://contrats.example.com/contrat_gina.pdf'),   -- Magasinier
+-- (14, 1, 'https://contrats.example.com/contrat_isabelle.pdf'), -- Comptable
+-- (16, 1, 'https://contrats.example.com/contrat_karen.pdf');  -- Gerant
 
 
 INSERT INTO employes (id_personne, id_contrat, id_departement, poste, date_embauche) VALUES
-(1, 1, 1, 'Vendeur', '2023-01-10'),
-(2, 2, 1, 'Caissier', '2022-12-05'),
-(3, 3, 2, 'Magasinier', '2023-02-20'),
-(4, 4, 3, 'Comptable', '2022-11-15'),
-(5, 5, 4, 'Gerant', '2022-10-01');
+(1, 5, 4, 'Gérant', '2020-01-10'),            -- Jean
+(2, 4, 3, 'Comptable', '2021-06-01'),        -- Claire
+(3, 3, 2, 'Magasinier principal', '2022-03-15'), -- Paul
+(4, 1, 1, 'Vendeuse', '2023-05-20'),         -- Sophie
+(5, 2, 1, 'Caissier', '2023-08-10'),         -- Lucas
+(6, 6, 3, 'RH', '2023-01-05');    
+
+INSERT INTO admins(id_employe, nom, mdp) VALUES
+(1, 'admin_jean', 'hashedpwd1'),   -- Gérant
+(2, 'admin_claire', 'hashedpwd2'), -- Comptable admin
+(6, 'admin_lina', 'hashedpwd3');  
 
 
 INSERT INTO tests (id_candidat, id_annonce, score_test, date_test) VALUES
@@ -181,67 +195,75 @@ INSERT INTO config_entretien (id_departement, duree_entretien) VALUES
 (3, INTERVAL '01:00:00'), -- Comptabilite : plus technique, 1 heure
 (4, INTERVAL '01:15:00'); -- Direction : entretien approfondi (1h15)
 
--- Vente
-INSERT INTO responsable_entretien (id_profil, id_employe, ordre_passage) VALUES
-(1, 1, 1),  -- Vendeur senior evalue en 1er
-(1, 5, 2);  -- Gerant valide ensuite
+-- Vendeur (profil 1)
+INSERT INTO responsable_entretien (id_profil, id_admin, ordre_passage) VALUES
+(1, 1, 1),  -- Jean (Gérant)
+(1, 3, 2);  -- Lina (RH)
 
--- Stock
-INSERT INTO responsable_entretien (id_profil, id_employe, ordre_passage) VALUES
-(3, 3, 1),  -- Magasinier principal
-(3, 5, 2);  -- Gerant valide ensuite
+-- Caissier (profil 2)
+INSERT INTO responsable_entretien (id_profil, id_admin, ordre_passage) VALUES
+(2, 1, 1),  -- Jean (Gérant)
+(2, 3, 2);  -- Lina (RH)
 
--- Comptabilite
-INSERT INTO responsable_entretien (id_profil, id_employe, ordre_passage) VALUES
-(4, 4, 1),  -- Comptable principal
-(4, 5, 2);  -- Gerant valide ensuite
+-- Magasinier (profil 3)
+INSERT INTO responsable_entretien (id_profil, id_admin, ordre_passage) VALUES
+(3, 1, 1),  -- Jean (Gérant)
+(3, 3, 2);  -- Lina (RH)
 
--- Direction
-INSERT INTO responsable_entretien (id_profil, id_employe, ordre_passage) VALUES
-(5, 5, 1);  -- Gerant en direct (pas besoin de 2e passage ici)
+-- Comptable (profil 4)
+INSERT INTO responsable_entretien (id_profil, id_admin, ordre_passage) VALUES
+(4, 2, 1),  -- Claire (Comptable admin)
+(4, 3, 2);  -- Lina (RH)
+
+-- Gérant (profil 5)
+INSERT INTO responsable_entretien (id_profil, id_admin, ordre_passage) VALUES
+(5, 1, 1),  -- Jean (Gérant senior)
+(5, 3, 2);  -- Lina (RH)
+
 
 
 -- Responsable 1 (Vendeur senior)
+-- Vendeur, Jean (principal) = id_responsable 1
 INSERT INTO disponibilite_entretien (id_responsable, heure_debut, heure_fin, jour) VALUES
-(1, '09:00', '12:00', 1),
-(1, '09:00', '12:00', 2),
-(1, '09:00', '12:00', 3),
-(1, '09:00', '12:00', 4),
-(1, '09:00', '12:00', 5);
+(1, '09:00', '11:00', 1), -- Lundi
+(1, '09:00', '11:00', 3), -- Mercredi
 
--- Responsable 2 (Gerant pour Vente)
-INSERT INTO disponibilite_entretien (id_responsable, heure_debut, heure_fin, jour) VALUES
-(2, '14:00', '17:00', 1),
-(2, '14:00', '17:00', 2),
-(2, '14:00', '17:00', 3),
-(2, '14:00', '17:00', 4),
-(2, '14:00', '17:00', 5);
+-- Vendeur, Lina (RH) = id_responsable 2
+(2, '13:00', '15:00', 1),
+(2, '13:00', '15:00', 3),
 
--- Responsable 3 (Magasinier principal)
-INSERT INTO disponibilite_entretien (id_responsable, heure_debut, heure_fin, jour) VALUES
-(3, '08:00', '11:00', 1),
-(3, '08:00', '11:00', 2),
-(3, '08:00', '11:00', 3),
-(3, '08:00', '11:00', 4),
-(3, '08:00', '11:00', 5);
+-- Caissier, Jean (principal) = id_responsable 3
+(3, '09:30', '11:30', 2),
+(3, '09:30', '11:30', 4),
 
--- Responsable 4 (Comptable)
-INSERT INTO disponibilite_entretien (id_responsable, heure_debut, heure_fin, jour) VALUES
-(4, '10:00', '13:00', 2),
-(4, '10:00', '13:00', 3),
-(4, '10:00', '13:00', 4),
-(4, '10:00', '13:00', 5),
-(4, '10:00', '13:00', 6);
+-- Caissier, Lina (RH) = id_responsable 4
+(4, '13:00', '15:00', 2),
+(4, '13:00', '15:00', 4),
 
--- Responsable 5 (Gerant global)
-INSERT INTO disponibilite_entretien (id_responsable, heure_debut, heure_fin, jour) VALUES
-(5, '15:00', '18:00', 1),
-(5, '15:00', '18:00', 2),
-(5, '15:00', '18:00', 3),
-(5, '15:00', '18:00', 4),
-(5, '15:00', '18:00', 5),
-(5, '15:00', '18:00', 6),
-(5, '15:00', '18:00', 7);
+-- Magasinier, Paul (principal) = id_responsable 5
+(5, '10:00', '12:00', 1),
+(5, '10:00', '12:00', 3),
+
+-- Magasinier, Lina (RH) = id_responsable 6
+(6, '13:00', '15:00', 1),
+(6, '13:00', '15:00', 3),
+
+-- Comptable, Claire (principal) = id_responsable 7
+(7, '09:00', '11:00', 2),
+(7, '09:00', '11:00', 4),
+
+-- Comptable, Lina (RH) = id_responsable 8
+(8, '13:00', '15:00', 2),
+(8, '13:00', '15:00', 4);
+
+-- Gérant, Jean (principal) = id_responsable 9
+INSERT INTO disponibilite_entretien (9, '09:00', '11:00', 1),
+(9, '09:00', '11:00', 3);
+
+-- Gérant, Lina (RH) = id_responsable 10
+INSERT INTO disponibilite_entretien (10, '13:00', '15:00', 1),
+(10, '13:00', '15:00', 3);
+
 
 INSERT INTO jour_ferie("date") VALUES
 ('2025-01-01'), -- Jour de l'an

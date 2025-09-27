@@ -11,23 +11,26 @@ planning_entretien.php
 		-listerEntretien()(ok)
 		-save (dans la classe nomme HistoriquePlanningEntretienModel)
 		-filtrerEntretien($criteres)
-		-envoyerMessageCandidat()(OK)
+		-envoyerMessageCandidat()
+		-
 	Affichage:
 		-bouton qui sert à faire une planification automatique(ok)
 		-table(Datatable) montrant la liste des entretiens avec avec les colonnes candidats,ages candidats,
-		profils candidats,score test,date test,date heure entretien,etat_actuel,actions(boutons:reporter ,rejeter,accepter)(ok)
+		profils candidats,score test,date test,date heure entretien,etat_actuel,
+		actions(boutons:reporter ,rejeter,accepter)(ok).La derniere colonne est valide si l'entretien n'est annule ou rejete
 		-un formulaire de recherche multi critere
 	Integration:
 		-un employe se connecte avec son compte  et son id est stocké dans une session,
 		-il arrive sur une page où on trouve le bouton planifier entretien
-		-si les entretiens dont l'employé s'occupe ont été déjà planifiés le bouton devient noncliquable
+		-si les entretiens dont l'employé s'occupe ont été déjà planifiés le bouton devient non cliquable
 		Sinon quand il clique sur le bouton, appel ajax pour planning entretien, affichage des entretiens planifies dans la table
 		-Sur chaque ligne on a une colonne actions:rejeter,accepter et reporter ,l'url appele est le meme "/api/planning-entretien/edit/id=?"
 		avec 
 		Si accpete,:on change l'etat de l'entretien en accpeté,l'id url = 4
 		Si reporter:un popup qui s'affiche et on entre une nouvelle date pour l'entretien,l'id url = 2
 		Si rejeter: l'id url = 1
-		
+
+
 
 
 
