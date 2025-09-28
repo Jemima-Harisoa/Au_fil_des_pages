@@ -25,7 +25,8 @@ planning_entretien.php
 		9-voirAgendaResponsable($id_responsable)(calendrier)(30min)
 
 		10-getListeEntretiens($id_responsable) 15 min
-
+		
+		11-entretienExiste($id_entretien);5 min
 	Affichage:
 		-bouton pour planification automatique(ok)5min
 		-table(Datatable) liste des entretiens avec derniere colonne ,
