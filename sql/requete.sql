@@ -2,6 +2,7 @@
 CREATE OR REPLACE VIEW v_candidats_personnes AS
 SELECT per.nom as nom_candidat,
         per.prenom as prenom_candidat,
+        per.date_naissance,
         ca.id_candidat,
         ca.id_annonce,
         ca.id_profil,
@@ -24,11 +25,7 @@ JOIN (SELECT
         DISTINCT
         id_responsable,id_admin
         FROM responsable_entretien
-        where id_responsable in(
-            SELECT MAX(id_responsable) 
-            FROM responsable_entretien
-            group by id_admin
-        )) re
+        )re
 ON re.id_admin = ad.id_admin
 JOIN employes em
 ON em.id_employe = ad.id_employe

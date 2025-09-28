@@ -278,7 +278,7 @@ ALTER TABLE historique_validation ADD FOREIGN KEY (id_employe) REFERENCES employ
 ALTER TABLE historique_validation ADD FOREIGN KEY (id_candidat) REFERENCES candidats (id_candidat);
 
 
-ALTER TABLE responsable_entretien ADD FOREIGN KEY (id_admin) REFERENCES "admin"(id_admin);
+ALTER TABLE responsable_entretien ADD FOREIGN KEY (id_admin) REFERENCES "admins"(id_admin);
 ALTER TABLE responsable_entretien ADD FOREIGN KEY (id_profil) REFERENCES profils(id_profil);
 
 

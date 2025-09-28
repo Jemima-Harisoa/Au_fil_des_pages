@@ -137,26 +137,27 @@ INSERT INTO utilisateurs (nom, mdp) VALUES
 
 
 INSERT INTO candidats (id_personne, id_annonce, id_profil, cv_url, poste, id_utilisateur) VALUES
-(6, 1, 1, 'https://cv.example.com/alice.pdf','Vendeur', 1),
-(7, 1, 1, 'https://cv.example.com/bob.pdf','Vendeur', 2),
-(8, 1, 1, 'https://cv.example.com/caroline.pdf','Vendeur', 3),
-(9, 1, 1, 'https://cv.example.com/david.pdf','Vendeur', 4),
-(10, 2, 2, 'https://cv.example.com/evelyne.pdf','Caissier', 5),
-(11, 2, 2, 'https://cv.example.com/fabrice.pdf','Caissier', 6),
-(12, 3, 3, 'https://cv.example.com/gina.pdf','Magasinier', 7),
-(13, 3, 3, 'https://cv.example.com/hery.pdf','Magasinier', 8),
-(14, 4, 4, 'https://cv.example.com/isabelle.pdf','Comptable', 9),
-(15, 4, 4, 'https://cv.example.com/jules.pdf','Comptable', 10),
-(16, 5, 5, 'https://cv.example.com/karen.pdf','Gerant', 11),
-(17, 5, 5, 'https://cv.example.com/leo.pdf','Gerant', 12),
-(18, 1, 1, 'https://cv.example.com/mireille.pdf','Vendeur', 13),
-(19, 1, 1, 'https://cv.example.com/nicolas.pdf','Vendeur', 14),
-(20, 2, 2, 'https://cv.example.com/olivia.pdf','Caissier', 15),
-(21, 3, 3, 'https://cv.example.com/patrick.pdf','Magasinier', 16),
-(22, 1, 1, 'https://cv.example.com/quentin.pdf','Vendeur', 17),
-(23, 1, 1, 'https://cv.example.com/rita.pdf','Vendeur', 18),
-(24, 4, 4, 'https://cv.example.com/samuel.pdf','Comptable', 19),
-(25, 5, 5, 'https://cv.example.com/therese.pdf','Gerant', 20);
+(6, 1, 1, 'https://cv.example.com/alice.pdf', 'Vendeur', 1),
+(7, 1, 1, 'https://cv.example.com/bob.pdf', 'Vendeur', 2),
+(8, 1, 1, 'https://cv.example.com/caroline.pdf', 'Vendeur', 3),
+(9, 1, 1, 'https://cv.example.com/david.pdf', 'Vendeur', 4),
+(10, 2, 2, 'https://cv.example.com/evelyne.pdf', 'Caissier', 5),
+(11, 2, 2, 'https://cv.example.com/fabrice.pdf', 'Caissier', 6),
+(12, 3, 3, 'https://cv.example.com/gina.pdf', 'Magasinier', 7),
+(13, 3, 3, 'https://cv.example.com/hery.pdf', 'Magasinier', 8),
+(14, 4, 4, 'https://cv.example.com/isabelle.pdf', 'Comptable', 9),
+(15, 4, 4, 'https://cv.example.com/jules.pdf', 'Comptable', 10),
+(16, 5, 5, 'https://cv.example.com/karen.pdf', 'Gerant', 11),
+(17, 5, 5, 'https://cv.example.com/leo.pdf', 'Gerant', 12),
+(18, 1, 1, 'https://cv.example.com/mireille.pdf', 'Vendeur', 13),
+(19, 1, 1, 'https://cv.example.com/nicolas.pdf', 'Vendeur', 14),
+(20, 2, 2, 'https://cv.example.com/olivia.pdf', 'Caissier', 15),
+(21, 3, 3, 'https://cv.example.com/patrick.pdf', 'Magasinier', 16),
+(22, 1, 1, 'https://cv.example.com/quentin.pdf', 'Vendeur', 17),
+(23, 1, 1, 'https://cv.example.com/rita.pdf', 'Vendeur', 18),
+(24, 4, 4, 'https://cv.example.com/samuel.pdf', 'Comptable', 19),
+(25, 5, 5, 'https://cv.example.com/therese.pdf', 'Gerant', 20);
+
 
 
 INSERT INTO contrats (id_candidat, id_type_contrat, url_contrat) VALUES
@@ -191,26 +192,37 @@ INSERT INTO admins(id_employe, nom, mdp) VALUES
 
 
 INSERT INTO tests (id_candidat, id_annonce, score_test, date_test) VALUES
-(1, 1, 78.50, '2024-02-05'),
-(2, 1, 65.20, '2024-02-05'),
-(3, 2, 82.75, '2024-02-07'),
-(4, 2, 59.40, '2024-02-07'),
-(5, 3, 91.10, '2024-02-10'),
-(6, 3, 73.30, '2024-02-10'),
-(7, 4, 88.90, '2024-02-12'),
-(8, 4, 54.25, '2024-02-12'),
-(9, 5, 79.60, '2024-02-15'),
-(10, 5, 62.45, '2024-02-15'),
-(11, 1, 84.75, '2024-02-18'),
-(12, 1, 70.10, '2024-02-18'),
-(13, 2, 92.30, '2024-02-20'),
-(14, 2, 66.85, '2024-02-20'),
-(15, 3, 77.50, '2024-02-22'),
-(16, 3, 81.40, '2024-02-22'),
-(17, 4, 69.25, '2024-02-25'),
-(18, 4, 85.60, '2024-02-25'),
-(19, 5, 90.00, '2024-02-28'),
-(20, 5, 72.15, '2024-02-28');
+-- Vendeurs (annonce 1)
+(1, 1, 75.50, '2025-09-01'),  -- Alice (id_candidat = 1)
+(2, 1, 62.00, '2025-09-01'),  -- Bob (2)
+(3, 1, 88.00, '2025-09-02'),  -- Caroline (3)
+(4, 1, 55.25, '2025-09-02'),  -- David (4)
+(13, 1, 92.50, '2025-09-03'), -- Mireille (13)
+(14, 1, 68.00, '2025-09-03'), -- Nicolas (14)
+(17, 1, 70.00, '2025-09-04'), -- Quentin (17)
+(18, 1, 65.50, '2025-09-04'), -- Rita (18)
+
+-- Caissiers (annonce 2)
+(5, 2, 80.00, '2025-09-01'),  -- Evelyne (5)
+(6, 2, 74.25, '2025-09-01'),  -- Fabrice (6)
+(15, 2, 69.50, '2025-09-03'), -- Olivia (15)
+
+-- Magasiniers (annonce 3)
+(7, 3, 78.00, '2025-09-02'),  -- Gina (7)
+(8, 3, 60.50, '2025-09-02'),  -- Hery (8)
+(16, 3, 85.00, '2025-09-04'), -- Patrick (16)
+
+-- Comptables (annonce 4)
+(9, 4, 90.00, '2025-09-01'),  -- Isabelle (9)
+(10, 4, 72.50, '2025-09-02'), -- Jules (10)
+(19, 4, 88.75, '2025-09-03'), -- Samuel (19)
+
+-- Gérants (annonce 5)
+(11, 5, 95.00, '2025-09-01'), -- Karen (11)
+(12, 5, 85.50, '2025-09-02'), -- Leo (12)
+(20, 5, 91.00, '2025-09-03'); -- Thérèse (20)
+
+
 
 
 INSERT INTO config_entretien (id_departement, duree_entretien) VALUES
