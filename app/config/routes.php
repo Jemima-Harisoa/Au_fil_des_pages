@@ -17,6 +17,8 @@ use flight\net\Router;
 	$app->render('welcome', [ 'message' => 'It works!!' ]);
 });*/
 
+$welcomeController = new WelcomeController();
+$router->get("/agenda",[$welcomeController,'home']);
 $ConnexionController = new ConnexionController();
 $router->get('/', [ $ConnexionController, 'AppelLoginU' ]);
 $router->post('/inscriptionU', [ $ConnexionController, 'InscrireU' ]);
