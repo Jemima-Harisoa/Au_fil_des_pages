@@ -8,8 +8,7 @@ class ApiPlanningEntretienController {
             $candidats = Flight::testModel()->getCandidatsAvecSuccesTest(4);
 
             // Id responsable (tu peux le récupérer depuis une requête POST, une session, etc.)
-            $idResponsable = null; // ou Flight::request()->data->id_responsable;
-
+            $idResponsable = $_SESSION["IdAdmin"]; // ou Flight::request()->data->id_responsable;
             // Appel du modèle
             $resultat = Flight::planningEntretienModel()->planifierEntretien($candidats, $idResponsable);
 
