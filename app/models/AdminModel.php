@@ -14,4 +14,18 @@ class AdminModel {
         $this->db = Flight::db();
     }
 
+    public function getAdminById($id_admin) {
+        $sql = "
+            SELECT ad.*, de.nom_departement
+            FROM admin ad
+            JOIN employes em ON ad.id_employe = em.id_employe
+            JOIN departements de ON em.id_departement = de.id_departement
+            WHERE ad.id_admin = :id_admin
+        ";
+        $stmt = $this->db->prepare($sql);
+        $stmt->bindParam(':id_admin', $id_admin, \PDO::PARAM_INT);
+        $stmt->execute();
+        return $stmt->fetch(\PDO::FETCH_ASSOC); // un seul admin
+    }
+
 }
