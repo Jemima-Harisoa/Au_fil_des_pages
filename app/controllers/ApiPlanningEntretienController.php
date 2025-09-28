@@ -27,5 +27,9 @@ class ApiPlanningEntretienController {
         }
     }
 
+    public function filtrerEntretien(){
+        $data = Flight::request()->data->getData();
+        return Flight::json(Flight::planningEntretienModel()->filtreEntretien($data));
+    }
 }
 ?>
