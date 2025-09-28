@@ -14,7 +14,7 @@ class AdminModel {
         $this->db = Flight::db();
     }
 
-    public function getAdminById($id_admin) {
+    public function getDepartementByIdAdmin($id_admin) {
         $sql = "
             SELECT ad.*, de.nom_departement
             FROM admin ad
