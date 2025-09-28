@@ -36,7 +36,14 @@ class ResponsableEntretienModel
         $result = $stmt->fetch();
         return $result ?: null;
     }
-
+    public function findByIdAdmin(int $idAdmin): ?array
+    {
+        $sql = "SELECT * FROM responsable_entretien WHERE id_admin = ?";
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute([$idAdmin]);
+        $result = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+        return $result ?: null;
+    }
     /**
      * Ajouter un nouveau responsable
      */
@@ -88,21 +95,29 @@ class ResponsableEntretienModel
 
         return $stmt->fetchAll(\PDO::FETCH_ASSOC);
     }
+    public function getPropresResponsablesEntretiens($listeResponsable,$idResponsable){
+        
+        foreach($listeResponasble as $responsable){
+                if($responsable["id_responsable"] === $responsable){
+                    return $responsable;           
+                }
+        }
+    }
     public function getDepartement(array $responsable): ?array{
         $query = "SELECT re.*,de.*
-FROM (SELECT * 
+        FROM (SELECT * 
         FROM responsable_entretien  
         WHERE  id_responsable = ?
-    )re
-    JOIN (
-        SELECT em.*,ad.id_admin
-        from admins ad
-        join employes em 
-        on em.id_employe = ad.id_employe
-    )em
-    on em.id_admin = re.id_admin
-    JOIN departements de 
-    ON de.id_departement = em.id_departement";
+        )re
+        JOIN (
+            SELECT em.*,ad.id_admin
+            from admins ad
+            join employes em 
+            on em.id_employe = ad.id_employe
+        )em
+        on em.id_admin = re.id_admin
+        JOIN departements de 
+        ON de.id_departement = em.id_departement";
         try{
             if($responsable == null){
                 throw new \Exception("aucun responsable n'a ete trouve");
@@ -110,10 +125,42 @@ FROM (SELECT *
         $db = $this->db;
         $stmt = $db->prepare($query);
         $stmt->execute([$responsable["id_responsable"]]);
-        return $stmt->fetch(\PDO::FETCH_ASSOC);
+        return $stmt->fetchAll(\PDO::FETCH_ASSOC);
         }
         catch(\Exception $e){
             throw new \Exception($e->getMessage());
         }
     }
+    public function getProfilsEntretiens($idAdmin){
+        $db = $this->db;
+        $query = "SELECT * FROM responsable_entretien  where id_admin = ?";
+       
+        try{
+            if(empty($idAdmin)){
+                throw new \Exception("aucune liste de profils d'entretiens trouves pour cet administrateur");   
+            }
+            $stmt = $db->prepare($query);
+            $stmt->execute([$idAdmin]);
+            return $stmt->fetchAll(\PDO::FETCH_ASSOC);
+        }
+        catch(\Exception $e){
+            throw new \Exception($e->getMessage());
+        }
+    }
+    public function getListeEntretiensInListeCandidats($listeCandidats,$idAdmin):?array{
+        $results = [];
+        $profilsEntretiens = self::getProfilsEntretiens($idAdmin);
+        $i = 0;
+        foreach($listeCandidats as $candidat){
+            foreach($profilsEntretiens as $profil){
+                if($candidat["id_profil"] === $profil["id_profil"]){
+                    $results[$i] = $candidat;
+                    $i++;
+                }
+            }
+        }
+        return $results;
+    }
+    
+    
 }
