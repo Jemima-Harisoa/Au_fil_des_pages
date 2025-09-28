@@ -194,3 +194,17 @@ where id_responsable in
     id_responsable 
 from responsable_entretien 
 where id_admin = ?)
+
+--recuperer le departement d'un admin
+select 
+    * 
+from admin ad 
+join
+(select 
+    em.*,de.nom_departement
+        from employes ad
+        join 
+     departements de on de.id_departement = em.id_departement 
+    )em
+    on em.id_employe = ad.id_employe
+where ad.id_admin = ?;
