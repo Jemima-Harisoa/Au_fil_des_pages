@@ -25,12 +25,12 @@ button.addEventListener('click', function(e) {
                     `${candidat.nom_candidat} ${candidat.prenom_candidat}` || "",
                     date.getFullYear() - new Date(candidat.date_naissance).getFullYear() || "",
                     `${candidat.nom_responsable} ${candidat.prenom_responsable}` || "",
-                    candidat.titre || "",
+                    candidat.profil || "",
                     candidat.score_test || "",
                     candidat.date_test || "",
                     candidat.date_heure_entretien || "",
                     `<button class="btn btn-sm btn-primary">Reporter</button>
-                     <button class="btn btn-sm btn-primary">Rejeter</button>
+                     <button class="btn btn-secondary ms-2">Rejeter</button>
                      <button class="btn btn-sm btn-primary">Accepter</button>`
                 ]);
             });
