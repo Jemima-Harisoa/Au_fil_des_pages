@@ -3,7 +3,6 @@ let table = $('#dataTable').DataTable();
 
 button.addEventListener('click', function(e) {
     e.preventDefault();
-
     fetch("/api/planifier-entretien", {
         method: "GET",
         headers: {

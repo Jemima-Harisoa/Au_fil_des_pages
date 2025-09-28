@@ -16,7 +16,7 @@ planning_entretien.php
 
 		5-save(dans la classe nomme HistoriquePlanningEntretienModel)10min(ok)
 
-		6- filtrerEntretien($criteres)20min
+		6- filtrerEntretien($criteres)20min(ok)
 
 		7-envoyerMessage($emetteur , $recepteur)(ok)
 

@@ -185,5 +185,12 @@ where date_heure_entretien in(
 );
 
 
-SELECT 
-FROM planning_entretien
+--recuperer les disponibilites  d'entretien pou un admin
+select  
+    * 
+from disponibilite_entretien
+where id_responsable in
+(select
+    id_responsable 
+from responsable_entretien 
+where id_admin = ?)
