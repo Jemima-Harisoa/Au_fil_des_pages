@@ -30,5 +30,6 @@ $planning_entretien_controller = new PlanningEntretienController();
 $router->get('/planning-entretien',[$planning_entretien_controller,'showPageEntretien']);
 
 $api_planning_entretien_controller = new ApiPlanningEntretienController();
+$router->post('/planning_entretien/filtre', [$api_planning_entretien_controller, 'filtrerEntretien']);
 $router->get('/api/planifier-entretien',[$api_planning_entretien_controller,'planifierEntretien']);
 

@@ -10,6 +10,7 @@
     <meta name="author" content="">
 
     <title>SB Admin 2 - Tables</title>
+    <script src="js/jquery-3.6.0.min.js"></script>
 
     <!-- Custom fonts for this template -->
     <link href="vendor/fontawesome-free/css/all.min.css" rel="stylesheet" type="text/css">
@@ -360,7 +361,7 @@
                 </nav>
                 <!-- End of Topbar -->
                  <?php 
-                 if(isset($allVerified) && $allVerified): ?>
+                 if(isset($entretiens) && is_array($entretiens) && count($entretiens) != 0): ?>
                     <div class="alert alert-info" role="alert">
                         Tous les candidats ont chacun un entretien planifié.
                     </div>
@@ -370,13 +371,13 @@
                 <div class="container-fluid">
                     
                     <!-- Page Heading -->
-                    <button class="btn btn-primary btn-icon-split" id="bouton-planification" type="button" <?php echo $allVerified ? "disabled":""?>>
+                    <button class="btn btn-primary btn-icon-split" id="bouton-planification" type="button" <?php echo is_array($entretiens) && count($entretiens) != 0 ? "disabled":""?>>
                         <span class="icon text-white-50">
                             <i class="fas fa-calendar-alt"></i>
                         </span>
                         <span class="text">Planifier entretien</span>
                     </button>       
-                    <form action="/planning" method="post" id="form-filtre" class="p-4 border rounded shadow-sm bg-light">
+                    <form id="form-filtre"  class="p-4 border rounded shadow-sm bg-light">
                     <div class="mb-3">
                         <label for="candidat" class="form-label">Candidat</label>
                         <input type="text" class="form-control" placeholder="ex. Rakoto Jean" name="candidat" id="candidat">
@@ -384,12 +385,12 @@
 
                     <div class="row">
                         <div class="col-md-6 mb-3">
-                        <label for="age-min" class="form-label">Âge minimal</label>
-                        <input type="number" class="form-control" name="age-min" id="age-min">
+                        <label for="age_min" class="form-label">Âge minimal</label>
+                        <input type="number" class="form-control" name="age_min" id="age_min">
                         </div>
                         <div class="col-md-6 mb-3">
-                        <label for="age-max" class="form-label">Âge maximal</label>
-                        <input type="number" class="form-control" name="age-max" id="age-max">
+                        <label for="age_max" class="form-label">Âge maximal</label>
+                        <input type="number" class="form-control" name="age_max" id="age_max">
                         </div>
                     </div>
 
@@ -399,29 +400,29 @@
                     </div>
 
                     <div class="mb-3">
-                        <label for="profil-candidat" class="form-label">Profil Candidat</label>
-                        <input type="text" class="form-control" placeholder="ex. Vendeur" name="profil-candidat" id="profil-candidat">
+                        <label for="profil_candidat" class="form-label">Profil Candidat</label>
+                        <input type="text" class="form-control" placeholder="ex. Vendeur" name="profil_candidat" id="profil_candidat">
                     </div>
 
                     <div class="row">
                         <div class="col-md-6 mb-3">
-                        <label for="score-min" class="form-label">Score test minimal</label>
-                        <input type="number" class="form-control" name="score-min" id="score-min">
+                        <label for="score_min" class="form-label">Score test minimal</label>
+                        <input type="number" class="form-control" name="score_min" id="score_min">
                         </div>
                         <div class="col-md-6 mb-3">
-                        <label for="score-max" class="form-label">Score test maximal</label>
-                        <input type="number" class="form-control" name="score-max" id="score-max">
+                        <label for="score_max" class="form-label">Score test maximal</label>
+                        <input type="number" class="form-control" name="score_max" id="score_max">
                         </div>
                     </div>
 
                     <div class="mb-3">
-                        <label for="date-test" class="form-label">Date test</label>
-                        <input type="date" class="form-control" name="date-test" id="date-test">
+                        <label for="date_test" class="form-label">Date test</label>
+                        <input type="date" class="form-control" name="date_test" id="date_test">
                     </div>
 
                     <div class="mb-3">
-                        <label for="date-entretien" class="form-label">Date & Heure Entretien</label>
-                        <input type="datetime-local" class="form-control" name="date-entretien" id="date-entretien">
+                        <label for="date_heure_entretien" class="form-label">Date & Heure Entretien</label>
+                        <input type="datetime-local" class="form-control" name="date_heure_entretien" id="date_heure_entretien">
                     </div>
 
                     <div class="d-flex justify-content-end">
@@ -519,7 +520,7 @@
     <!-- Page level custom scripts -->
     <script src="js/demo/datatables-demo.js"></script>
     <script src="js/planning-entretien.js"></script>
-
+    <script src="js/filtre-entretien.js"></script>
 </body>
 
 </html>
