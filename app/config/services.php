@@ -67,10 +67,10 @@ Flight::map('profilsModel', function () {
 Flight::map('planningEntretienModel', function () {
   return new PlanningEntretienModel(Flight::db());
 });
-//Flight::map('ConnexionModel', function () {
-//    return new ConnexionModel(Flight::db());
-//});
-//
-//Flight::map('AdminModel', function () {
-//    return new AdminModel(Flight::db());
-//});
+Flight::map('ConnexionModel', function () {
+    return new ConnexionModel(Flight::db());
+});
+
+Flight::map('AdminModel', function () {
+    return new AdminModel(Flight::db());
+});
