@@ -86,47 +86,51 @@ if(!empty($_SESSION['messagerie'])) {
     <div id="wrapper">
 
         <!-- Sidebar -->
+        <!-- Sidebar -->
         <ul class="navbar-nav bg-gradient-primary sidebar sidebar-dark accordion" id="accordionSidebar">
-
             <!-- Sidebar - Brand -->
             <a class="sidebar-brand d-flex align-items-center justify-content-center">
-                <div class="sidebar-brand-icon rotate-n-15">
-                    <i class="fas fa-laugh-wink"></i>
-                </div>
-                <div class="sidebar-brand-text mx-3"><?=  $_SESSION['utilisateur']['nom'] ?></div>
+                <div class="sidebar-brand-icon rotate-n-15"><i class="fas fa-laugh-wink"></i></div>
+                <div class="sidebar-brand-text mx-3"><?= $_SESSION['utilisateur']['nom'] ?></div>
             </a>
-
             <!-- Divider -->
             <hr class="sidebar-divider my-0">
-
             <!-- Nav Item - Dashboard -->
             <li class="nav-item">
                 <a class="nav-link" href="/accueilU">
                     <i class="fas fa-fw fa-tachometer-alt"></i>
-                    <span>Accueil</span></a>
+                    <span>Accueil</span>
+                </a>
             </li>
-
             <!-- Divider -->
             <hr class="sidebar-divider">
-
-
             <li class="nav-item">
                 <a class="nav-link" href="/annonces/readU">
                     <i class="fas fa-fw fa-tachometer-alt"></i>
-                    <span>Annonces</span></a>
+                    <span>Annonces</span>
+                </a>
             </li>
-
-          
-
+            <!-- Nouveau : Tests -->
+            <li class="nav-item">
+                <a class="nav-link" href="/testAccueil">
+                    <i class="fas fa-fw fa-pen"></i>
+                    <span>Tests</span>
+                </a>
+            </li>
+            <!-- Nouveau : Mes Postulations (CV) -->
+            <li class="nav-item">
+                <a class="nav-link" href="#"> 
+                    <i class="fas fa-file-alt"></i>
+                    <span>Mes Postulations</span>
+                </a>
+            </li>
 
             <!-- Divider -->
             <hr class="sidebar-divider d-none d-md-block">
-
-            <!-- Sidebar Toggler (Sidebar) -->
+            <!-- Sidebar Toggler -->
             <div class="text-center d-none d-md-inline">
                 <button class="rounded-circle border-0" id="sidebarToggle"></button>
             </div>
-
         </ul>
         <!-- End of Sidebar -->
 
