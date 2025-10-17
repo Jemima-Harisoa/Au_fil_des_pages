@@ -68,9 +68,9 @@ Flight::map('planningEntretienModel', function () {
   return new PlanningEntretienModel(Flight::db());
 });
 Flight::map('ConnexionModel', function () {
-    return new ConnexionModel(Flight::db());
+    return new connexionModel(Flight::db());
 });
 
-Flight::map('AdminModel', function () {
+Flight::map('adminModel', function () {
     return new AdminModel(Flight::db());
 });

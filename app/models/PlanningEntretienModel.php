@@ -99,13 +99,27 @@ class PlanningEntretienModel{
             }
     }
 
+    public function entretienExiste($id_candidat, $date_heure_entretien) {
+        $sql = "SELECT COUNT(*) as total 
+                FROM planning_entretien 
+                WHERE id_candidat = :id_candidat 
+                AND date_heure_entretien = :date_heure_entretien";
+
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute([
+            ':id_candidat' => $id_candidat,
+            ':date_heure_entretien' => $date_heure_entretien
+        ]);
+
+        $row = $stmt->fetch(\PDO::FETCH_ASSOC);
+        return $row['total'] > 0;
+    }
     // Récupérer tous les entretiens
     public static function all() {
         $db = Flight::db();
         $stmt = $db->query("SELECT * FROM planning_entretien");
         return $stmt->fetchAll(\PDO::FETCH_ASSOC);
     }
-
     // Récupérer un entretien par ID
     public static function find($id) {
         $db = Flight::db();
@@ -140,8 +154,8 @@ class PlanningEntretienModel{
         $responsables = null;
         $dateHeureEntretien = null;
         try {
-                if(empty($idAdmin)){
-                            $responsables = Flight::responsableEntretienModel()->getResponsablesEntretienCandidat($candidat["id_profil"]);
+            $nom_departement = Flight::adminModel()->getDepartementByIdAdmin($idAdmin)["nom"];
+                if($nom_departement=="RH"){
                             $candidats = $listeCandidats;
                         }
                     
@@ -149,26 +163,32 @@ class PlanningEntretienModel{
                     $candidats = Flight::responsableEntretienModel()->getListeEntretiensInListeCandidats($listeCandidats,$idAdmin);
                 }
                 foreach($listeCandidats as $candidat){
-                           
-                    foreach($responsables as $responsable){
-                            
-                                    $disponibilitesEntretien = Flight::disponibiliteEntretienModel()->getTempsDisponiblesEntretien($responsable["id_responsable"]);
-                                    $configEntretien = Flight::configEntretienModel()->getConfigurationEntretienResponsable($responsable);
-                                    $lastPlanning = Flight::planningEntretienModel()->getLastPlanning($responsable["id_responsable"]);
-                                    $planningEntretien = Flight::planningEntretienModel();
-                                    $planningEntretien->setIdCandidat($candidat["id_candidat"]);
-                                    $planningEntretien->setIdResponsable($responsable["id_responsable"]);
-                                    if($lastPlanning && is_array($lastPlanning)){
-                                        $dateModel= new DateModel($lastPlanning["date_heure_entretien"]);
-                                        $dateHeureEntretien= $dateModel->addInterval($configEntretien["duree_entretien"]);
-                                        $planningEntretien->setDateHeureEntretien (DisponibiliteEntretienModel::checkDateDisponible($dateHeureEntretien,$disponibilitesEntretien));
-                                    }
-                                    else{
-                                        $dateHeureEntretien = Flight::disponibiliteEntretienModel()->jourOuvrableEntretien($candidat,$disponibilitesEntretien);
-                                        $planningEntretien->setDateHeureEntretien($dateHeureEntretien);
-                                    }
-                                    $planningEntretien->save();
-                                }
+                    
+                    $responsables = Flight::responsableEntretienModel()->getResponsablesEntretienCandidat($candidat["id_profil"]);
+                    if($nom_departement !="RH"){
+                        $responsables = Flight::responsableEntretienModel()->getPropresResponsablesEntretiens($responsables,$idAdmin);
+                    }
+                    else{
+                        $responsables = Flight::responsableEntretienModel()->getResponsablesEntretienCandidat($candidat["id_profil"]);
+                    }
+                    foreach($responsables as $responsable){       
+                        $disponibilitesEntretien = Flight::disponibiliteEntretienModel()->getTempsDisponiblesEntretien($responsable["id_responsable"]);
+                        $configEntretien = Flight::configEntretienModel()->getConfigurationEntretienResponsable($responsable);
+                        $lastPlanning = Flight::planningEntretienModel()->getLastPlanning($responsable["id_responsable"]);
+                        $planningEntretien = Flight::planningEntretienModel();
+                        $planningEntretien->setIdCandidat($candidat["id_candidat"]);
+                        $planningEntretien->setIdResponsable($responsable["id_responsable"]);
+                        if($lastPlanning && is_array($lastPlanning)){
+                            $dateModel= new DateModel($lastPlanning["date_heure_entretien"]);
+                            $dateHeureEntretien= $dateModel->addInterval($configEntretien["duree_entretien"]);
+                            $planningEntretien->setDateHeureEntretien (DisponibiliteEntretienModel::checkDateDisponible($dateHeureEntretien,$disponibilitesEntretien));
+                        }
+                        else{
+                            $dateHeureEntretien = Flight::disponibiliteEntretienModel()->jourOuvrableEntretien($candidat,$disponibilitesEntretien);
+                            $planningEntretien->setDateHeureEntretien($dateHeureEntretien);
+                        }
+                        $planningEntretien->save();
+                    }
                 }
            
         } catch (\Exception $e) {

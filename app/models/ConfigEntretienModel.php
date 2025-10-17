@@ -72,6 +72,7 @@ class ConfigEntretienModel {
                     FROM config_entretien ce
                     GROUP BY id_departement
         ) ";
+        
 
         try {
             if($responsable == null){

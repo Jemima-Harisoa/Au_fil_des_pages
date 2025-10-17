@@ -16,11 +16,11 @@ class AdminModel {
 
     public function getDepartementByIdAdmin($id_admin) {
         $sql = "
-            SELECT ad.*, de.nom_departement
-            FROM admin ad
+            SELECT ad.*, de.nom
+            FROM admins ad
             JOIN employes em ON ad.id_employe = em.id_employe
             JOIN departements de ON em.id_departement = de.id_departement
-            WHERE ad.id_admin = :id_admin
+            where ad.id_admin = :id_admin
         ";
         $stmt = $this->db->prepare($sql);
         $stmt->bindParam(':id_admin', $id_admin, \PDO::PARAM_INT);
