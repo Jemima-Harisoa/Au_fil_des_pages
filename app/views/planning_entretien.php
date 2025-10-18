@@ -23,7 +23,7 @@
 
     <!-- Custom styles for this page -->
     <link href="vendor/datatables/dataTables.bootstrap4.min.css" rel="stylesheet">
-
+    <link rel="stylesheet" href="css/planning-entretien.css">
 </head>
 
 <body id="page-top">
@@ -360,16 +360,10 @@
 
                 </nav>
                 <!-- End of Topbar -->
-                 <?php 
-                 if(isset($entretiens) && is_array($entretiens) && count($entretiens) != 0): ?>
-                    <div class="alert alert-info" role="alert">
-                        Tous les candidats ont chacun un entretien planifié.
-                    </div>
-                <?php endif;
-                 ?>   
+
                 <!-- Begin Page Content -->
                 <div class="container-fluid">
-                    
+                
                     <!-- Page Heading -->
                     <button class="btn btn-primary btn-icon-split" id="bouton-planification" type="button" <?php echo is_array($entretiens) && count($entretiens) != 0 ? "disabled":""?>>
                         <span class="icon text-white-50">
@@ -377,6 +371,14 @@
                         </span>
                         <span class="text">Planifier entretien</span>
                     </button>       
+                    <?php 
+                 if(isset($entretiens) && is_array($entretiens) && count($entretiens) != 0){ ?>
+                    <div class="alert alert-info "id="message" role="alert">
+                        Les entretiens sont tous planifiés</div>  
+                <?php }
+                   else{?>   
+                        <div id="message" role="alert"></div>
+                   <?php }?>
                     <form id="form-filtre"  class="p-4 border rounded shadow-sm bg-light">
                     <div class="mb-3">
                         <label for="candidat" class="form-label">Candidat</label>

@@ -155,12 +155,11 @@ class PlanningEntretienModel{
         $dateHeureEntretien = null;
         try {
             $nom_departement = Flight::adminModel()->getDepartementByIdAdmin($idAdmin)["nom"];
-                if($nom_departement=="RH"){
-                            $candidats = $listeCandidats;
-                        }
-                    
-                else{
-                    $candidats = Flight::responsableEntretienModel()->getListeEntretiensInListeCandidats($listeCandidats,$idAdmin);
+            if($nom_departement=="RH"){
+                $candidats = $listeCandidats;
+            }
+            else{
+                $candidats = Flight::responsableEntretienModel()->getListeEntretiensInListeCandidats($listeCandidats,$idAdmin);
                 }
                 foreach($listeCandidats as $candidat){
                     

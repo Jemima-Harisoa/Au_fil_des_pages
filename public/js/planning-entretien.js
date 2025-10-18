@@ -1,4 +1,5 @@
 let button = document.getElementById("bouton-planification");
+let divMessage = document.getElementById("message");
 // initialisation (à faire au chargement de la page)
 const table = $('#dataTable').DataTable({
   destroy: true,
@@ -59,6 +60,7 @@ button.addEventListener('click', function(e) {
       return response.json();
   })
   .then(payload => {
+    console.log("row length:"+payload.resultat.length);
       // payload.resultat doit être un tableau d'objets
       let rows = Array.isArray(payload.resultat) ? payload.resultat : [];
 
@@ -95,10 +97,15 @@ button.addEventListener('click', function(e) {
             date_heure_entretien: ""
           }]).draw();
       }
+      divMessage.classList.add("alert")
+      divMessage.classList.add("alert-info")
+      divMessage.classList.toggle(".show");
+      divMessage.textContent = "Le planning d'entretien sont enregistres avec succes";
+      this.disabled = true;
+
   })
   .catch(error => {
       console.error("Erreur fetch :", error);
-      // afficher un message utilisateur si besoin
-      // $('#message-container').html(`<div class="alert alert-danger">Erreur : ${error.message}</div>`);
   });
+  // window.location.reload();
 });

@@ -198,11 +198,11 @@ where id_admin = ?)
 --recuperer le departement d'un admin
 select 
     * 
-from admin ad 
+from admins ad 
 join
 (select 
-    em.*,de.nom_departement
-        from employes ad
+    em.*,de.nom
+        from employes em
         join 
      departements de on de.id_departement = em.id_departement 
     )em
