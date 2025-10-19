@@ -21,11 +21,11 @@ class TestController {
   
   // $idCandidat = Flight::request()->data['idCandidat']; // 5
 //$idAnnonce = Flight::request()->data['idAnnonce'];   // 12
-$idCandidat = Flight::request()->data->idCandidat ?? null;
-$idAnnonce = Flight::request()->data->idAnnonce ?? null;
-
-error_log("dernier candidat traite : " . $idCandidat);
-error_log("dernier annonce traite : " . $idAnnonce);
+    $idCandidat = Flight::request()->data->idCandidat ?? null;
+    $idAnnonce = Flight::request()->data->idAnnonce ?? null;
+        
+    error_log("dernier candidat traite : " . $idCandidat);
+    error_log("dernier annonce traite : " . $idAnnonce);
 
 
     $profilData = $fonction->getIdProfil($idCandidat, $idAnnonce);
@@ -62,13 +62,13 @@ error_log("dernier annonce traite : " . $idAnnonce);
 }
 	public function QCM() {
         $fonction = new fonctionTest(Flight::db());
-/*$idCandidat = Flight::request()->data['idCdt']; // 5
-$idAnnonce = Flight::request()->data['idAnn'];   // 12*/
-$idCandidat = Flight::request()->query['idCdt'];
-$idAnnonce = Flight::request()->query['idAnn'];
+    /*$idCandidat = Flight::request()->data['idCdt']; // 5
+    $idAnnonce = Flight::request()->data['idAnn'];   // 12*/
+    $idCandidat = Flight::request()->query['idCdt'];
+    $idAnnonce = Flight::request()->query['idAnn'];
 
-error_log("dernier candidat : " . $idCandidat);
-error_log("dernier annonce : " . $idAnnonce);
+    error_log("dernier candidat : " . $idCandidat);
+    error_log("dernier annonce : " . $idAnnonce);
 
         $profilData = $fonction->getIdProfil($idCandidat,$idAnnonce);
         if (empty($profilData)) {
@@ -101,18 +101,19 @@ error_log("dernier annonce : " . $idAnnonce);
         $jobs=$fonction->getAllJobs();
         Flight::render('listTestBack', ['list' => $list,'jobs'=> $jobs]);
     }
+    
     public function getListByJob() {
-    $job = Flight::request()->query['metier'];  
+        $job = Flight::request()->query['metier'];  
 
-    $fonction = new fonctionTest(Flight::db());
-    $list = $fonction->trierMetier($job);
-    $jobs = $fonction->getAllJobs();
+        $fonction = new fonctionTest(Flight::db());
+        $list = $fonction->trierMetier($job);
+        $jobs = $fonction->getAllJobs();
 
-    Flight::render('listTestBack', [
-        'list' => $list,
-        'jobs' => $jobs
-    ]);
-}
+        Flight::render('listTestBack', [
+            'list' => $list,
+            'jobs' => $jobs
+        ]);
+    }
 
     public function getListSorted() {
     $critere = Flight::request()->query['critere'] ?? 'score';
