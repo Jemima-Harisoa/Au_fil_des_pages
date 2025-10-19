@@ -153,18 +153,23 @@ if(!empty($_SESSION['messagerie'])) {
                                 </h6>
                                 <?php if(!empty($_SESSION['messagerie'])): ?>
                                     <?php foreach($_SESSION['messagerie'] as $msg): ?>
-                                        <a class="dropdown-item d-flex align-items-center" href="/messagerieA/<?= $msg['id_candidat'] ?>/<?= $msg['id_annonce'] ?>">
-                                            <div class="dropdown-list-image mr-3">
-                                                <img class="rounded-circle" src="/img/undraw_profile_1.svg" alt="Profil">
-                                                <?php if(($msg['dernier_auteur'] ?? '') === 'Utilisateur' && empty($msg['lu'])): ?>
-                                                    <span class="badge badge-danger badge-counter" style="position:absolute;top:0;right:0;font-size:0.7rem;">●</span>
-                                                <?php endif; ?>
-                                            </div>
-                                            <div class="<?= (($msg['dernier_auteur'] ?? '') === 'Utilisateur' && empty($msg['lu'])) ? 'font-weight-bold' : '' ?>">
-                                                <div class="text-truncate"><?= htmlspecialchars($msg['titre']) ?></div>
-                                                <div class="small text-gray-500"><?= htmlspecialchars($msg['nom']) ?> <?= htmlspecialchars($msg['prenom']) ?></div>
-                                            </div>
-                                        </a>
+          <a class="dropdown-item d-flex align-items-center" 
+   href="/messagerieA/<?= $msg['id_candidat'] ?>/<?= $msg['id_annonce'] ?>?id_candidat=<?= $msg['id_candidat'] ?>&nom=<?= urlencode($msg['nom']) ?>&prenom=<?= urlencode($msg['prenom']) ?>&lien_image=<?= urlencode($msg['lien_image'] ?? '') ?>">
+
+    <div class="dropdown-list-image mr-3" style="position: relative;">
+        
+    <img class="rounded-circle" src="/<?= $msg['lien_image'] ?? 'https://cdn-icons-png.flaticon.com/512/3135/3135715.png' ?>" alt="Profil">
+
+        <?php if(($msg['dernier_auteur'] ?? '') === 'Utilisateur' && empty($msg['lu'])): ?>
+            <span class="badge badge-danger badge-counter unread-dot" style="position:absolute;top:0;right:0;font-size:0.7rem;">●</span>
+        <?php endif; ?>
+    </div>
+    <div class="<?= (!empty($msg['nouveaux_messages']) && $msg['nouveaux_messages'] === true) ? 'font-weight-bold' : '' ?>">
+        <div class="text-truncate"><?= htmlspecialchars($msg['titre']) ?></div>
+        <div class="small text-gray-500"><?= htmlspecialchars($msg['nom']) ?> <?= htmlspecialchars($msg['prenom']) ?></div>
+    </div>
+</a>
+
                                     <?php endforeach; ?>
                                 <?php else: ?>
                                     <div class="dropdown-item text-center text-muted">Aucune conversation</div>

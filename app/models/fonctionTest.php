@@ -61,8 +61,7 @@ class fonctionTest {
     $lastId = Query::query($sql, [$idCandidat, $idAnnonce, $score, $dateTest]);
 
     $messagerieModel=new MessagerieModel();
-    $mess=$messagerieModel->reponseAutomatique($idProfil,$idAnnonce,1);
-    
+    $mess = $messagerieModel->reponseAutomatique($idCandidat, $idAnnonce, 1);   
     return $score;
 }
 

@@ -46,4 +46,4 @@
             </div>
             <!-- End of Main Content -->
 
-          <?php include "footerA.php" ?>
+          <?php include "footer.php" ?>

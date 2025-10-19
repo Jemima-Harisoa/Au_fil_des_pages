@@ -29,8 +29,7 @@ CREATE TABLE diplomes (
       date_treshold TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     );
     
-    INSERT INTO treshold (valeur) VALUES (0.10);
-    INSERT INTO treshold (valeur) VALUES (0.25);
+    INSERT INTO treshold (valeur) VALUES (0.20);
 
   -- 
 

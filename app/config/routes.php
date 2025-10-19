@@ -28,12 +28,11 @@ $ConnexionController = new ConnexionController();
 $router->get('/', [ $ConnexionController, 'AppelLoginU' ]);
 $router->post('/inscriptionU', [ $ConnexionController, 'InscrireU' ]);
 $router->post('/loginU', [ $ConnexionController, 'VerificationConnectionU' ]);
-$router->get('/deconnexionU', [ $ConnexionController, 'deconnexionU' ]);
+$router->get('/deconnexion', [ $ConnexionController, 'deconnexion' ]);
 
 $router->get('/admin', [ $ConnexionController, 'AppelLoginA' ]);
 $router->post('/inscriptionA', [ $ConnexionController, 'InscrireA' ]);
 $router->post('/loginA', [ $ConnexionController, 'VerificationConnectionA' ]);
-$router->get('/deconnexionA', [ $ConnexionController, 'deconnexionA' ]);
 
 
 $WelcomeController = new WelcomeController();
@@ -144,8 +143,9 @@ Flight::route('GET /messagerie/getCount', [MessagerieController::class, 'getNoti
 Flight::route('GET /messagerie/refresh', [MessagerieController::class, 'refreshNotifications']);
 Flight::route('POST /messagerie/markAsRead', [MessagerieController::class, 'markAsReadAndGetCount']);
 Flight::route('GET /messagerie/markAsRead/@id_candidat/@id_annonce', [MessagerieController::class, 'markConversationAsRead']);
-
-
+// Route pour SSE
+Flight::route('GET /messagerie/sse', [MessagerieController::class, 'sseNotifications']);
+Flight::route('GET /messagerie/refreshSession', [MessagerieController::class, 'refreshConversation']);
 
 $planning_entretien_controller = new PlanningEntretienController();
 $router->get('/planning-entretien',[$planning_entretien_controller,'showPageEntretien']);
@@ -172,7 +172,8 @@ $router->group( "/migration" , function($router) use ($Migration_Controller){
 		$router->get("/contrat/edit", [$Migration_Controller, 'editContrat']);   
 	}
 );
-
+// Route pour SSE
+Flight::route('GET /messagerie/sse', [MessagerieController::class, 'sseNotifications']);
 
 ?>
 

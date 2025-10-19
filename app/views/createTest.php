@@ -216,4 +216,4 @@ btnSave.onclick = () => {
 
 
 
-<?php include "footerA.php" ?>
+<?php include "footer.php" ?>

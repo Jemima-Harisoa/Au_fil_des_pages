@@ -20,7 +20,7 @@ class MessagerieController {
         $titre = $AnnoncesModel->get($id_annonce)['titre'];
 
         // MAJ session APRÈS avoir marqué comme lu
-        $_SESSION['messagerie'] = $model->getTitresConversationsU($_SESSION['utilisateur']['id_utilisateur']);
+        $messagerie = $model->getTitresConversationsU($_SESSION['utilisateur']['id_utilisateur']);
 
         // Calcul du badge avec la nouvelle méthode
         $nbNonLus = $model->countNouveauxMessagesU($_SESSION['utilisateur']['id_utilisateur']);
@@ -31,7 +31,8 @@ class MessagerieController {
             'id_candidat'  => $id_candidat,
             'id_annonce'   => $id_annonce,
             'titre'        => $titre,
-            'nbNonLus'     => $nbNonLus
+            'nbNonLus'     => $nbNonLus ,
+            'messagerie'     => $messagerie 
         ]);
     }
 
@@ -53,7 +54,7 @@ class MessagerieController {
             
             echo json_encode([
                 'success' => true,
-                'newCount' => $newCount
+                'newCount' => $newCount,
             ]);
         } else {
             echo json_encode(['success' => false]);
@@ -108,12 +109,71 @@ class MessagerieController {
         ]);
     }
 
-    // Méthode pour rafraîchir les notifications en temps réel
+    // NOUVELLE MÉTHODE : Endpoint SSE (Server-Sent Events) pour les mises à jour en temps réel
+    public function sseNotifications() {
+        // Configurer les headers pour SSE
+        header('Content-Type: text/event-stream');
+        header('Cache-Control: no-cache');
+        header('Connection: keep-alive');
+        header('Access-Control-Allow-Origin: *');
+        
+        // Empêcher la mise en buffer
+        if (ob_get_level()) ob_end_clean();
+        
+        $model = new MessagerieModel();
+        $lastCount = -1;
+        
+        // Boucle infinie pour envoyer les mises à jour
+        while (true) {
+            try {
+                if (isset($_SESSION['utilisateur'])) {
+                    $count = $model->countNouveauxMessagesU($_SESSION['utilisateur']['id_utilisateur']);
+                    $type = 'utilisateur';
+                } elseif (isset($_SESSION['admin'])) {
+                    $count = $model->countNouveauxMessagesA();
+                    $type = 'admin';
+                } else {
+                    echo "data: " . json_encode(['error' => 'Non connecté']) . "\n\n";
+                    flush();
+                    break;
+                }
+                
+                // Envoyer seulement si le count a changé
+                if ($count !== $lastCount) {
+                    $data = [
+                        'count' => $count,
+                        'type' => $type,
+                        'timestamp' => time()
+                    ];
+                    
+                    echo "data: " . json_encode($data) . "\n\n";
+                    flush();
+                    $lastCount = $count;
+                }
+                
+            } catch (Exception $e) {
+                echo "data: " . json_encode(['error' => $e->getMessage()]) . "\n\n";
+                flush();
+                break;
+            }
+            
+            // Attendre 5 secondes avant la prochaine vérification
+            sleep(5);
+            
+            // Vérifier si la connexion est encore active
+            if (connection_aborted()) {
+                break;
+            }
+        }
+    }
+
+    // Méthode pour rafraîchir les notifications en temps réel (version améliorée)
     public function refreshNotifications() {
         $model = new MessagerieModel();
         
         try {
             if (isset($_SESSION['utilisateur'])) {
+                // Forcer la régénération de la liste des conversations
                 $_SESSION['messagerie'] = $model->getTitresConversationsU($_SESSION['utilisateur']['id_utilisateur']);
                 $count = $model->countNouveauxMessagesU($_SESSION['utilisateur']['id_utilisateur']);
                 
@@ -121,7 +181,8 @@ class MessagerieController {
                     'success' => true, 
                     'type' => 'utilisateur',
                     'count' => $count,
-                    'conversations' => $_SESSION['messagerie']
+                    'conversations' => $_SESSION['messagerie'],
+                    'timestamp' => time()
                 ]);
             } elseif (isset($_SESSION['admin'])) {
                 $_SESSION['messagerie'] = $model->getTitresConversationsA();
@@ -131,7 +192,8 @@ class MessagerieController {
                     'success' => true, 
                     'type' => 'admin',
                     'count' => $count,
-                    'conversations' => $_SESSION['messagerie']
+                    'conversations' => $_SESSION['messagerie'],
+                    'timestamp' => time()
                 ]);
             } else {
                 echo json_encode(['success' => false, 'message' => 'Non connecté']);
@@ -152,14 +214,16 @@ class MessagerieController {
                 echo json_encode([
                     'success' => true, 
                     'count' => $count, 
-                    'type' => 'utilisateur'
+                    'type' => 'utilisateur',
+                    'timestamp' => time()
                 ]);
             } elseif (isset($_SESSION['admin'])) {
                 $count = $model->countNouveauxMessagesA();
                 echo json_encode([
                     'success' => true, 
                     'count' => $count, 
-                    'type' => 'admin'
+                    'type' => 'admin',
+                    'timestamp' => time()
                 ]);
             } else {
                 echo json_encode(['success' => false, 'message' => 'Non connecté']);
@@ -227,4 +291,53 @@ class MessagerieController {
         ]);
         exit;
     }
+
+    // Dans MessagerieModel.php - Modifier la méthode getMessagerie()
+
+public function getMessagerie($id_candidat, $id_annonce) {
+    $file = __DIR__ . '/../../public/conversations/conversation_' . $id_candidat . '_' . $id_annonce . '.txt';
+
+    $conversation = [];
+
+    if (file_exists($file)) {
+        $lines = array_filter(file($file, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES));
+        foreach ($lines as $line) {
+            if (preg_match('/^\[(.*?)\]\s+([^:]+):\s*(.*)$/', $line, $matches)) {
+                $dateMsg = $matches[1];
+                $auteurMsg = trim($matches[2]);
+                $contenu = trim($matches[3]);
+                
+                // N'afficher que les vrais messages, pas les indicateurs de lecture
+                if ($contenu !== '[LU]' && !empty($contenu)) {
+                    $conversation[] = [
+                        'date'    => $dateMsg,
+                        'auteur'  => $auteurMsg,
+                        'message' => self::sanitizeMessage($contenu) // <-- UTILISER LA MÉTHODE DE SANITISATION
+                    ];
+                }
+            }
+        }
+    }
+
+    return $conversation;
+}
+public function refreshConversation() {
+    $model = new MessagerieModel();
+
+    try {
+        if (isset($_SESSION['utilisateur'])) {
+            $_SESSION['messagerie'] = $model->getTitresConversationsU($_SESSION['utilisateur']['id_utilisateur']);
+            echo json_encode(['success' => true, 'messagerie' => $_SESSION['messagerie']]);
+        } elseif (isset($_SESSION['admin'])) {
+            $_SESSION['messagerie'] = $model->getTitresConversationsA();
+            echo json_encode(['success' => true, 'messagerie' => $_SESSION['messagerie']]);
+        } else {
+            echo json_encode(['success' => false]);
+        }
+    } catch (Exception $e) {
+        echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+    }
+    exit;
+}
+
 }

@@ -1,5 +1,5 @@
 <?php
-// Layout template (Flight's render wraps content in this)
+
 if (!isset($layout)) {
     echo '<!DOCTYPE html>
 <html lang="fr">
@@ -91,7 +91,7 @@ if (!isset($layout)) {
       <p class="text-center text-gray-500">Aucun CV trouvé.</p>
     <?php else: ?>
       <?php foreach ($data as $cv): ?>
-        <div class="bg-white p-6 rounded-lg shadow-lg hover:shadow-xl transition-shadow duration-200 cv-card" 
+        <div id="cv_<?= $cv['id_candidat'] ?>" class="bg-white p-6 rounded-lg shadow-lg hover:shadow-xl transition-shadow duration-200 cv-card" 
              data-status="<?php echo htmlspecialchars($cv['validation_statut'] ?? 'N/A'); ?>"
              data-nom="<?php echo htmlspecialchars(strtolower(($cv['nom'] ?? 'N/A') . ' ' . ($cv['prenom'] ?? 'N/A'))); ?>"
              data-poste="<?php echo htmlspecialchars(strtolower($cv['poste'] ?? 'N/A')); ?>"
