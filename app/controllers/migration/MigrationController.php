@@ -1,5 +1,4 @@
 <?php
-
 namespace app\controllers\migration;
 
 use Flight;
@@ -10,41 +9,35 @@ use app\models\migration\TypeContratModel;
 use app\models\migration\ContratModel;
 use app\models\migration\HistoriqueValidationModel;
 use app\models\migration\HistoriqueContratModel;
-
+use app\models\migration\ValidationContratModel;
 use app\models\ProfilsModel;
 use app\models\EtatModel;
-use app\models\ConnexionModel; // pour vérifier l'admin en session
+use app\models\ConnexionModel;
 use app\models\MessagerieModel;
-class MigrationController {
 
+class MigrationController {
+    
     /**
      * Vérifie qu'une session admin est présente et active.
-     * Si non : détruit la session admin et redirige vers la page d'admin (/admin).
-     * Retourne true si admin OK, sinon effectue la redirection et exit.
      */
     private function requireAdmin() {
-        // s'assurer que la session est démarrée
         if (session_status() === PHP_SESSION_NONE) {
             session_start();
         }
 
-        // présence d'une session 'admin' ?
         if (empty($_SESSION['admin']) || !is_array($_SESSION['admin'])) {
             $msg = urlencode("Accès réservé aux administrateurs. Veuillez vous connecter.");
             Flight::redirect("/admin?msg={$msg}&msg_type=warning");
             return false;
         }
 
-        // vérifier que l'admin est toujours valide en base (date_fin_affiliation etc.)
         $connModel = new ConnexionModel(Flight::db());
         $adminSession = $_SESSION['admin'];
 
-        // ConnexionModel::verifierAdmin attend (nom, mdp)
         $nom = $adminSession['nom'] ?? null;
         $mdp = $adminSession['mdp'] ?? null;
 
         if (!$nom || !$mdp || !$connModel->verifierAdmin($nom, $mdp)) {
-            // invalide -> déconnecter et rediriger
             $_SESSION = [];
             if (ini_get("session.use_cookies")) {
                 $params = session_get_cookie_params();
@@ -60,8 +53,61 @@ class MigrationController {
             return false;
         }
 
-        // admin OK
         return true;
+    }
+
+    /**
+     * 🔹 ENVOYER POUR VALIDATION - CONSERVÉE DANS MIGRATIONCONTROLLER
+     */
+    public function envoyerValidation() {
+        if (!$this->requireAdmin()) return;
+
+        $id_contrat = Flight::request()->query['id'] ?? null;
+        $note = Flight::request()->data->note ?? '';
+
+        if (!$id_contrat) {
+            Flight::halt(400, "ID du contrat manquant");
+            return;
+        }
+
+        // Utilisation de ValidationController pour les vérifications
+        $validationController = new ValidationController();
+        
+        // Vérifier l'accès au contrat
+        if (!$validationController->verifierAccesContrat($id_contrat)) {
+            $msg = urlencode("Accès non autorisé à ce contrat.");
+            Flight::redirect("/migration/contrats?msg={$msg}&msg_type=error");
+            return;
+        }
+
+        $validationModel = new ValidationContratModel(Flight::db());
+        $role_utilisateur = $validationController->getRoleUtilisateur();
+
+        // Vérifier les permissions
+        if (!$validationModel->verifierPermission($id_contrat, $role_utilisateur)) {
+            $msg = urlencode("Vous n'avez pas la permission de valider cette étape.");
+            Flight::redirect("/migration/contrat/edit?id={$id_contrat}&msg={$msg}&msg_type=error");
+            return;
+        }
+
+        try {
+            // Avance le contrat à l'étape suivante
+            $prochain_statut = $validationModel->envoyerPourValidation(
+                $id_contrat, 
+                $_SESSION['admin']['id_employe'] ?? null,
+                $note
+            );
+
+            // Utilisation de ValidationController pour la notification
+            $validationController->notifierProchaineEtape($id_contrat, $prochain_statut);
+
+            $msg = urlencode("Contrat envoyé pour validation (nouveau statut : {$prochain_statut}).");
+            Flight::redirect("/migration/contrat/edit?id={$id_contrat}&msg={$msg}&msg_type=success");
+
+        } catch (\Exception $e) {
+            $msg = urlencode("Erreur lors de l'envoi : " . $e->getMessage());
+            Flight::redirect("/migration/contrat/edit?id={$id_contrat}&msg={$msg}&msg_type=error");
+        }
     }
 
     // Redirection vers la pages d'edition du contrat
@@ -72,6 +118,14 @@ class MigrationController {
 
         if (!$id_contrat) {
             Flight::halt(400, "ID du contrat manquant !");
+            return;
+        }
+
+        // Utilisation de ValidationController pour vérifier l'accès
+        $validationController = new ValidationController();
+        if (!$validationController->verifierAccesContrat($id_contrat)) {
+            $msg = urlencode("Accès non autorisé à ce contrat.");
+            Flight::redirect("/migration/contrats?msg={$msg}&msg_type=error");
             return;
         }
 
@@ -88,14 +142,14 @@ class MigrationController {
             return;
         }
 
-        // Récupérer infos candidat / personne (optionnel)
+        // Récupérer infos candidat / personne
         $candidat = $candidatModel->getBy('id_candidat', $contrat['id_candidat'] ?? null);
         $personne = $personneModel->getBy('id_personne', $candidat['id_personne'] ?? null);
 
-        // Liste types de contrat (pour select)
+        // Liste types de contrat
         $typeContrats = $typeContratModel->list();
 
-        // Charger le contrat modèle JSON (si url_contrat défini)
+        // Charger le contrat modèle JSON
         $modele = [];
         if (!empty($contrat['url_contrat'])) {
             $modelePath = realpath(__DIR__ . "/../../../public" . $contrat['url_contrat']);
@@ -104,10 +158,10 @@ class MigrationController {
             }
         }
 
-        // Extraire la partie employe depuis le modele (s'il existe)
+        // Extraire la partie employe depuis le modele
         $employeFromModele = $modele['employe'] ?? [];
 
-        // Construire le tableau $data que la vue attend
+        // Construire le tableau $data
         $data = [
             'contrat' => $contrat,
             'candidat' => $candidat,
@@ -117,8 +171,14 @@ class MigrationController {
             'employe' => $employeFromModele,
             'profil' => null
         ];
-
-
+        
+        // Utilisation de ValidationController pour les informations de validation
+        $infosValidation = $validationController->getInfosValidation($id_contrat);
+        if ($infosValidation) {
+            $data['statut_actuel'] = $infosValidation['statut_actuel'];
+            $data['historique_validation'] = $infosValidation['historique_validation'];
+            $data['peut_valider'] = $infosValidation['peut_valider'];
+        }
 
         Flight::render('validation/form', ['data' => $data]);
     }
@@ -299,18 +359,35 @@ class MigrationController {
 
         // --- 3) à partir d'ici, on a $existingContrat et $id_contrat (ou null si pb) ---
         $id_contrat = $existingContrat['id_contrat'] ?? null;
+        
+        // INITIALISER le statut "draft" si nouveau contrat
+        if ($createdNewFile && $id_contrat) {
+            // Utilisation de ValidationController pour initialiser le statut
+            $validationController = new ValidationController();
+            $validationController->initialiserStatutDraft(
+                $id_contrat,
+                $_SESSION['admin']['id_employe'] ?? null,
+                'Création du contrat (brouillon)'
+            );
+        }
 
         // Déterminer l'état en fonction du bouton cliqué (action)
         $action = $data['action'] ?? null;
         switch ($action) {
             case 'valider':
                 $etat = $etatModel->getBy("nom", "Validé");
-                if (!$etat) { $etatModel->save(['nom'=>'Validé']); $etat = $etatModel->getBy("nom","Validé"); }
+                if (!$etat) {
+                    $etatModel->save(['nom'=>'Validé']);
+                    $etat = $etatModel->getBy("nom","Validé"); 
+                }
                 $actionLabel = "Validation";
                     $messagerieModel=new MessagerieModel();
-                    $mess=$messagerieModel->repondreA($id_candidat,$candidat['id_annonce'],"Voici votre contrat.");
-                    $mess=$messagerieModel->repondreA($id_candidat,$candidat['id_annonce'],"<a href='{$existingContrat['url_contrat']}'>contrat</a>");
-                break;
+                    $lien_contrat = $existingContrat['url_contrat'];
+                    $formated_link = $messagerieModel->styliserLiens($lien_contrat, "Voir le contrat");
+                    $messagerieModel->repondreA($id_candidat, $candidat['id_annonce'], 
+                    "📄 Votre contrat a été généré.{$formated_link}");
+                    
+            break;
             case 'refuser':
                 $etat = $etatModel->getBy("nom", "Non validé");
                 if (!$etat) { $etatModel->save(['nom'=>'Non validé']); $etat = $etatModel->getBy("nom","Non validé"); }

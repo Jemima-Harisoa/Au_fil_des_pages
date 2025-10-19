@@ -165,7 +165,7 @@
             </div>
         </div>
     </div>
-    <?php Flight::render("footerA")?>
+    <?php Flight::render("footer")?>
 
     <!-- Scripts -->
     <script src="../../vendor/jquery/jquery.min.js"></script>

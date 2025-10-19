@@ -11,27 +11,29 @@
     "employe": {
         "resilliation": "1",
         "modalite": {
-            "debut_contrat": "",
+            "debut_contrat": "2025-10-27",
             "duree": null,
-            "essai": ""
+            "essai": "3"
         },
         "lieu": "Rue des Lilas, Antananarivo",
         "poste": {
-            "qualite": "Gerant \/ Manager",
+            "qualite": "Vendeur \/ Vendeuse",
             "class": ""
         },
         "remuneration": {
-            "salaire": "",
-            "avantages": []
+            "salaire": "1000000",
+            "avantages": [
+                "social:OSTI"
+            ]
         },
         "noms_prenoms": "Rakoto Jean",
-        "ne_le": "2009-01-01",
-        "ne_a": "",
-        "fils_ou_fille_de": "",
-        "nationalite": "",
-        "domicile": "",
+        "ne_le": "2001-10-10",
+        "ne_a": "Befelatanana",
+        "fils_ou_fille_de": "Ray aman-dreniny",
+        "nationalite": "Malagasy",
+        "domicile": "Tananarive",
         "lieu_edition": "Antananarivo",
-        "date_edition": "25\/09\/2025",
+        "date_edition": "19\/10\/2025",
         "signature": "Rakoto Jean"
     },
     "clause_general": {

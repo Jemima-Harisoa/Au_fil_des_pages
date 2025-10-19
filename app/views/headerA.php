@@ -97,7 +97,7 @@ if(!empty($_SESSION['messagerie'])) {
                         <a class="collapse-item" href="/migration/candidats">Candidats retenus</a>
                         <a class="collapse-item" href="/migration/contrats">Liste des contrats</a>
                         <a class="collapse-item" href="/migration/contrat/create">Créer un contrat</a>
-                        <a class="collapse-item" href="/migration/contrat/edit">Éditer un contrat</a>
+                        <!-- Éditer un contrat se fait depuis la liste des contrats -->
                     </div>
                 </div>
             </li>

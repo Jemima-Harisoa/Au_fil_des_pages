@@ -1,7 +1,18 @@
-
 <?php
-var_dump($_SESSION['messagerie']); 
-echo $_SESSION['nbNonLus'];
+// Vérification des sessions avant utilisation
+// if (isset($_SESSION['messagerie'])) {
+//     var_dump($_SESSION['messagerie']); 
+// } else {
+//     echo "Session 'messagerie' non définie";
+// }
+
+// echo "<br>";
+
+// if (isset($_SESSION['nbNonLus'])) {
+//     echo $_SESSION['nbNonLus'];
+// } else {
+//     echo "Session 'nbNonLus' non définie";
+// }
 ?>
 
 <!DOCTYPE html>
@@ -15,7 +26,7 @@ echo $_SESSION['nbNonLus'];
     <meta name="description" content="">
     <meta name="author" content="">
 
-    <title><?=  $_SESSION['utilisateur']['nom'] ?></title>
+    <title><?= isset($_SESSION['utilisateur']['nom']) ? $_SESSION['utilisateur']['nom'] : 'Utilisateur' ?></title>
 
     <!-- Custom fonts for this template-->
     <link href="/vendor/fontawesome-free/css/all.min.css" rel="stylesheet" type="text/css">
@@ -86,7 +97,7 @@ echo $_SESSION['nbNonLus'];
             <!-- Sidebar - Brand -->
             <a class="sidebar-brand d-flex align-items-center justify-content-center">
                 <div class="sidebar-brand-icon rotate-n-15"><i class="fas fa-laugh-wink"></i></div>
-                <div class="sidebar-brand-text mx-3"><?= $_SESSION['utilisateur']['nom'] ?></div>
+                <div class="sidebar-brand-text mx-3"><?= isset($_SESSION['utilisateur']['nom']) ? $_SESSION['utilisateur']['nom'] : 'Utilisateur' ?></div>
             </a>
             <!-- Divider -->
             <hr class="sidebar-divider my-0">
@@ -161,7 +172,7 @@ echo $_SESSION['nbNonLus'];
                                data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                                 <i class="fas fa-envelope fa-fw"></i>
                                 <!-- Counter - Messages -->
-                                    <?php if($_SESSION['nbNonLus'] > 0): ?>
+                                    <?php if(isset($_SESSION['nbNonLus']) && $_SESSION['nbNonLus'] > 0): ?>
                                         <span id="unreadBadge" class="badge badge-danger badge-counter"><?= $_SESSION['nbNonLus'] ?></span>
                                     <?php endif; ?>
 
@@ -179,16 +190,16 @@ echo $_SESSION['nbNonLus'];
                                         <i class="fas fa-search fa-sm"></i>
                                     </button>
                                 </h6>
-                                <?php if(!empty($_SESSION['messagerie'])): ?>
+                                <?php if(isset($_SESSION['messagerie']) && !empty($_SESSION['messagerie'])): ?>
                                     <?php foreach($_SESSION['messagerie'] as $msg): ?>
                                 <a class="dropdown-item d-flex align-items-center" href="/messagerieU/<?= $msg['id_candidat'] ?>/<?= $msg['id_annonce'] ?>">
     <div class="dropdown-list-image mr-3">
         <img class="rounded-circle" src="/img/undraw_profile_1.svg" alt="Profil">
-        <?php if(($msg['dernier_auteur'] ?? '') === 'Admin' && empty($msg['lu'])): ?>
+        <?php if(isset($msg['dernier_auteur']) && ($msg['dernier_auteur'] ?? '') === 'Admin' && empty($msg['lu'])): ?>
     <span class="badge badge-danger badge-counter unread-dot" style="position:absolute;top:0;right:0;font-size:0.7rem;">●</span>
 <?php endif; ?>
     </div>
-    <div class="<?= (!empty($msg['nouveaux_messages']) && $msg['nouveaux_messages'] === true) ? 'font-weight-bold' : '' ?>">
+    <div class="<?= (isset($msg['nouveaux_messages']) && $msg['nouveaux_messages'] === true) ? 'font-weight-bold' : '' ?>">
         <div class="text-truncate"><?= htmlspecialchars($msg['titre']) ?></div>
         <div class="small text-gray-500"><?= htmlspecialchars($msg['nom_entreprise']) ?></div>
     </div>
@@ -208,7 +219,7 @@ echo $_SESSION['nbNonLus'];
                         <li class="nav-item dropdown no-arrow">
                             <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button"
                                 data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                <span class="mr-2 d-none d-lg-inline text-gray-600 small"><?= $_SESSION['utilisateur']['nom'] ?> <br></span>
+                                <span class="mr-2 d-none d-lg-inline text-gray-600 small"><?= isset($_SESSION['utilisateur']['nom']) ? $_SESSION['utilisateur']['nom'] : 'Utilisateur' ?> <br></span>
                                 <img class="img-profile rounded-circle"
 
                                     src="https://cdn-icons-png.flaticon.com/512/3135/3135715.png">
@@ -229,4 +240,3 @@ echo $_SESSION['nbNonLus'];
                 </nav>
 
                 <div class="container-fluid">
-

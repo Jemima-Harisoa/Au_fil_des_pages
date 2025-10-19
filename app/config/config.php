@@ -73,8 +73,8 @@ return [
         'host'     => 'localhost',
         'port'     => '5432', // le port par défaut de PostgreSQL
         'dbname'   => 'aufildespages',
-        'user'     => 'postgres',
-        'password' => 'postgres'
+        'user'     => 'jemima',
+        'password' => 'pass'
 
 
     ],

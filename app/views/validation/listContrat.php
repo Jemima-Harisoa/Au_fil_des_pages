@@ -102,7 +102,7 @@
     </div>
     <iframe id="contractIframe" style="width:100%; height:95%;" frameborder="0"></iframe>
 </div>
-    <?php Flight::render("footerA")?>
+    <?php Flight::render("footer")?>
 
 <!-- Scripts -->
 <script src="../js/skecth/pdf.js"></script>
