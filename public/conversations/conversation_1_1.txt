@@ -34,3 +34,4 @@
 [2025-09-22 14:48:51] Admin: <a href='\json\contrats\contrat_travail/candidat_1/contrat_20250922_144733.json'></a>
 [2025-09-22 14:48:56] Admin: [LU]
 [2025-09-22 14:49:42] Admin: [LU]
+[2025-10-19 15:01:59] Admin: Merci d avoir complete le test. Vos reponses ont ete enregistrees.Les responsables d Au fil des Page vont analyser vos resultats et vous serez recontacte prochainement.
