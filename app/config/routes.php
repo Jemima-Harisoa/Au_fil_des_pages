@@ -12,6 +12,7 @@ use app\controllers\cvController;
 
 use app\controllers\PlanningEntretienController;
 use app\controllers\ApiPlanningEntretienController;
+use app\controllers\ConnexionController;
 
 
 use app\controllers\MessagerieController;
@@ -52,6 +53,7 @@ $router->group('/annonces', function($router) use ($AnnoncesController) {
     $router->post('/update', [ $AnnoncesController, 'update' ]);
 });
 
+<<<<<<< HEAD
 $Welcome_Controller = new WelcomeController();
 
 $cvController = new cvController();
@@ -146,11 +148,24 @@ Flight::route('GET /messagerie/markAsRead/@id_candidat/@id_annonce', [Messagerie
 // Route pour SSE
 Flight::route('GET /messagerie/sse', [MessagerieController::class, 'sseNotifications']);
 Flight::route('GET /messagerie/refreshSession', [MessagerieController::class, 'refreshConversation']);
+=======
+$welcomeController = new WelcomeController();
+$router->get("/agenda",[$welcomeController,'home']);
+$ConnexionController = new ConnexionController();
+$router->get('/', [ $ConnexionController, 'AppelLoginU' ]);
+$router->post('/inscriptionU', [ $ConnexionController, 'InscrireU' ]);
+$router->post('/loginU', [ $ConnexionController, 'VerificationConnectionU' ]);
+$router->get('/deconnexion', [ $ConnexionController, 'deconnexion' ]);
+>>>>>>> origin/entretient
 
+$router->get('/admin', [ $ConnexionController, 'AppelLoginA' ]);
+$router->post('/inscriptionA', [ $ConnexionController, 'InscrireA' ]);
+$router->post('/loginA', [ $ConnexionController, 'VerificationConnectionA' ]);
 $planning_entretien_controller = new PlanningEntretienController();
 $router->get('/planning-entretien',[$planning_entretien_controller,'showPageEntretien']);
 
 $api_planning_entretien_controller = new ApiPlanningEntretienController();
+$router->post('/planning_entretien/filtre', [$api_planning_entretien_controller, 'filtrerEntretien']);
 $router->get('/api/planifier-entretien',[$api_planning_entretien_controller,'planifierEntretien']);
 $Migration_Controller = new MigrationController(); 
 //$router->get('/migration/Redaction',  [ $Contrat_Controller, 'RedactionContrat' ]);

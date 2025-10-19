@@ -68,7 +68,8 @@ class TestModel{
                 JOIN personnes per ON per.id_personne = ca.id_personne
             ) t
             WHERE rang <= :nombre
-            ORDER BY id_profil, rang;
+            and id_candidat not in (select id_candidat from planning_entretien)
+            ORDER BY id_profil, rang
             ";
 
             $stmt = $db->prepare($sql);

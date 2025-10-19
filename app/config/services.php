@@ -84,6 +84,7 @@ Flight::map('profilsModel', function () {
 Flight::map('planningEntretienModel', function () {
   return new PlanningEntretienModel(Flight::db());
 });
+<<<<<<< HEAD
 //Flight::map('ConnexionModel', function () {
 //    return new ConnexionModel(Flight::db());
 //});
@@ -129,3 +130,12 @@ Flight::map("HistoriqueContrat", function(){
     return new HistoriqueContratModel(Flight::db());
 });
 
+=======
+Flight::map('ConnexionModel', function () {
+    return new connexionModel(Flight::db());
+});
+
+Flight::map('adminModel', function () {
+    return new AdminModel(Flight::db());
+});
+>>>>>>> origin/entretient
