@@ -84,7 +84,7 @@ class PlanningEntretienModel{
                     $this->id_responsable,
                     $this->date_heure_entretien->format('Y-m-d H:i:s'),
                     $this->score_entretien,
-                    $etatModel->findById(3)["id_etat"],
+                    $etatModel->findById(1)["id_etat"],
                     $this->id_appreciation
                 ]);
                 $db->commit();
@@ -148,28 +148,16 @@ class PlanningEntretienModel{
             throw new \Exception("Erreur lors de la récupération du planning : " . $e->getMessage());
         }
     }
-
+    
     public function planifierEntretien($listeCandidats,$idAdmin){
         $candidats = null;
         $responsables = null;
         $dateHeureEntretien = null;
         try {
-            $nom_departement = Flight::adminModel()->getDepartementByIdAdmin($idAdmin)["nom"];
-            if($nom_departement=="RH"){
-                $candidats = $listeCandidats;
-            }
-            else{
-                $candidats = Flight::responsableEntretienModel()->getListeEntretiensInListeCandidats($listeCandidats,$idAdmin);
-                }
+                $candidats = Flight::responsableEntretienModel()->getListeCandidatsAEntretenir($listeCandidats,$idAdmin);
                 foreach($listeCandidats as $candidat){
-                    
                     $responsables = Flight::responsableEntretienModel()->getResponsablesEntretienCandidat($candidat["id_profil"]);
-                    if($nom_departement !="RH"){
-                        $responsables = Flight::responsableEntretienModel()->getPropresResponsablesEntretiens($responsables,$idAdmin);
-                    }
-                    else{
-                        $responsables = Flight::responsableEntretienModel()->getResponsablesEntretienCandidat($candidat["id_profil"]);
-                    }
+                    $responsables = Flight::responsableEntretienModel()->getPropresResponsablesEntretiens($responsables,$idAdmin);
                     foreach($responsables as $responsable){       
                         $disponibilitesEntretien = Flight::disponibiliteEntretienModel()->getTempsDisponiblesEntretien($responsable["id_responsable"]);
                         $configEntretien = Flight::configEntretienModel()->getConfigurationEntretienResponsable($responsable);
@@ -203,7 +191,7 @@ class PlanningEntretienModel{
        te.*,
        vrp.nom as nom_responsable,
        vrp.prenom as prenom_responsable,
-       e.nom
+       e.nom as etat
     FROM planning_entretien pe
     JOIN (
         SELECT vcp.id_candidat,
@@ -235,6 +223,7 @@ class PlanningEntretienModel{
         }
     }
     public function checkCandidatsInEntretien($candidats){
+        
         $candidatsEntretien = self::all();
         $compteur = 0;
         foreach($candidats as $candidat){
@@ -247,108 +236,121 @@ class PlanningEntretienModel{
         }
         return false;
     }
-    public function filtreEntretien($data){
-        $pdo = Flight::db();
-        $sql = "
-        SELECT pe.*,
-       te.*,
-       vrp.nom as nom_responsable,
-       vrp.prenom as prenom_responsable,
-       e.nom
-    FROM planning_entretien pe
-    JOIN (
-        SELECT vcp.id_candidat,
+    public function filtreEntretien($data) {
+    $pdo = $this->db;
+
+    // Récupérer tous les responsables liés à l'admin
+    $responsables = Flight::responsableEntretienModel()->findByIdAdmin($data["id_admin"]);
+    if (!$responsables || count($responsables) === 0) {
+        return [
+            "draw" => 1,
+            "recordsTotal" => 0,
+            "recordsFiltered" => 0,
+            "data" => []
+        ];
+    }
+
+    // Construire la liste des IDs responsables
+    $ids = array_column($responsables, "id_responsable");
+    $placeholders = implode(',', array_fill(0, count($ids), '?'));
+
+    // Requête principale
+    $sql = "
+        SELECT 
+            pe.*, 
+            te.nom_candidat, te.prenom_candidat, te.profil, te.date_naissance, te.score_test, te.date_test,
+            vrp.nom AS nom_responsable, vrp.prenom AS prenom_responsable,
+            e.nom AS nom_etat
+        FROM planning_entretien pe
+        JOIN (
+            SELECT 
+                vcp.id_candidat,
                 vcp.nom_candidat,
                 vcp.prenom_candidat,
-                vcp.titre as profil ,
+                vcp.titre AS profil,
                 vcp.date_naissance,
                 te.score_test,  
                 te.date_test
-            FROM tests  te
-        join v_candidats_personnes vcp 
-        ON te.id_candidat = vcp.id_candidat
-    )
-    as te
-    ON pe.id_candidat = te.id_candidat
-    JOIN v_responsable_personnes vrp
-    on vrp.id_responsable = pe.id_responsable
-    JOIN etat e
-    ON e.id_etat = pe.etat
-        ";
-        $params = [];
-        // récupérer les paramètres envoyés par DataTables
-        $draw = isset($_POST['draw']) ? intval($_POST['draw']) : 1;
-        $start = isset($_POST['start']) ? intval($_POST['start']) : 0;
-        $length = isset($_POST['length']) ? intval($_POST['length']) : 10;
-        if($data["candidat"] !== '') {
-            $sql .= " AND (vcp.nom_candidat ILIKE :candidat OR vcp.prenom_candidat ILIKE :candidat)";
-            $params[':candidat'] = "%$candidat%";
-        }
-        if($data["age_min"] !== '') {
-        $sql .= " AND EXTRACT(YEAR FROM AGE(te.date_naissance)) >= :age_min";
-        $params[':age_min'] = $data["age_min"];
-        }
-        if($data["age_max"] !== '') {
-            $sql .= " AND EXTRACT(YEAR FROM AGE(te.date_naissance)) <= :age_max";
-            $params[':age_max'] = $age_max;
-        }
-        if($data["responsable"] !== '') {
-        $responsable = $data["responsable"];    
-        $sql .= " AND (Concat(nom_responsable ILIKE :responsable ,' ', prenom_responsable) as responsable ILIKE :responsable)";
-        $params[':responsable'] = "%$responsable%";
-        }
-        if($data["profil_candidat"] !== '') {
-            $profil = $data["profil_candidat"];
-        $sql .= " AND te.profil ILIKE :profil";
-        $params[':profil'] = "%$profil%";
-        }
-        if($data["score_min"] !== '') {
-        $sql .= " AND score_test >= :score_min";
-        $params[':score_min'] = $data["score_min"];
-        }
-        if($data['score_max'] !== '') {
-        $sql .= " AND score_test <= :score_max";
-        $params[':score_max'] = $data['score_max'];
-        }
-        if($data["date_test"] !== '') {
-        $sql .= " AND date_test = :date_test";
-        $params[':date_test'] = $data["date_test"];
-        }
-        if($data["date_heure_entretien"]!== '') {
-        $sql .= " AND date_heure_entretien::date = :date_entretien";
-        $params[':date_entretien'] = $data["date_heure_entretien"];
-        }
-        $count_sql = "SELECT COUNT(*) FROM ($sql) AS sub";
-        $stmt = $pdo->prepare($count_sql);
-        $stmt->execute($params);
-        $recordsFiltered = $stmt->fetchColumn();
+            FROM tests te
+            JOIN v_candidats_personnes vcp ON te.id_candidat = vcp.id_candidat
+        ) te ON pe.id_candidat = te.id_candidat
+        JOIN v_responsable_personnes vrp ON vrp.id_responsable = pe.id_responsable
+        JOIN etat e ON e.id_etat = pe.etat
+        WHERE vrp.id_responsable IN ($placeholders)
+    ";
 
-        // ajouter pagination
-        $sql .= " ORDER BY date_heure_entretien DESC OFFSET :start LIMIT :length";
-        $params[':start'] = $start;
-        $params[':length'] = $length;
-            $stmt = $pdo->prepare($sql);
-    // bind param pour start et length en entier
-    foreach($params as $key => &$val) {
-        if($key === ':start' || $key === ':length') {
-            $stmt->bindValue($key, $val, \PDO::PARAM_INT);
-        } else {
-            $stmt->bindValue($key, $val);
-        }
+    $params = $ids;
+
+    // Ajout des filtres dynamiques
+    if (!empty($data["candidat"])) {
+        $sql .= " AND (te.nom_candidat ILIKE ? OR te.prenom_candidat ILIKE ?)";
+        $params[] = "%{$data['candidat']}%";
+        $params[] = "%{$data['candidat']}%";
     }
-    $stmt->execute();
-    $data = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+    if (!empty($data["age_min"])) {
+        $sql .= " AND EXTRACT(YEAR FROM AGE(te.date_naissance)) >= ?";
+        $params[] = $data["age_min"];
+    }
+    if (!empty($data["age_max"])) {
+        $sql .= " AND EXTRACT(YEAR FROM AGE(te.date_naissance)) <= ?";
+        $params[] = $data["age_max"];
+    }
+    if (!empty($data["responsable"])) {
+        $sql .= " AND (vrp.nom ILIKE ? OR vrp.prenom ILIKE ?)";
+        $params[] = "%{$data['responsable']}%";
+        $params[] = "%{$data['responsable']}%";
+    }
+    if (!empty($data["profil_candidat"])) {
+        $sql .= " AND te.profil ILIKE ?";
+        $params[] = "%{$data['profil_candidat']}%";
+    }
+    if (!empty($data["score_min"])) {
+        $sql .= " AND te.score_test >= ?";
+        $params[] = $data["score_min"];
+    }
+    if (!empty($data["score_max"])) {
+        $sql .= " AND te.score_test <= ?";
+        $params[] = $data["score_max"];
+    }
+    if (!empty($data["date_test"])) {
+        $sql .= " AND te.date_test = ?";
+        $params[] = $data["date_test"];
+    }
+    if (!empty($data["date_heure_entretien"])) {
+        $sql .= " AND pe.date_heure_entretien::date = ?";
+        $params[] = $data["date_heure_entretien"];
+    }
 
-    // compter total records
-    $total_sql = "SELECT COUNT(*) FROM candidats";
+    // Compter le total filtré
+    $count_sql = "SELECT COUNT(*) FROM ($sql) AS sub";
+    $stmt = $pdo->prepare($count_sql);
+    $stmt->execute($params);
+    $recordsFiltered = $stmt->fetchColumn();
+
+    // Pagination DataTables
+    $draw = isset($_POST['draw']) ? intval($_POST['draw']) : 1;
+    $start = isset($_POST['start']) ? intval($_POST['start']) : 0;
+    $length = isset($_POST['length']) ? intval($_POST['length']) : 10;
+
+    $sql .= " ORDER BY pe.date_heure_entretien DESC OFFSET ? LIMIT ?";
+    $params[] = $start;
+    $params[] = $length;
+
+    // Exécution finale
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute($params);
+    $dataRows = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+
+    // Total général (sans filtre)
+    $total_sql = "SELECT COUNT(*) FROM planning_entretien";
     $totalRecords = $pdo->query($total_sql)->fetchColumn();
 
-    
-        return [
-            "draw" => $draw,
-            "recordsTotal" => intval($totalRecords),
-            "recordsFiltered" => intval($recordsFiltered),
-            "data" => $data
+    return [
+        "draw" => $draw,
+        "recordsTotal" => intval($totalRecords),
+        "recordsFiltered" => intval($recordsFiltered),
+        "data" => $dataRows
         ];
     }
+
 }

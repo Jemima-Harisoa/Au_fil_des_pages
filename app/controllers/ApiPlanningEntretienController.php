@@ -15,7 +15,7 @@ class ApiPlanningEntretienController {
             // Retour JSON (le modèle retourne déjà du JSON si j’ai bien vu, mais tu peux sécuriser ici)
             Flight::json([
                 "message" => "Planification terminée",
-                "resultat" => Flight::planningEntretienModel()->getEntretiensParEtat(3),
+                "resultat" => Flight::planningEntretienModel()->getEntretiensParEtat(1),
                 "status" => 200
             ]);
         } catch (\Exception $e) {
@@ -28,7 +28,21 @@ class ApiPlanningEntretienController {
 
     public function filtrerEntretien(){
         $data = Flight::request()->data->getData();
+        $data["id_admin"] = $_SESSION["IdAdmin"];
         return Flight::json(Flight::planningEntretienModel()->filtreEntretien($data));
     }
+
+    // public function listeEntretiensAdmin(){
+    //     $idAdmin = ;
+    //     $draw = intval($_GET['draw'] ?? 1);
+    //     $data = Flight::planningEntretienModel()->getPlanningEntretienByIdAdmin($idAdmin);
+    //     $forJson =[
+    //         "draw"=>$draw,
+    //         "recordsTotal" => count($data),
+    //         "recordsFiltered" => count($data),
+    //         "data"=>$data
+    //     ];
+    //     return Flight::json($forJson);
+    // }
 }
 ?>

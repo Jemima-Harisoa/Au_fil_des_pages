@@ -18,13 +18,11 @@ use flight\net\Router;
 });*/
 
 $welcomeController = new WelcomeController();
-$router->get("/agenda",[$welcomeController,'home']);
 $ConnexionController = new ConnexionController();
 $router->get('/', [ $ConnexionController, 'AppelLoginU' ]);
 $router->post('/inscriptionU', [ $ConnexionController, 'InscrireU' ]);
 $router->post('/loginU', [ $ConnexionController, 'VerificationConnectionU' ]);
 $router->get('/deconnexion', [ $ConnexionController, 'deconnexion' ]);
-
 $router->get('/admin', [ $ConnexionController, 'AppelLoginA' ]);
 $router->post('/inscriptionA', [ $ConnexionController, 'InscrireA' ]);
 $router->post('/loginA', [ $ConnexionController, 'VerificationConnectionA' ]);

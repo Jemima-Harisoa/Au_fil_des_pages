@@ -148,7 +148,7 @@ class ResponsableEntretienModel
             throw new \Exception($e->getMessage());
         }
     }
-    public function getListeEntretiensInListeCandidats($listeCandidats,$idAdmin):?array{
+    public function getListeCandidatsAEntretenir($listeCandidats,$idAdmin):?array{
         $results = [];
         $profilsEntretiens = self::getProfilsEntretiens($idAdmin);
         $i = 0;
