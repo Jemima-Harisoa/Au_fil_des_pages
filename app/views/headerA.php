@@ -6,10 +6,8 @@ if(!empty($_SESSION['messagerie'])) {
             $nbNonLus++;
         }
     }
-}
-?>
+}?>
 
-<!-- HEADER (à extraire en include 'header_admin.php') -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -26,15 +24,51 @@ if(!empty($_SESSION['messagerie'])) {
     <link href="/css/sb-admin-2.min.css" rel="stylesheet">
     <!-- Custom styles for this page -->
     <link href="/vendor/datatables/dataTables.bootstrap4.min.css" rel="stylesheet">
+
+
     <style>
-        .dropdown-header { display: flex !important; align-items: center !important; padding: 0.5rem 1rem !important; }
-        #messageCenterSearch { background: rgba(255,255,255,0.2); border: none; color: white; font-size: 0.85rem; padding: 0.25rem 0.5rem; }
-        #messageCenterSearch::placeholder { color: rgba(255,255,255,0.7); }
-        #messageCenterSearch:focus { outline: none; background: rgba(255,255,255,0.3); }
-        .message-item { transition: all 0.2s; }
-        .no-results-message { font-style: italic; color: #6c757d !important; }
-        .hidden-by-search { display: none !important; visibility: hidden !important; opacity: 0 !important; height: 0 !important; padding: 0 !important; margin: 0 !important; }
-    </style>
+.dropdown-header {
+    display: flex !important;
+    align-items: center !important;
+    padding: 0.5rem 1rem !important;
+}
+
+#messageCenterSearch {
+    background: rgba(255,255,255,0.2);
+    border: none;
+    color: white;
+    font-size: 0.85rem;
+    padding: 0.25rem 0.5rem;
+}
+
+#messageCenterSearch::placeholder {
+    color: rgba(255,255,255,0.7);
+}
+
+#messageCenterSearch:focus {
+    outline: none;
+    background: rgba(255,255,255,0.3);
+}
+
+.message-item {
+    transition: all 0.2s;
+}
+
+.no-results-message {
+    font-style: italic;
+    color: #6c757d !important;
+}
+
+.hidden-by-search {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+    height: 0 !important;
+    padding: 0 !important;
+    margin: 0 !important;
+}
+</style>
+
 </head>
 <body id="page-top">
     <!-- Page Wrapper -->
@@ -71,7 +105,8 @@ if(!empty($_SESSION['messagerie'])) {
                     </div>
                 </div>
             </li>
-            <!-- Nav Item - Tests (déjà existant) -->
+
+            <!-- Nav Item - Pages Collapse Menu -->
             <li class="nav-item">
                 <a class="nav-link" href="/allTests" aria-expanded="true" aria-controls="collapsePages">
                     <i class="fas fa-fw fa-pen"></i>
@@ -134,7 +169,8 @@ if(!empty($_SESSION['messagerie'])) {
                                 <i class="fas fa-search fa-fw"></i>
                             </a>
                         </li>
-                        <!-- Nav Item - Messages -->
+
+
                         <li class="nav-item dropdown no-arrow mx-1">
                             <a class="nav-link dropdown-toggle" href="#" id="messagesDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                                 <i class="fas fa-envelope fa-fw"></i>
@@ -177,11 +213,17 @@ if(!empty($_SESSION['messagerie'])) {
                                 <a class="dropdown-item text-center small text-gray-500" href="#">Read More Messages</a>
                             </div>
                         </li>
+
+
+
                         <!-- Nav Item - User Information -->
                         <li class="nav-item dropdown no-arrow">
                             <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                                 <span class="mr-2 d-none d-lg-inline text-gray-600 small"><?= $_SESSION['infoAdmin']['nom'] ?> <br> <?= $_SESSION['infoAdmin']['prenom'] ?></span>
-                                <img class="img-profile rounded-circle" src="/img/undraw_profile_1.svg">
+                                <img class="img-profile rounded-circle"
+
+                                    src="/img/undraw_profile_1.svg">
+
                             </a>
                             <!-- Dropdown - User Information -->
                             <div class="dropdown-menu dropdown-menu-right shadow animated--grow-in" aria-labelledby="userDropdown">
@@ -192,6 +234,9 @@ if(!empty($_SESSION['messagerie'])) {
                         </li>
                     </ul>
                 </nav>
-                <!-- /.container-fluid (début du content) -->
+                <!-- End of Topbar -->
+
+                <!-- Begin Page Content -->
+
                 <div class="container-fluid">
-<!-- FIN HEADER -->
+

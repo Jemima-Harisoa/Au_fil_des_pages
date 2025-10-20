@@ -7,6 +7,9 @@ session_start();
 use Flight;
 use app\models\ConnexionModel;
 use app\models\AdminModel;
+
+use app\models\MessagerieModel;
+
 class ConnexionController {
 
 	public function __construct() {
@@ -23,14 +26,20 @@ class ConnexionController {
 	public function VerificationConnectionU()
     {
         $p = new ConnexionModel(Flight::db());
+
+        $messagerieModel = new messagerieModel(Flight::db());
         
             $Nom = $_POST['Nom'];
             $mdp = $_POST['mdp'];
         $v = $p->verifierUtilisateur($Nom, $mdp);
         if($v == true)
         {
-            $_SESSION['utilisateur']  = $p->getUtilisateur($Nom, $mdp);     
+            $_SESSION['utilisateur']  = $p->getUtilisateur($Nom, $mdp);
+            $_SESSION['messagerie'] = $messagerieModel->getTitresConversationsU($_SESSION['utilisateur']['id_utilisateur']);  
+            $_SESSION['nbNonLus'] = $messagerieModel->countNouveauxMessagesU($_SESSION['utilisateur']['id_utilisateur']);
+            
             Flight::render('accueilU',null);
+
         }
         else {
             $mess = "Verifier votre mot de passe ou votre nom d'utilisateur";
@@ -57,14 +66,6 @@ class ConnexionController {
             Flight::render('connexionU', ['mess' => $mess]);
         }
     }
-    
-    public function deconnexionU()
-    {
-        $model = new ConnexionModel(Flight::db());
-        $model->deconnexion();
-        Flight::redirect('/');
-    }
-
 
     // ADMINS
     public static function AppelLoginA()
@@ -90,6 +91,9 @@ class ConnexionController {
             $_SESSION['admin']  = $p->getAdmin($Nom, $mdp); 
             $_SESSION['departement']  = $p-> getDepartementAdmin($_SESSION['admin']['id_admin']);     
             $_SESSION['infoAdmin'] = $AdminModel -> getDetailsPersoAdmin($_SESSION['admin']['id_admin']);
+            $_SESSION['messagerie'] = $messagerieModel->getTitresConversationsA();  
+            $_SESSION['nbNonLus'] = $messagerieModel->countNouveauxMessagesA();
+
             if($_SESSION['departement']['id_departement'] ==  $idGestion  )
             {
                 Flight::render('accueilG',null);    
@@ -105,11 +109,20 @@ class ConnexionController {
             Flight::render('connexionA', ['mess' => $mess]);
         }
     }
-    public function deconnexionA()
-    {
+    
+    public function deconnexion() {
         $model = new ConnexionModel(Flight::db());
-        $model->deconnexion();
-        Flight::redirect('/admin');
+
+       
+        if(isset($_SESSION['admin']))
+        {
+            $model->deconnexion();
+            Flight::redirect('/admin');
+        }else{
+                    $model->deconnexion();
+        Flight::redirect('/');
+        }
+
     }
 
     

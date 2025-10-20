@@ -194,6 +194,8 @@ class MigrationController {
             $data['peut_valider'] = $infosValidation['peut_valider'];
         }
 
+
+
         Flight::render('validation/form', ['data' => $data]);
     }
 
