@@ -182,27 +182,13 @@ document.querySelectorAll('.voirPlusBtn').forEach(button => {
                 }
 
                 $('#annonceModal').modal('show');
+                const entreprise = data.nom_entreprise ? "Entreprise: " + data.nom_entreprise + "\n\n" : "";
+                document.getElementById('annonceModalLabel').textContent = data.titre;
+                document.getElementById('annonceModalContent').textContent = entreprise + data.contenu;
 
-                const entreprise = data.nom_entreprise
-                    ? "Entreprise: " + data.nom_entreprise + "\n\n"
-                    : "";
+                document.getElementById('postulerButton').setAttribute('href', '/<?= $idUtilisateur?>/Annonce/<?= $annonce['id_annonce']?>/<?= $annonce['id_profil']?>/fillCV'); // mettre lien réel si besoin
 
-                document.getElementById('annonceModalLabel').textContent = data.titre || "Annonce";
-                document.getElementById('annonceModalContent').textContent = entreprise + (data.contenu || "");
 
-                // Si idAnnonce est null, on bloque le lien
-                if (idAnnonce && idProfil) {
-                    document.getElementById('postulerButton').setAttribute(
-                        'href',
-                        `/<?= $idUtilisateur ?>/Annonce/${idAnnonce}/${idProfil}/fillCV`
-                    );
-                    document.getElementById('postulerButton').disabled = false;
-                    document.getElementById('postulerButton').textContent = "Postuler";
-                } else {
-                    document.getElementById('postulerButton').removeAttribute('href');
-                    document.getElementById('postulerButton').disabled = true;
-                    document.getElementById('postulerButton').textContent = "Aucune annonce valide";
-                }
             })
             .catch(err => {
                 console.error(err);

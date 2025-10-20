@@ -262,6 +262,7 @@ class MigrationController {
         // Vérification du candidat
         $candidat = $candidatModel->getBy('id_candidat', $id_candidat);
         $personne = $personneModel->getBy('id_personne', $candidat['id_candidat']);
+        $personne = $personneModel->getBy('id_personne', $candidat['id_candidat']);
 
         if (!$personne || !$candidat) {
             Flight::halt(404, "Candidat non trouvé.");

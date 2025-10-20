@@ -1,5 +1,13 @@
+<<<<<<< HEAD
 <?php include("headerA.php");?>
                 
+=======
+<?php include "headerA.php" ?>
+
+                <!-- Begin Page Content -->
+                <div class="container-fluid">
+                    
+>>>>>>> origin/testCopie2
                     <!-- Page Heading -->
                     <button class="btn btn-primary btn-icon-split" id="bouton-planification" type="button" <?php echo is_array($entretiens) && count($entretiens) != 0 ? "disabled":""?>>
                         <span class="icon text-white-50">
@@ -98,6 +106,7 @@
                         </div>
                     </div>
 
+<<<<<<< HEAD
         <!-- Modal Modification Entretien -->
         <div class="modal fade" id="modalEntretien" tabindex="-1" aria-labelledby="modalEntretienLabel" aria-hidden="true">
         <div class="modal-dialog">
@@ -131,3 +140,12 @@
         </div>
         </div>
         <?php include("footerA.php")?>
+=======
+                </div>
+                <!-- /.container-fluid -->
+
+            </div>
+            <!-- End of Main Content -->
+
+          <?php include "footer.php" ?>
+>>>>>>> origin/testCopie2

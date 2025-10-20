@@ -1,4 +1,4 @@
-\c jemima
+\c postgres
 
 DROP DATABASE IF EXISTS aufildespages;
 CREATE DATABASE aufildespages;

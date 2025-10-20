@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 <?php
 // Vérification des sessions avant utilisation
 // if (isset($_SESSION['messagerie'])) {
@@ -13,6 +14,12 @@
 // } else {
 //     echo "Session 'nbNonLus' non définie";
 // }
+=======
+
+<?php
+// var_dump($_SESSION['messagerie']); 
+// echo $_SESSION['nbNonLus'];
+>>>>>>> origin/testCopie2
 ?>
 
 <!DOCTYPE html>
@@ -116,6 +123,7 @@
                     <span>Annonces</span>
                 </a>
             </li>
+<<<<<<< HEAD
             <!-- Nouveau : Tests -->
             <li class="nav-item">
                 <a class="nav-link" href="/testAccueil">
@@ -130,6 +138,11 @@
                     <span>Mes Postulations</span>
                 </a>
             </li>
+=======
+
+          
+
+>>>>>>> origin/testCopie2
 
             <!-- Divider -->
             <hr class="sidebar-divider d-none d-md-block">
@@ -172,7 +185,11 @@
                                data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                                 <i class="fas fa-envelope fa-fw"></i>
                                 <!-- Counter - Messages -->
+<<<<<<< HEAD
                                     <?php if(isset($_SESSION['nbNonLus']) && $_SESSION['nbNonLus'] > 0): ?>
+=======
+                                    <?php if($_SESSION['nbNonLus'] > 0): ?>
+>>>>>>> origin/testCopie2
                                         <span id="unreadBadge" class="badge badge-danger badge-counter"><?= $_SESSION['nbNonLus'] ?></span>
                                     <?php endif; ?>
 
@@ -195,11 +212,19 @@
                                 <a class="dropdown-item d-flex align-items-center" href="/messagerieU/<?= $msg['id_candidat'] ?>/<?= $msg['id_annonce'] ?>">
     <div class="dropdown-list-image mr-3">
         <img class="rounded-circle" src="/img/undraw_profile_1.svg" alt="Profil">
+<<<<<<< HEAD
         <?php if(isset($msg['dernier_auteur']) && ($msg['dernier_auteur'] ?? '') === 'Admin' && empty($msg['lu'])): ?>
     <span class="badge badge-danger badge-counter unread-dot" style="position:absolute;top:0;right:0;font-size:0.7rem;">●</span>
 <?php endif; ?>
     </div>
     <div class="<?= (isset($msg['nouveaux_messages']) && $msg['nouveaux_messages'] === true) ? 'font-weight-bold' : '' ?>">
+=======
+        <?php if(($msg['dernier_auteur'] ?? '') === 'Admin' && empty($msg['lu'])): ?>
+    <span class="badge badge-danger badge-counter unread-dot" style="position:absolute;top:0;right:0;font-size:0.7rem;">●</span>
+<?php endif; ?>
+    </div>
+    <div class="<?= (!empty($msg['nouveaux_messages']) && $msg['nouveaux_messages'] === true) ? 'font-weight-bold' : '' ?>">
+>>>>>>> origin/testCopie2
         <div class="text-truncate"><?= htmlspecialchars($msg['titre']) ?></div>
         <div class="small text-gray-500"><?= htmlspecialchars($msg['nom_entreprise']) ?></div>
     </div>
@@ -239,4 +264,9 @@
 
                 </nav>
 
+<<<<<<< HEAD
                 <div class="container-fluid">
+=======
+                <div class="container-fluid">
+
+>>>>>>> origin/testCopie2

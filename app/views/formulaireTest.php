@@ -56,11 +56,9 @@
     .reponse-card input[type="checkbox"] {
         margin-right: 10px;
     }
-
-    .btn-nav {
-        display: inline-block;
-        margin: 20px 5px 0 5px;
-        padding: 12px 25px;
+    .prev-btn{
+        margin-right: auto;
+         padding: 20px 25px;
         background-color: #02f8e4ff;
         color: white;
         border: none;
@@ -69,6 +67,21 @@
         cursor: pointer;
         transition: background-color 0.2s;
     }
+    .next-btn,
+    .btn-nav {
+        margin-left: auto;
+        display: inline-block;
+       
+        padding: 20px 25px;
+        background-color: #02f8e4ff;
+        color: white;
+        border: none;
+        border-radius: 6px;
+        font-size: 16px;
+        cursor: pointer;
+        transition: background-color 0.2s;
+    }
+    
     .nav-buttons{
          display: flex;
     justify-content: space-between;
@@ -85,6 +98,7 @@
         color: red;
         margin-top: 20px;
     }
+    
 </style>
 
 <form id="qcmForm" action="/traitement-qcm" method="POST">
@@ -108,13 +122,16 @@
             <?php endforeach; ?>
 
             <div class="nav-buttons">
-
-                <?php if ($index < count($qcm) - 1): ?>
-                     <button type="button" class="btn-nav next-btn">Suivant</button>
+                
+                <?php
+               // $index2=$index;
+                if ($index >0 ): ?>
+                     <button type="button" class="prev-btn">Précédent</button>
                 <?php endif; ?>
-                <?php if ($index > 0): ?>
-                    <button type="button" class="btn-nav prev-btn">Précédent</button>
+                 <?php if ($index < count($qcm) - 1 || $index ==0): ?>
+                    <button type="button" class="next-btn">Suivant</button>
                 <?php endif; ?>
+               
                 <?php if ($index == count($qcm) - 1): ?>
 
                     <button type="submit" class="btn-nav">ENVOYER LE TEST</button>

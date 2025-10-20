@@ -15,21 +15,21 @@ class TestController {
 	}
 
 	public function traitementQCM() {
-        $fonction = new fonctionTest(Flight::db());
-        $fonctionMess=new MessagerieModel(Flight::db());
-        //  error_log('idCandidat')
-        
-        // $idCandidat = Flight::request()->data['idCandidat']; // 5
-        //$idAnnonce = Flight::request()->data['idAnnonce'];   // 12
-        $idCandidat = Flight::request()->data->idCandidat ?? null;
-        $idAnnonce = Flight::request()->data->idAnnonce ?? null;
-            
-        error_log("dernier candidat traite : " . $idCandidat);
-        error_log("dernier annonce traite : " . $idAnnonce);
+    $fonction = new fonctionTest(Flight::db());
+    $fonctionMess=new MessagerieModel(Flight::db());
+  //  error_log('idCandidat')
+  
+  // $idCandidat = Flight::request()->data['idCandidat']; // 5
+//$idAnnonce = Flight::request()->data['idAnnonce'];   // 12
+$idCandidat = Flight::request()->data->idCandidat ?? null;
+$idAnnonce = Flight::request()->data->idAnnonce ?? null;
+
+error_log("dernier candidat traite : " . $idCandidat);
+error_log("dernier annonce traite : " . $idAnnonce);
 
 
-        $profilData = $fonction->getIdProfil($idCandidat, $idAnnonce);
-        $idProfil = $profilData[0]['id_profil'];
+    $profilData = $fonction->getIdProfil($idCandidat, $idAnnonce);
+    $idProfil = $profilData[0]['id_profil'];
 
         $questions = $fonction->getQst($idProfil);
         $qcm = [];
@@ -37,71 +37,72 @@ class TestController {
                 $idQst = $q['id_question']; 
                 $reponses = $fonction->getRepQst($idQst); 
 
-                $qcm[] = [
-                    'id_question' => $idQst,
-                    'question' => $q['question'],
-                    'note' => $q['note'],
-                    'reponses' => $reponses 
-                ];
-            }
-        $data = Flight::request()->data->getData();
-        $reponses = $data['reponses'] ?? [];
-        $score = $fonction->comparaisonReponse($reponses,$idCandidat, $idProfil, $idAnnonce);
-        $messagerieModel=new MessagerieModel();
-        $_SESSION['messagerie'] = $messagerieModel->getTitresConversationsU($_SESSION['utilisateur']['id_utilisateur']);
-        
-        //$message=$fonctionMess->getMessageAutomatique(1);
-        Flight::render('accueilU'); //[
-        // 'score' => $score,
-        //  'reponses' => $reponses,
-        //  'qcm' => $qcm
-        // 'messagerie'=>$message
-        // ]);
+        $qcm[] = [
+            'id_question' => $idQst,
+            'question' => $q['question'],
+            'note' => $q['note'],
+            'reponses' => $reponses 
+        ];
     }
-    public function QCM() {
-        $fonction = new fonctionTest(Flight::db());
-        /*$idCandidat = Flight::request()->data['idCdt']; // 5
-        $idAnnonce = Flight::request()->data['idAnn'];   // 12*/
-        $idCandidat = Flight::request()->query['idCdt'];
-        $idAnnonce = Flight::request()->query['idAnn'];
+    $data = Flight::request()->data->getData();
+    $reponses = $data['reponses'] ?? [];
 
-        error_log("dernier candidat : " . $idCandidat);
-        error_log("dernier annonce : " . $idAnnonce);
-
-            $profilData = $fonction->getIdProfil($idCandidat,$idAnnonce);
-            if (empty($profilData)) {
-                Flight::halt(404, "Profil non trouvé pour ce candidat");
-                return;
-            }
-            $idProfil = $profilData[0]['id_profil'];
-            $questions = $fonction->getQst($idProfil);
-            $qcm = [];
-        
-            foreach ($questions as $q) {
-                $idQst = $q['id_question']; 
-                $reponses = $fonction->getRepQst($idQst); 
-        
-                $qcm[] = [
-                    'id_question' => $idQst,
-                    'question' => $q['question'],
-                    'note' => $q['note'],
-                    'reponses' => $reponses 
-                ];
-            }
-
-            Flight::render('formulaireTest', ['qcm' => $qcm,'idCandidat'=>$idCandidat,'idAnnonce'=>$idAnnonce]);
-        }
+    $score = $fonction->comparaisonReponse($reponses,$idCandidat, $idProfil, $idAnnonce);
+    $messagerieModel=new MessagerieModel();
+    $_SESSION['messagerie'] = $messagerieModel->getTitresConversationsU($_SESSION['utilisateur']['id_utilisateur']);
     
+    //$message=$fonctionMess->getMessageAutomatique(1);
+    Flight::render('accueilU'); //[
+       // 'score' => $score,
+      //  'reponses' => $reponses,
+      //  'qcm' => $qcm
+       // 'messagerie'=>$message
 
-        public function getList(){
-            $fonction = new fonctionTest(Flight::db());
-            $list=$fonction->listTest();
-            $jobs=$fonction->getAllJobs();
-            Flight::render('listTestBack', ['list' => $list,'jobs'=> $jobs]);
+   // ]);
+}
+	public function QCM() {
+        $fonction = new fonctionTest(Flight::db());
+/*$idCandidat = Flight::request()->data['idCdt']; // 5
+$idAnnonce = Flight::request()->data['idAnn'];   // 12*/
+$idCandidat = Flight::request()->query['idCdt'];
+$idAnnonce = Flight::request()->query['idAnn'];
+
+error_log("dernier candidat : " . $idCandidat);
+error_log("dernier annonce : " . $idAnnonce);
+
+        $profilData = $fonction->getIdProfil($idCandidat,$idAnnonce);
+        if (empty($profilData)) {
+            Flight::halt(404, "Profil non trouvé pour ce candidat");
+            return;
         }
-        
-        public function getListByJob() {
-            $job = Flight::request()->query['metier'];  
+        $idProfil = $profilData[0]['id_profil'];
+        $questions = $fonction->getQst($idProfil);
+        $qcm = [];
+    
+        foreach ($questions as $q) {
+            $idQst = $q['id_question']; 
+            $reponses = $fonction->getRepQst($idQst); 
+    
+            $qcm[] = [
+                'id_question' => $idQst,
+                'question' => $q['question'],
+                'note' => $q['note'],
+                'reponses' => $reponses 
+            ];
+        }
+
+        Flight::render('formulaireTest', ['qcm' => $qcm,'idCandidat'=>$idCandidat,'idAnnonce'=>$idAnnonce]);
+    }
+   
+
+    public function getList(){
+        $fonction = new fonctionTest(Flight::db());
+        $list=$fonction->listTest();
+        $jobs=$fonction->getAllJobs();
+        Flight::render('listTestBack', ['list' => $list,'jobs'=> $jobs]);
+    }
+    public function getListByJob() {
+    $job = Flight::request()->query['metier'];  
 
             $fonction = new fonctionTest(Flight::db());
             $list = $fonction->trierMetier($job);
@@ -131,11 +132,11 @@ class TestController {
         $list = $fonction->trierTests($job,$colonne, $ordre);
         $jobs = $fonction->getAllJobs();
 
-        Flight::render('listTestBack', [
-            'list' => $list,
-            'jobs' => $jobs
-        ]);
-    }
+    Flight::render('listTestBack', [
+        'list' => $list,
+        'jobs' => $jobs
+    ]);
+}
 
 
     public function getAllQstWtRep() {
