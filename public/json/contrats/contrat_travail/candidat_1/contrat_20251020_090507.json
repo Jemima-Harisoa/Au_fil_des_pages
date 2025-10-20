@@ -9,53 +9,31 @@
         "qualite_representant": "Directeur Général"
     },
     "employe": {
-        "resilliation": "1",
+        "resilliation": "2",
         "modalite": {
-<<<<<<<< HEAD:public/json/contrats/contrat_travail/candidat_1/contrat_20251019_202242.json
             "debut_contrat": "2025-10-27",
-========
-            "debut_contrat": "",
->>>>>>>> testCopie2:public/json/contrats/contrat_travail/candidat_1/contrat_20250925_155820.json
             "duree": null,
-            "essai": ""
+            "essai": "2"
         },
         "lieu": "Rue des Lilas, Antananarivo",
         "poste": {
-<<<<<<<< HEAD:public/json/contrats/contrat_travail/candidat_1/contrat_20251019_202242.json
-            "qualite": "Vendeur \/ Vendeuse",
+            "qualite": "Magasinier",
             "class": ""
         },
         "remuneration": {
-            "salaire": "1000000",
+            "salaire": "800000",
             "avantages": [
-                "social:OSTI"
+                "espece:OSTI"
             ]
         },
         "noms_prenoms": "Rakoto Jean",
-        "ne_le": "2001-10-10",
-        "ne_a": "Befelatanana",
+        "ne_le": "2002-09-04",
+        "ne_a": "",
         "fils_ou_fille_de": "Ray aman-dreniny",
         "nationalite": "Malagasy",
         "domicile": "Tananarive",
         "lieu_edition": "Antananarivo",
-        "date_edition": "19\/10\/2025",
-========
-            "qualite": "Gerant \/ Manager",
-            "class": ""
-        },
-        "remuneration": {
-            "salaire": "",
-            "avantages": []
-        },
-        "noms_prenoms": "Rakoto Jean",
-        "ne_le": "2009-01-01",
-        "ne_a": "",
-        "fils_ou_fille_de": "",
-        "nationalite": "",
-        "domicile": "",
-        "lieu_edition": "Antananarivo",
-        "date_edition": "25\/09\/2025",
->>>>>>>> testCopie2:public/json/contrats/contrat_travail/candidat_1/contrat_20250925_155820.json
+        "date_edition": "20\/10\/2025",
         "signature": "Rakoto Jean"
     },
     "clause_general": {

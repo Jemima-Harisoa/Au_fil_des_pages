@@ -1,0 +1,8 @@
+planifierEntretien
+
+Acteur: administrateur
+Entree: listeCandidats,idAdmin
+Scénario nominal :
+    -l'admin se connecte
+    -il arrive sur la page d'accueil
+    -il arrive sur l

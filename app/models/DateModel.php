@@ -5,7 +5,7 @@ use Flight;
 use flight\Engine;
 use flight\database\PdoWrapper;
 use flight\debug\database\PdoQueryCapture;
-class DateModel{ 
+    class DateModel{ 
  private \DateTime $dateTime;
  private const JourEnLettres = ['Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi','Dimache'];
     // Constructeur : accepte soit un timestamp, soit une chaîne de date
