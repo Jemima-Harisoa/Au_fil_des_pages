@@ -1,163 +1,22 @@
 Module entretien(automatique)
+Base:
+	-planning entretien:5 min
+	-disponibilite employé: 5 min
+	-jour_ferie: 5min
+	-config_entretien:5min
+Fonction:
+	-assignationEntretien(liste_candidats_selectionnes)15min
+	-configurerDureeEntretien(id_annonce)10min
+	-upateAllEntretien()20min
+	-getAllTempsDisponibles(id_emloye)10min
+	-reporterEntretien(id_entretien,id_employe,nouvelle_date_entretien)30min
+	-rejeterEntretien(id_entretien,id_employe)10min
+	-getEntretiensPresDate(date)10min
+	-checkJourFerie(date_entretien)5min
+	-getDureeEntretien(id_departement)10min
+	-getEntretienPlanifies()15min
 
-controleurEntretien:
-
-MettreAJourEntretiens($listeEntretien,$date): 20min OK
--$date doit etre la date actuelle
--verifier  la taille de la liste :
-	*si vide:
-		on fait rien (mettre return)
-	*sinon
-		on fait un boucle sur $listeEntretien acceptees ou reportes
-		si :
-			si $etat_planning == "accepte" || $etat_planning == "reporte"
-
-			+date_entretien == $date
-
-			insertion dans la table historique_Planning_Entretien avec l'ancien etat
-			mettre le planning d'entretien dans la table planning_entretien
-
-informerCandidat($candidat): 20min
-	profil associé a des responsables d'entretien:
-	est accepté par tous les responsables de l'entretien,
-	appeler la fonction envoyerMessageU()
-
-compterNombreEntretien($candidats):15min
-
-planning_entretien.php
-	Base:
-		-planning_entretien
-		-Tests
-		-Etat(planifié,confirmé,annulé,terminé,en cours)
-		-historique_planning_entretien
-	Fonction:
-		1-planifierEntretien($listeCandidat,$id_responsable)
-
-		2-informerCandidat($candidat)20min
-
-		3-save()(ecrit dans la classe PlanningEntretienModel)(ok)
-
-		4-getLastPlanning($responsable)(ok)10min
-
-		5-checkCandidatsInEntretien($candidats)(ok) 5min
-
-		6-save(dans la classe nomme HistoriquePlanningEntretienModel)10min(ok)
-
-		7- filtrerEntretien($criteres)20min(ok)
-
-		8-envoyerMessage($emetteur , $recepteur)(ok)
-	
-		9-ListeCandidatsAEntretenir($listeCandidats,$idAmdin)
-
-		10-voirAgendaResponsable($id_responsable)(calendrier)(30min)
-
-		11-getPlanningEntretienByIdAdmin($id_responsable)15 min
-
-		12-getListeEntretiens($id_responsable) 15 min
-		
-		13-entretienExiste($id_entretien);5 min
-
-		14-modifierEntretien($id_entretien,$id_etat)10min
-
-		15-prochaineDateDisponible($id_responsable)30min
-	Affichage:
-		-bouton pour planification automatique(ok)5min
-		-table(Datatable) liste des entretiens avec derniere colonne ,
-		actions(boutons:reporter ,rejeter,accepter)(ok) derniere colonne  valide si etat annule ou rejete 2min
-		-un formulaire recherche multi critere
-	Integration:
-		-un administrateur se connecte avec son compte  et l'id de son compte est stocké dans une session,
-
-		-il arrive sur une page où on trouve le bouton planifier entretien,appel de la fonction planifierEntretien($listeCandidat,$id_responsable)
-
-		-si les entretiens déjà planifiés =>le bouton planifier entretien non cliquable
-
-		Sinon :
-		-chaque ligne avec une colonne actions:
-			si date entretien == date du jour 
-				soit etat entretien "accepter" ou "reporter":
-					on a deux bouton  : "commencer","terminer"
-					on ne peut pas terminer un entretien non commence
-					=>si on termine un entretien non commence, exception("ce n'est pas un entretien")
-				si etat entretien "termine":
-					on met un message : "aucune action disponible"
-			sinon:
-			si etat entretien "planifie":
-				actions : 
-						"reporter","annuler","accepter" si l'admin n'est pas responsable de l'entretien
-			il clique sur le bouton, appel fonction planifierEntretien , affichage des entretiens planifies dans la table
-
-
-			si responsable est RH:[$_session==$id_admin_rh]
-				il est toujours concerné dans tous les planning d'entretien;
-				
-			sinon:[$session != $id_admin_no_rh]
-				-appel de la fonction getListeEntretien($session["id_responsables]):
-
-				-Si n'appartient pas:
-					*clic  reporter:(apres avoir recu un message venant d'un candidat ou d'un responsable entretien):
-					appel de la fonction voirAgendaResponsable()
-
-					un popup qui s'affiche :
-						-nouvelle date[apres avoir vu l'agenda d'un responsable] pour l'entretien,l'id url = 2
-						-un text area pour la raison de modification
-						,appel de la fonction save dans HistoriquePlanningEntretienModel avec:
-						$historique_Planning_Entretien={
-							id_entretien: id_entretien à modifier,
-							date_modification:date saisie dans le popup
-							raison_modification:...
-						}
-
-					*Si annuler: même principe que précédemment mais l'id url = 3 un meme popup s'affiche
-				-Sinon:
-					*il peut rejeter
-					*accepter: id url = 1 ,appel de la fonction save dans HistoriquePlanningEntretienModel:
-						$historique_Planning_Entretien={
-							id_entretien: id_entretien à modifier,
-							date_modification:date du jour
-							raison_modification:...
-						}
-				clic rejeter:
-				afficher  popup : 
-					raison modidfication: input type text area,
-					bouton valider et annuler
-					input type hidden = id_entretien
-						$historique_Planning_Entretien={
-							id_entretien: id_entretien à modifier,
-							date_modification:date du jour
-							raison_modification:...
-						}
-				-cliquer  valider:
-				alert("ete vous sur de valider cet entretien):
-					Si oui: 
-					$historique_Planning_Entretien={
-							id_entretien: id_entretien à modifier,
-							date_modification:date du jour
-							raison_modification:vide
-					}
-				appel de la fonction save() de HistoriquePlanningEntretienModel
-			appel de la fonction envoyerMessage($responsable,$candidat)
-			
-
-				-clic sur reporter:
-				popup qui affiche les champs suivants:
-				date de modification
-				boutons:valider ,annuler
-
-				-si valider appeler la fonction modifierEntretien($id_planning_entretien,$id_etat)
-				-sinon on affiche()
-
-disponibilite_entretien.php
-	Base:
-		-responsable_entretien
-		-disponibilite_entretien
-	Affichage:
-		table qui affiche les jours et heure de debut et heure fin des disponibilites entretien admin connecte
-
-	Fonctions:
-		getDisponibiliteEntretienValide($idAdmin):
-			recuperer les disponiblites encore valides
-
-
-	Integration:
-		appel de la fonction getDisponibiliteEntretienValide()
+Integration:
+	-
+	-
+	-

@@ -156,40 +156,6 @@
                                     </div>
                                 </div>
                                 <ul id="listeAvantages" class="list-group mb-3"></ul>
-                        <!-- Sélection d’un employé validateur -->
-                        <h5 class="mb-3">Validation du contrat</h5>
-                            <div class="form-group">
-                                <label for="employeValidateur">Employé validateur</label>
-                                <input type="text" list="listeEmployes" class="form-control form-control-user" 
-                                    name="employeValidateur"
-                                    placeholder="Rechercher un employé (nom ou prénom)">
-                                <datalist id="listeEmployes">
-                                    <?php if (!empty($data['liste_employes'])): ?>
-                                        <?php foreach ($data['liste_employes'] as $emp): ?>
-                                            <option value="<?= htmlspecialchars($emp['nom'] . ' ' . $emp['prenom']) ?>" 
-                                                    data-id="<?= htmlspecialchars($emp['id_employe']) ?>">
-                                                <?= htmlspecialchars($emp['nom'] . ' ' . $emp['prenom'] . ' — ' . $emp['departement_nom']) ?>
-                                            </option>
-                                        <?php endforeach; ?>
-                                    <?php endif; ?>
-                                </datalist>
-                            </div>
-
-                            <!-- Sélection du département -->
-                            <div class="form-group">
-                                <label for="departement">Département</label>
-                                <input type="text" list="listeDepartements" class="form-control form-control-user"
-                                    name="departement"
-                                    placeholder="Choisir ou rechercher un département">
-                                <datalist id="listeDepartements">
-                                    <?php if (!empty($data['liste_departements'])): ?>
-                                        <?php foreach ($data['liste_departements'] as $dep): ?>
-                                            <option value="<?= htmlspecialchars($dep['nom']) ?>" 
-                                                    data-id="<?= htmlspecialchars($dep['id_departement']) ?>">
-                                        <?php endforeach; ?>
-                                    <?php endif; ?>
-                                </datalist>
-                            </div>
 
                                 <input type="submit" value="Générer le contrat" class="btn btn-primary btn-user btn-block">
                             </form>

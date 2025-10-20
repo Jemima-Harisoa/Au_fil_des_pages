@@ -80,6 +80,9 @@ class ConnexionController {
         $p = new ConnexionModel(Flight::db());
         $AdminModel = new AdminModel(Flight::db());
 
+        $messagerieModel = new MessagerieModel(Flight::db());
+
+
         
             $Nom = $_POST['Nom'];
             $mdp = $_POST['mdp'];

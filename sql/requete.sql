@@ -1,8 +1,6 @@
 --recuperer les candidats avec leurs informatiions 
 CREATE OR REPLACE VIEW v_candidats_personnes AS
-SELECT per.nom as nom_candidat,
-        per.prenom as prenom_candidat,
-        per.date_naissance,
+SELECT per.*,
         ca.id_candidat,
         ca.id_annonce,
         ca.id_profil,
@@ -20,15 +18,17 @@ JOIN profils pr
 CREATE OR REPLACE VIEW v_responsable_personnes AS
 SELECT per.*,
         re.*
-FROM  "admins" ad
+FROM  employes em
 JOIN (SELECT 
         DISTINCT
-        id_responsable,id_admin
+        id_responsable,id_employe
         FROM responsable_entretien
-        )re
-ON re.id_admin = ad.id_admin
-JOIN employes em
-ON em.id_employe = ad.id_employe
+        where id_responsable in(
+            SELECT MAX(id_responsable) 
+            FROM responsable_entretien
+            group by id_employe
+        )) re
+ON re.id_employe = em.id_employe
 JOIN personnes per
 ON per.id_personne = em.id_personne;
 
@@ -37,8 +37,7 @@ ON per.id_personne = em.id_personne;
 SELECT pe.*,
        te.*,
        vrp.nom as nom_responsable,
-       vrp.prenom as prenom_responsable,
-       e.nom
+       vrp.prenom as prenom_responsable
     FROM planning_entretien pe
     JOIN (
         SELECT vcp.*,
@@ -52,8 +51,6 @@ SELECT pe.*,
     ON pe.id_candidat = te.id_candidat
     JOIN v_responsable_personnes vrp
     on vrp.id_responsable = pe.id_responsable
-    JOIN etat e
-    ON e.id_etat = pe.etat
     WHERE pe.etat = 3 ;
     
 
@@ -73,7 +70,7 @@ CREATE OR REPLACE VIEW v_disponibilite_employe_valide as(
     -- en utilisant la table candidat en jointure avec les 
     -- tables planning_entretien,employes
 CREATE OR REPLACE VIEW v_entretien_candidat_apres_une_date as(
-SELECT  pe.*,e.id_departement;
+SELECT  pe.*,e.id_departement
     FROM candidats c
     JOIN planning_entretien pe
     ON pe.id_candidat = c.id_candidat
@@ -87,7 +84,26 @@ SELECT  pe.*,e.id_departement;
     ON e.poste = c.poste
     WHERE pe.date_heure_entretien >=""
 );
-
+--Recuperation disponibilite_employe valide pour tous les id_departements
+CREATE OR REPLACE VIEW v_disponibilite_employe_valide as(
+SELECT de.*,em.id_departement,em.poste,CASE jour
+    WHEN 'Lundi'THEN 1
+    WHEN 'Mardi'THEN 2
+    WHEN 'Mercredi'THEN 3
+    WHEN 'Jeudi'THEN 4
+    WHEN 'Vendredi'THEN 5
+    WHEN 'Samedi'THEN 6
+    WHEN 'Dimanche'THEN 7
+    END as numero_jour
+    FROM  disponibilite_entretien de 
+    JOIN (
+        SELECT 
+        id_employe,poste,id_departement
+        FROM employes
+    )em
+    ON em.id_employe = de.id_employe
+    and de.est_valide
+);
 
 --Recuperation disponibilite_employe valide pour un id_deparement par ordre chronologique
 select  id_employe,
@@ -130,21 +146,19 @@ SELECT * FROM responsable_entretien where id_profil = ?;
 CREATE OR REPLACE VIEW v_responsable_avec_departement AS
     SELECT 
         re.id_responsable,
-        re.id_admin,
+        re.id_employe,
         em_de.nom as nom_departement,
         em_de.id_departement
     FROM responsable_entretien re
     JOIN (
-        SELECT Em.*,de.nom
-        FROM (SELECT em.*,ad.id_admin
+        SELECT EM.*,de.nom
+        FROM (SELECT *
         FROM employes em
-            join "admins" ad
-            ON ad.id_employe = em.id_employe
         )Em
         JOIN departements de
         ON de.id_departement = Em.id_departement
     )em_de
-    ON em_de.id_admin = re.id_admin;
+    ON em_de.id_employe = re.id_employe;
 
 
 --Recuperer la configuraion d'entretiens pour un responsable
@@ -163,16 +177,11 @@ SELECT re.*,de.*
 FROM (SELECT * 
         FROM responsable_entretien  
         WHERE  id_responsable = ?
-    )re
-    JOIN (
-        SELECT em.*,ad.id_admin
-        from admins ad
-        join employes em 
-        on em.id_employe = ad.id_employe
-    )em
-    on em.id_admin = re.id_admin
-    JOIN departements de 
-    ON de.id_departement = em.id_departement;
+)re
+JOIN employes em 
+ON em.id_employe = re.id_employe
+JOIN departements de 
+ON de.id_departement = em.id_departement;
 
 --recuperer le planning d'entretien le plus recent pour un responsable d'enetretien
 CREATE OR REPLACE VIEW v_planning_entretien_recent_responsable as
@@ -185,26 +194,5 @@ where date_heure_entretien in(
 );
 
 
---recuperer les disponibilites  d'entretien pou un admin
-select  
-    * 
-from disponibilite_entretien
-where id_responsable in
-(select
-    id_responsable 
-from responsable_entretien 
-where id_admin = ?)
-
---recuperer le departement d'un admin
-select 
-    * 
-from admins ad 
-join
-(select 
-    em.*,de.nom
-        from employes em
-        join 
-     departements de on de.id_departement = em.id_departement 
-    )em
-    on em.id_employe = ad.id_employe
-where ad.id_admin = ?;
+SELECT 
+FROM planning_entretien

@@ -153,7 +153,7 @@ class DisponibiliteEntretienModel {
                 else{
                     switch($i ){
                         case count($listeDisponibiliteEntretien)-1:
-                            $diffJour = ($listeDisponibiliteEntretien[0]["jour"]+7)-$listeDisponibiliteEntretien[$i]["jour"];
+                            $diffJour = ($listeDisponibiliteEntretien[0]+7)-$listeDisponibiliteEntretien[$i]["jour"];
                             break;
                         default:
                             $diffJour = $listeDisponibiliteEntretien[$i+1]["jour"]-$listeDisponibiliteEntretien[$i]["jour"];

@@ -14,7 +14,6 @@ use app\models\DisponibiliteEntretienModel;
 use app\models\ConfigEntretienModel;
 use app\models\CandidatModel;
 use app\models\TestModel;
-use app\models\EtatModel;
 use app\models\ProfilsModel;
 use app\models\PlanningEntretienModel;
 
@@ -22,13 +21,11 @@ use app\models\migration\PersonneModel;
 use app\models\migration\ScoringModel;
 use app\models\migration\TypeContratModel;
 use app\models\migration\ContratModel;
-use app\models\EmployeModel;
-use app\models\DepartementModel;
+use app\models\EtatModel;
 use app\models\migration\HistoriqueValidationModel;
 use app\models\migration\HistoriqueContratModel;
 
 
-use app\models\HistoriquePlanningEntretienModel;
 
 /** 
  * @var array $config This comes from the returned array at the bottom of the config.php file
@@ -132,18 +129,3 @@ Flight::map("HistoriqueContrat", function(){
     return new HistoriqueContratModel(Flight::db());
 });
 
-Flight::map('ConnexionModel', function () {
-    return new connexionModel(Flight::db());
-});
-
-Flight::map('adminModel', function () {
-    return new AdminModel(Flight::db());
-});
-
-Flight::map('Employe', function () {
-    return new EmployeModel(Flight::db());
-});
-
-Flight::map('Departement', function () {
-    return new DepartementModel(Flight::db());
-});

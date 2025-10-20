@@ -7,7 +7,7 @@ use Flight;
 
 class WelcomeController {
     public function home() {
-        Flight::render('agenda');
+        Flight::render('index');
     }
     public function AppelAccueilG() {
         Flight::render('accueilG');
