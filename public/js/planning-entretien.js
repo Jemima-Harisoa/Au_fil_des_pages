@@ -127,10 +127,10 @@ var table = $("#dataTable").DataTable({
                 return new Date().getFullYear() - birth.getFullYear();
             }
         },
-        { data: null, render: row => `${row.nom_responsable ?? ""} ${row.prenom_responsable ?? ""}` },
         { data: "profil" },
         { data: "score_test" },
         { data: "date_test" },
+        {data: "etat"},
         { data: "date_heure_entretien" },
         {
             data: null,

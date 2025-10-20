@@ -18,10 +18,13 @@
         rel="stylesheet">
 
     <!-- Custom styles for this template-->
+    <script src="js/jquery-3.6.0.min.js"></script>
+
     <link href="/css/sb-admin-2.min.css" rel="stylesheet">
     
     <!-- Custom styles for this page -->
     <link href="/vendor/datatables/dataTables.bootstrap4.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="css/planning-entretien.css">
 
 </head>
 

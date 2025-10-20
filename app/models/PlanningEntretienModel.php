@@ -323,11 +323,7 @@ class PlanningEntretienModel{
         $sql .= " AND EXTRACT(YEAR FROM AGE(te.date_naissance)) <= ?";
         $params[] = $data["age_max"];
     }
-    if (!empty($data["responsable"])) {
-        $sql .= " AND (vrp.nom ILIKE ? OR vrp.prenom ILIKE ?)";
-        $params[] = "%{$data['responsable']}%";
-        $params[] = "%{$data['responsable']}%";
-    }
+
     if (!empty($data["profil_candidat"])) {
         $sql .= " AND te.profil ILIKE ?";
         $params[] = "%{$data['profil_candidat']}%";
@@ -343,6 +339,10 @@ class PlanningEntretienModel{
     if (!empty($data["date_test"])) {
         $sql .= " AND te.date_test = ?";
         $params[] = $data["date_test"];
+    }
+    if (!empty($data["etat"])) {
+        $sql .= " AND (etat ILIKE ? ";
+        $params[] = "%{$data['responsable']}%";
     }
     if (!empty($data["date_heure_entretien"])) {
         $sql .= " AND pe.date_heure_entretien::date = ?";
