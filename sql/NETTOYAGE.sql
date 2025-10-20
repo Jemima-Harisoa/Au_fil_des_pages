@@ -1,3 +1,5 @@
+
+
 -- Désactiver temporairement les contraintes si nécessaire
 -- (optionnel, TRUNCATE CASCADE gère déjà les dépendances)
 CREATE OR REPLACE FUNCTION nettoyer()

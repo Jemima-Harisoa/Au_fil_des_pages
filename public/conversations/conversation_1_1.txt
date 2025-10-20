@@ -1,1 +1,7 @@
-[2025-09-25 21:38:28] Admin: Merci d avoir complete le test. Vos reponses ont ete enregistrees.Les responsables d Au fil des Page vont analyser vos resultats et vous serez recontacte prochainement.
+[2025-09-25 21:38:28] Admin: Merci d avoir complete le test. Vos reponses ont ete enregistrees.Les responsables d Au fil des Page vont analyser vos resultats et vous serez recontacte prochainement.[2025-10-20 15:40:03] Utilisateur: [LU]
+[2025-10-20 15:40:03] Utilisateur: [LU]
+[2025-10-20 15:40:04] Utilisateur: [LU]
+[2025-10-20 15:43:35] Admin: Voici votre contrat.
+[2025-10-20 15:43:35] Admin: <a href='\json\contrats\contrat_travail/candidat_1/contrat_20251020_154242.json'>contrat</a>
+[2025-10-20 15:43:45] Utilisateur: [LU]
+[2025-10-20 15:43:46] Utilisateur: [LU]

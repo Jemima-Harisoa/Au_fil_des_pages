@@ -312,7 +312,7 @@ $profil = $data['profil'] ?? [];
         </div>
     </div>
 </div>
-    <?php Flight::render("footerA")?>
+    <?php Flight::render("footer")?>
 
 
 <!-- Scripts nécessaires -->
