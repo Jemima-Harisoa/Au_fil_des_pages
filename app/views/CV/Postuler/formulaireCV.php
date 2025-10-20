@@ -2,6 +2,7 @@
   $idUser = $_SESSION['utilisateur']['id_utilisateur'];
   $idAnnonce = $idAnnonce;
   $idProfil = $idProfil;
+//   echo "Utilisateur: " . $idUser . " Annonce: " . $idAnnonce . " || Profil: " . $idProfil;
 
   // Connexion via Flight (si tu as déjà configuré Flight::db())
   $db = Flight::db();
@@ -15,7 +16,7 @@
   $diplomes = $stmt->fetchAll(PDO::FETCH_ASSOC);
 ?>
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -78,11 +79,10 @@
         .file-input { 
             border: 2px dashed #d1d5db; 
             border-radius: 8px; 
-            padding: 1.5rem; 
+            padding: 2rem; 
             text-align: center; 
             cursor: pointer; 
             transition: all 0.3s ease; 
-            position: relative;
         }
         .file-input:hover { 
             border-color: #2563eb; 
@@ -91,26 +91,6 @@
         .file-input input[type="file"] { 
             display: none; 
         }
-        /* Previews */
-        .file-input img#file-input-preview {
-            width: 120px;
-            height: 120px;
-            object-fit: cover;
-            border-radius: 12px;
-            display: block;
-            margin: 0 auto 0.75rem;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-        }
-        .cv-photo {
-            width: 140px;
-            height: 140px;
-            object-fit: cover;
-            border-radius: 12px;
-            display: block;
-            margin: 0 0 1rem 0;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
-        }
-        .hidden { display: none !important; }
     </style>
 </head>
 <body class="bg-gray-50 min-h-screen">
@@ -130,12 +110,10 @@
                 <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
                     <div class="col-span-2">
                         <label for="id_photo_identite" class="block text-sm font-medium text-gray-700 mb-2">Photo d'identité (requis)</label>
-                        <div class="file-input" id="file-input-area" title="Cliquer pour sélectionner une photo">
-                            <!-- Image preview (dans le formulaire) -->
-                            <img id="file-input-preview" class="hidden" src="#" alt="Aperçu photo" />
-                            <p id="file-input-text" class="text-gray-500">Glissez-déposez ou cliquez pour sélectionner une photo (formats JPG, PNG)</p>
+                        <div class="file-input">
                             <input type="hidden" name="MAX_FILE_SIZE">
                             <input type="file" name="photo_identite" id="id_photo_identite" required accept="image/*">
+                            <p class="text-gray-500">Glissez-déposez ou cliquez pour sélectionner une photo (formats JPG, PNG)</p>
                         </div>
                     </div>
                     <div>
@@ -272,12 +250,6 @@
                 <!-- Aperçu à droite -->
                 <div class="w-full lg:w-1/2 preview-container">
                     <h2 class="text-2xl font-bold text-gray-900 mb-6">Aperçu du CV</h2>
-
-                    <!-- Photo preview on CV -->
-                    <div class="mb-6 text-center">
-                        <img id="cv-photo-preview-img" class="cv-photo hidden" src="#" alt="Photo du CV">
-                    </div>
-
                     <div class="preview mb-6">
                         <h3 class="text-lg font-semibold text-gray-800 mb-2">Compétences</h3>
                         <ul id="list-competences" class="text-gray-600">
@@ -445,94 +417,9 @@
       console.log('combineValuesMap updated:', combineValuesMapInput.value);
     }
 
-    // ----- Image preview logic -----
-    const fileInput = document.getElementById('id_photo_identite');
-    const fileInputArea = document.getElementById('file-input-area');
-    const fileInputPreview = document.getElementById('file-input-preview');
-    const fileInputText = document.getElementById('file-input-text');
-    const cvPhotoPreview = document.getElementById('cv-photo-preview-img');
-
-    // click ouvre l'input file (déjà en place)
-    fileInputArea.addEventListener('click', (e) => {
-      // évite d'ouvrir deux fois si on clique sur l'input lui-même
-      if (e.target !== fileInput) {
-        fileInput.click();
-      }
-    });
-
-    // Lorsqu'un fichier est sélectionné, on affiche les previews
-    fileInput.addEventListener('change', (e) => {
-      const file = e.target.files && e.target.files[0];
-      if (!file) {
-        clearImagePreviews();
-        return;
-      }
-      if (!file.type.startsWith('image/')) {
-        alert('Veuillez sélectionner un fichier image (JPG, PNG, ...).');
-        fileInput.value = '';
-        clearImagePreviews();
-        return;
-      }
-
-      const reader = new FileReader();
-      reader.onload = function(event) {
-        const dataUrl = event.target.result;
-        // Preview dans le champ d'upload
-        fileInputPreview.src = dataUrl;
-        fileInputPreview.classList.remove('hidden');
-        fileInputText.classList.add('hidden');
-
-        // Preview dans l'aperçu du CV
-        cvPhotoPreview.src = dataUrl;
-        cvPhotoPreview.classList.remove('hidden');
-      };
-      reader.readAsDataURL(file);
-    });
-
-    function clearImagePreviews() {
-      fileInputPreview.src = '#';
-      fileInputPreview.classList.add('hidden');
-      fileInputText.classList.remove('hidden');
-      cvPhotoPreview.src = '#';
-      cvPhotoPreview.classList.add('hidden');
-    }
-
-    // Optionnel : support du glisser-déposer (drop) simple
-    ;(function enableDragDrop() {
-      ['dragenter', 'dragover'].forEach(evt =>
-        fileInputArea.addEventListener(evt, (e) => {
-          e.preventDefault();
-          e.stopPropagation();
-          fileInputArea.classList.add('ring-2','ring-blue-400');
-        })
-      );
-      ['dragleave', 'drop'].forEach(evt =>
-        fileInputArea.addEventListener(evt, (e) => {
-          e.preventDefault();
-          e.stopPropagation();
-          fileInputArea.classList.remove('ring-2','ring-blue-400');
-        })
-      );
-      fileInputArea.addEventListener('drop', (e) => {
-        const dt = e.dataTransfer;
-        if (!dt || !dt.files || dt.files.length === 0) return;
-        const file = dt.files[0];
-        // Remplir le input file (pour l'envoi au serveur)
-        const dataTransfer = new DataTransfer();
-        dataTransfer.items.add(file);
-        fileInput.files = dataTransfer.files;
-        // déclencher le change pour afficher la preview
-        const ev = new Event('change', { bubbles: true });
-        fileInput.dispatchEvent(ev);
-      });
-    })();
-
-    // initialisation : mettre à jour les listes et boutons au chargement
-    document.addEventListener('DOMContentLoaded', () => {
-      ['competences','skills','loisirs','filiere','experience-pro','certification','langues'].forEach(id => {
-        updateButtons(id);
-        updateList(id);
-      });
+    // Ajout d'un événement pour l'upload d'image
+    document.querySelector('.file-input').addEventListener('click', () => {
+      document.getElementById('id_photo_identite').click();
     });
     </script>
 </body>
