@@ -13,6 +13,7 @@ class HistoriquePlanningEntretienModel
     private $id_entretien;
     private $etat;
     private $date_modification;
+    private $raison_modification;
 
     public function __construct($pdo)
     {
@@ -41,6 +42,11 @@ class HistoriquePlanningEntretienModel
         return $this->date_modification;
     }
 
+    public function getRaisonModification()
+    {
+        return $this->raison_modification;
+    }
+
     // ----------------------
     // Setters
     // ----------------------
@@ -64,22 +70,28 @@ class HistoriquePlanningEntretienModel
         $this->date_modification = $date_modification;
     }
 
+
+    public function setRaisonModification($raison_modification)
+    {
+        $this->raison_modification = $raison_modification;
+    }
     /**
      * Sauvegarde un nouvel enregistrement dans la table
      */
     public function save()
     {
         $stmt = $this->pdo->prepare("
-            INSERT INTO historique_planning_entretien (id_entretien, etat)
-            VALUES (:id_entretien, :etat)
+            INSERT INTO historique_planning_entretien (id_entretien, etat,raison_modification)
+            VALUES (:id_entretien, :etat,:raison_modification)
             RETURNING id_historique_planning, date_modification
         ");
         $stmt->execute([
             ':id_entretien' => $this->id_entretien,
-            ':etat' => $this->etat
+            ':etat' => $this->etat,
+            ':raison_modification' => $this->raison_modification
         ]);
 
-        $result = $stmt->fetch(PDO::FETCH_ASSOC);
+        $result = $stmt->fetch();
         $this->id_historique_planning = $result['id_historique_planning'];
         $this->date_modification = $result['date_modification'];
         return $this;

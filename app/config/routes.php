@@ -30,8 +30,10 @@ $Migration_Controller = new MigrationController();
 // ===== CONNEXION ROUTES =====
 $router->get('/', [ $ConnexionController, 'AppelLoginU' ]);
 $router->post('/inscriptionU', [ $ConnexionController, 'InscrireU' ]);
-$router->post('/loginU', [ $ConnexionController, 'VerificationConnectionU' ]);
-$router->get('/deconnexion', [ $ConnexionController, 'deconnexion' ]);
+
+$router->post('/loginU', [ $ConnexionController, 'VerificationConnectionU' ]); // 11.16
+
+$router->get('/deconnexionU', [ $ConnexionController, 'deconnexionU' ]);
 
 $router->get('/admin', [ $ConnexionController, 'AppelLoginA' ]);
 $router->post('/inscriptionA', [ $ConnexionController, 'InscrireA' ]);

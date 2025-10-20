@@ -18,19 +18,5 @@
 
     <div id="calendar"></div>
 
-    <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        var calendarEl = document.getElementById('calendar');
-        var calendar = new FullCalendar.Calendar(calendarEl, {
-            initialView: 'dayGridMonth', // vue par mois
-            selectable: true,
-            select: function(info) {
-                alert('Vous avez sélectionné : ' + info.startStr);
-            }
-        });
-        calendar.render();
-    });
-    </script>
-
 </body>
 </html>
