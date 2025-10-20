@@ -112,7 +112,7 @@ class MigrationController {
 
     // Redirection vers la pages d'edition du contrat
     public function editContrat() {
-        if (!$this->requireAdmin()) return;
+        // if (!$this->requireAdmin()) return; pas besoin car l'utilisateur peut valider
 
         $id_contrat = Flight::request()->query['id'] ?? null;
 
@@ -382,7 +382,7 @@ class MigrationController {
                 }
                 $actionLabel = "Validation";
                     $messagerieModel=new MessagerieModel();
-                    $lien_contrat = $existingContrat['url_contrat'];
+                    $lien_contrat = "/migration/contrat/edit?id={$id_contrat}";
                     $formated_link = $messagerieModel->styliserLiens($lien_contrat, "Voir le contrat");
                     $messagerieModel->repondreA($id_candidat, $candidat['id_annonce'], 
                     "📄 Votre contrat a été généré.{$formated_link}");
@@ -432,47 +432,57 @@ class MigrationController {
 
         $id_candidat = Flight::request()->query['id'] ?? null;
 
-        // Si pas d'id → formulaire vierge
+        // Modèles
+        $personneModel     = Flight::Personne();
+        $candidatModel     = Flight::Candidat();
+        $contratModel      = Flight::Contrat();
+        $typeContratModel  = Flight::TypeContrat();
+        $etatModel         = Flight::Etat();
+        $employeModel      = Flight::Employe();      // ✅ nouveau
+        $departementModel  = Flight::Departement();  // ✅ nouveau
+
+        // Récupérer la liste des employés et départements
+        $listeEmployes     = $employeModel->listWithDetails();
+        $listeDepartements = $departementModel->list();
+
         if (!$id_candidat) {
-            Flight::render('migration/form');
+            Flight::render('migration/form', [
+                'data' => [
+                    'liste_employes' => $listeEmployes,
+                    'liste_departements' => $listeDepartements
+                ]
+            ]);
             return;
         }
-
-        // Modèles
-        $personneModel   = Flight::Personne();
-        $candidatModel   = Flight::Candidat();
-        $contratModel    = Flight::Contrat();
-        $typeContratModel = Flight::TypeContrat();
-        $etatModel        = Flight::Etat();
 
         // Récupérer le candidat
         $candidat = $candidatModel->getBy('id_candidat', $id_candidat);
 
-        // Profils
-        $profilsModel = Flight::Profils();
-        $profil = null;
-        //if (!empty($candidat['id_profil'])) { $profil = $profilsModel->getById($candidat['id_profil']); }
-
-        // Si candidat non trouvé → formulaire vierge
+        // Si candidat non trouvé → formulaire vide
         if (!$candidat) {
-            Flight::render('migration/form', ['data' => []]);
+            Flight::render('migration/form', [
+                'data' => [
+                    'liste_employes' => $listeEmployes,
+                    'liste_departements' => $listeDepartements
+                ]
+            ]);
             return;
         }
 
-        // Récupérer la personne associée
+        // Récupérer la personne
         $personne = $personneModel->getBy('id_personne', $candidat['id_personne']);
 
-        // Récupérer la liste des types de contrats
+        // Récupérer la liste des types et états
         $typeContrats = $typeContratModel->list();
-        // Récupérer la liste des états
         $etats = $etatModel->list();
 
         $data = [
             'candidat' => $candidat,
             'personne' => $personne,
-            'profil' => $profil,
             'type_contrats' => $typeContrats,
-            'etats' => $etats
+            'etats' => $etats,
+            'liste_employes' => $listeEmployes,        // ✅ ajouté ici
+            'liste_departements' => $listeDepartements // ✅ ajouté ici
         ];
 
         Flight::render('migration/form', ['data' => $data]);

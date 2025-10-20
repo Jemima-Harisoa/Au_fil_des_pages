@@ -22,6 +22,8 @@ use app\models\migration\ScoringModel;
 use app\models\migration\TypeContratModel;
 use app\models\migration\ContratModel;
 use app\models\EtatModel;
+use app\models\EmployeModel;
+use app\models\DepartementModel;
 use app\models\migration\HistoriqueValidationModel;
 use app\models\migration\HistoriqueContratModel;
 
@@ -135,4 +137,12 @@ Flight::map('ConnexionModel', function () {
 
 Flight::map('adminModel', function () {
     return new AdminModel(Flight::db());
+});
+
+Flight::map('Employe', function () {
+    return new EmployeModel(Flight::db());
+});
+
+Flight::map('Departement', function () {
+    return new DepartementModel(Flight::db());
 });
