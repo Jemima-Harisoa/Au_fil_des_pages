@@ -24,7 +24,8 @@ use app\models\migration\ContratModel;
 use app\models\EtatModel;
 use app\models\migration\HistoriqueValidationModel;
 use app\models\migration\HistoriqueContratModel;
-
+use app\models\EmployeModel;
+use app\models\DepartementModel;
 
 
 /** 
@@ -129,3 +130,10 @@ Flight::map("HistoriqueContrat", function(){
     return new HistoriqueContratModel(Flight::db());
 });
 
+Flight::map('Employe', function () {
+    return new EmployeModel(Flight::db());
+});
+
+Flight::map('Departement', function () {
+    return new DepartementModel(Flight::db());
+});

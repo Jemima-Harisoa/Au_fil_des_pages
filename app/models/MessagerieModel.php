@@ -313,4 +313,27 @@ class MessagerieModel {
             'titre'        => $titre
         ]);
     }
+
+        // Fonction pour détecter et styliser les liens dans les messages
+    public function styliserLiens($message, $urlAffichage) {
+        // Pattern pour détecter URLs absolues et chemins relatifs
+        $pattern = '/((https?:\/\/[^\s]+)|(\/[a-zA-Z0-9\/._-][^\s]*))/i';
+        
+        $messageAvecLiens = preg_replace_callback($pattern, function($matches) {
+            $url = htmlspecialchars($matches[0]);
+            
+            // Si c'est un chemin relatif (commence par /)
+            if (strpos($matches[0], '/') === 0 && !preg_match('/^\/\/[^\/]/', $matches[0])) {
+                // Utiliser le base URL de Flight ou une config
+                $baseUrl = Flight::request()->base; // ou définir une constante
+                $urlComplete = $baseUrl . $matches[0];
+                return '<a href="' . $urlComplete . '" class="btn btn-primary btn-sm message-lien" style="padding: 4px 12px; margin: 2px; display: inline-block; text-decoration: none;"> ' . $urlAffichage . '</a>';
+            }
+            
+            // URLs absolues
+            return '<a href="' . $url . '" target="_blank" class="btn btn-primary btn-sm message-lien" style="padding: 4px 12px; margin: 2px; display: inline-block; text-decoration: none;"> ' . $urlAffichage . '</a>';
+        }, $message);
+        
+        return $messageAvecLiens;
+    }
 }

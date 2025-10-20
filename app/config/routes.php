@@ -152,6 +152,7 @@ $router->get('/planning-entretien',[$planning_entretien_controller,'showPageEntr
 
 $api_planning_entretien_controller = new ApiPlanningEntretienController();
 $router->get('/api/planifier-entretien',[$api_planning_entretien_controller,'planifierEntretien']);
+
 $Migration_Controller = new MigrationController(); 
 //$router->get('/migration/Redaction',  [ $Contrat_Controller, 'RedactionContrat' ]);
 $router->group( "/migration" , function($router) use ($Migration_Controller){
@@ -172,6 +173,7 @@ $router->group( "/migration" , function($router) use ($Migration_Controller){
 		$router->get("/contrat/edit", [$Migration_Controller, 'editContrat']);   
 	}
 );
+
 // Route pour SSE
 Flight::route('GET /messagerie/sse', [MessagerieController::class, 'sseNotifications']);
 
