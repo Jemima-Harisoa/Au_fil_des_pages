@@ -99,6 +99,34 @@ class PlanningEntretienModel{
             }
     }
 
+      public function update() {
+        try {
+            $sql = "UPDATE planning_entretien SET 
+                        id_candidat = :id_candidat,
+                        id_responsable = :id_responsable,
+                        date_heure_entretien = :date_heure_entretien,
+                        score_entretien = :score_entretien,
+                        etat = :etat,
+                        id_appreciation = :id_appreciation
+                    WHERE id_entretien = :id_entretien";
+
+            $stmt = $this->db->prepare($sql);
+
+            $stmt->bindParam(':id_candidat', $this->id_candidat);
+            $stmt->bindParam(':id_responsable', $this->id_responsable);
+            $stmt->bindParam(':date_heure_entretien', $this->date_heure_entretien);
+            $stmt->bindParam(':score_entretien', $this->score_entretien);
+            $stmt->bindParam(':etat', $this->etat);
+            $stmt->bindParam(':id_appreciation', $this->id_appreciation);
+            $stmt->bindParam(':id_entretien', $this->id_entretien);
+
+            return $stmt->execute(); // retourne true si update OK
+        } catch (PDOException $e) {
+            echo "Erreur lors de la mise à jour : " . $e->getMessage();
+            return false;
+        }
+    }
+
     public function entretienExiste($id_candidat, $date_heure_entretien) {
         $sql = "SELECT COUNT(*) as total 
                 FROM planning_entretien 
@@ -125,7 +153,7 @@ class PlanningEntretienModel{
         $db = Flight::db();
         $stmt = $db->prepare("SELECT * FROM planning_entretien WHERE id_entretien = ?");
         $stmt->execute([$id]);
-        return $stmt->fetch(\PDO::FETCH_ASSOC);
+        return $stmt->fetch();
     }
     public function getLastPlanning($idResponsable) {
         try {
@@ -260,7 +288,7 @@ class PlanningEntretienModel{
             pe.*, 
             te.nom_candidat, te.prenom_candidat, te.profil, te.date_naissance, te.score_test, te.date_test,
             vrp.nom AS nom_responsable, vrp.prenom AS prenom_responsable,
-            e.nom AS nom_etat
+            e.nom AS etat
         FROM planning_entretien pe
         JOIN (
             SELECT 
@@ -353,4 +381,66 @@ class PlanningEntretienModel{
         ];
     }
 
+    public function modifierEntretien($data){
+        $result = array();
+        try{
+            $historique_planning = Flight::historiquePlanningEntretienModel();
+            $etat = null;
+            if(!$data){
+                throw new \Exception("aucune donnee n'a ete envoye");
+            }
+            if(!$data["type_action"] && !$data.["id_planning_entretien"]){
+                throw new \Exception("le type action ou le numero de planning est invalide");
+            }
+            $planning_entretien = self::find(intval($data["id_entretien"]));
+            if(!$data){
+                throw new \Exception("aucun planning d'entretien ne correspond à ce numero");
+            }
+            $historique_planning->setIdEntretien($planning_entretien["id_entretien"]);
+            $historique_planning->setEtat($planning_entretien["etat"]);
+            if($data["raison_modification"]){
+                $historique_planning->setRaisonModification($data["raison_modification"]);
+            }
+            $historique_planning->save();  
+            if ($data["type_action"] == "accepter"){
+                $etat = Flight::etatModel()->findById(2);
+            }
+            else if ($data["type_action"] == "refuser"){
+                $etat = Flight::etatModel()->findById(3);
+            }
+            else if ($data["type_action"] == "reporter"){
+                $etat = Flight::etatModel()->findById(4);
+            }
+            else if($data["type_action"] == "commencer"){
+                $etat = Flight::etatModel()->findById(5);
+            }
+            else {
+            $etat = Flight::etatModel()->findById(6);
+            }
+             $id_etat = $etat["id_etat"];
+             $pe = Flight::planningEntretienModel();
+             $pe->id_entretien = $planning_entretien["id_entretien"];
+             $pe->id_candidat = $planning_entretien["id_candidat"];
+             $pe->id_responsable = $planning_entretien["id_responsable"];
+             $pe->score_entretien = $planning_entretien["score_entretien"];
+             if($data["date_heure_entretien"]){
+                $pe->date_heure_entretien = $data["date_heure_entretien"];
+             }
+             else{
+                $pe->date_heure_entretien = $planning_entretien["date_heure_entretien"];
+             }
+             $pe->id_appreciation = $planning_entretien["id_appreciation"];
+             $pe->etat = $id_etat;
+            $pe->update();
+            $result = [
+                "message"=>"success"
+            ];
+        }
+        catch(\Exception $e){
+            $result = [
+                "message" => $e->getMessage()
+            ];
+        }
+        return $result;
+    }
 }

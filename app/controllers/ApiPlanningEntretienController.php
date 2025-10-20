@@ -31,18 +31,10 @@ class ApiPlanningEntretienController {
         $data["id_admin"] = $_SESSION["IdAdmin"];
         return Flight::json(Flight::planningEntretienModel()->filtreEntretien($data));
     }
-
-    // public function listeEntretiensAdmin(){
-    //     $idAdmin = ;
-    //     $draw = intval($_GET['draw'] ?? 1);
-    //     $data = Flight::planningEntretienModel()->getPlanningEntretienByIdAdmin($idAdmin);
-    //     $forJson =[
-    //         "draw"=>$draw,
-    //         "recordsTotal" => count($data),
-    //         "recordsFiltered" => count($data),
-    //         "data"=>$data
-    //     ];
-    //     return Flight::json($forJson);
-    // }
+    public function updateEntretien(){
+        $input = file_get_contents("php://input");
+        $data = json_decode($input,true);
+        $response = Flight::json(Flight::planningEntretienModel()->modifierEntretien($data));
+    }
 }
 ?>

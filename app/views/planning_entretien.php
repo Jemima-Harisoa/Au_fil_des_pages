@@ -371,6 +371,8 @@
                         </span>
                         <span class="text">Planifier entretien</span>
                     </button>       
+                    <div class="my-2"></div>
+                    
                     <?php 
                  if(isset($entretiens) && is_array($entretiens) && count($entretiens) != 0){ ?>
                     <div class="alert alert-info "id="message" role="alert">
@@ -432,7 +434,7 @@
                         <button type="reset" class="btn btn-secondary ms-2">Réinitialiser</button>
                     </div>
                     </form>
-
+                    <div class="my-2"></div>
                     <div id="message-container">
 
                     </div>
@@ -459,6 +461,39 @@
                             </div>
                         </div>
                     </div>
+
+        <!-- Modal Modification Entretien -->
+        <div class="modal fade" id="modalEntretien" tabindex="-1" aria-labelledby="modalEntretienLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+            <div class="modal-header bg-gradient-primary text-white">
+                <h5 class="modal-title" id="modalEntretienLabel">Modification entretien</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
+            </div>
+
+            <div class="modal-body">
+                <form id="form-historique">
+                <input type="hidden" id="id_entretien" name="id_entretien">
+
+                <div class="mb-3">
+                    <label id="label-date" for="date_heure_modification" class="form-label">Nouvelle date et heure </label>
+                    <input type="datetime-local" class="form-control" id="date_heure_modification" name="date_heure_modification">
+                </div>
+
+                <div class="mb-3">
+                    <label for="raison_modification" class="form-label">Raison de modification</label>
+                    <textarea class="form-control" id="raison_modification" name="raison_modification" rows="3" required></textarea>
+                </div>
+
+                <div class="d-flex justify-content-between">
+                    <button id="btn-annuler" type="button" class="btn btn-secondary w-50 me-2" data-bs-dismiss="modal">Annuler</button>
+                    <button type="submit" class="btn bg-gradient-primary w-50">Valider</button>
+                </div>
+                </form>
+            </div>
+            </div>
+        </div>
+        </div>
                 </div>
                 <!-- /.container-fluid -->
             </div>
@@ -521,8 +556,8 @@
 
     <!-- Page level custom scripts -->
     <script src="js/demo/datatables-demo.js"></script>
+    <script src="js/popup-modification.js"></script>
     <script src="js/planning-entretien.js"></script>
-    <script src="js/filtre-entretien.js"></script>
 </body>
 
 </html>
