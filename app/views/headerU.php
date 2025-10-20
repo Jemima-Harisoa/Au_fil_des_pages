@@ -1,25 +1,7 @@
-<<<<<<< HEAD
-<?php
-// Vérification des sessions avant utilisation
-// if (isset($_SESSION['messagerie'])) {
-//     var_dump($_SESSION['messagerie']); 
-// } else {
-//     echo "Session 'messagerie' non définie";
-// }
-
-// echo "<br>";
-
-// if (isset($_SESSION['nbNonLus'])) {
-//     echo $_SESSION['nbNonLus'];
-// } else {
-//     echo "Session 'nbNonLus' non définie";
-// }
-=======
 
 <?php
 // var_dump($_SESSION['messagerie']); 
 // echo $_SESSION['nbNonLus'];
->>>>>>> origin/testCopie2
 ?>
 
 <!DOCTYPE html>

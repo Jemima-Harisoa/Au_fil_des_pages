@@ -1,11 +1,4 @@
 <?php include "headerU.php" ?>
-<<<<<<< HEAD
-<!-- Page Heading -->
-
-    <h1 class="h3 mb-4 text-gray-800">Blank Page</h1>
-
-<?php include "footer.php" ?>
-=======
 
 <div class="min-h-screen bg-gradient-to-b from-blue-100 to-gray-200 flex flex-col items-center justify-center p-6">
     <div class="bg-white shadow-2xl rounded-3xl p-10 max-w-lg w-full text-center">
@@ -43,4 +36,3 @@
 </style>
 
 <?php include "footer.php" ?>
->>>>>>> origin/testCopie2

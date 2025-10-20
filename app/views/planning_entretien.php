@@ -1,13 +1,8 @@
-<<<<<<< HEAD
-<?php include("headerA.php");?>
-                
-=======
 <?php include "headerA.php" ?>
 
                 <!-- Begin Page Content -->
                 <div class="container-fluid">
                     
->>>>>>> origin/testCopie2
                     <!-- Page Heading -->
                     <button class="btn btn-primary btn-icon-split" id="bouton-planification" type="button" <?php echo is_array($entretiens) && count($entretiens) != 0 ? "disabled":""?>>
                         <span class="icon text-white-50">
