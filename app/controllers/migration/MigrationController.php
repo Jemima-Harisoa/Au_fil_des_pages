@@ -59,10 +59,11 @@ class MigrationController {
     /**
      * 🔹 ENVOYER POUR VALIDATION - CONSERVÉE DANS MIGRATIONCONTROLLER
      */
-    public function envoyerValidation() {
+    public function envoyerValidation($id_contrat_param = null) {
         if (!$this->requireAdmin()) return;
 
-        $id_contrat = Flight::request()->query['id'] ?? null;
+        // ✅ Si la fonction est appelée depuis registerContrat
+        $id_contrat = $id_contrat_param ?? (Flight::request()->query['id'] ?? null);
         $note = Flight::request()->data->note ?? '';
 
         if (!$id_contrat) {
@@ -73,7 +74,6 @@ class MigrationController {
         // Utilisation de ValidationController pour les vérifications
         $validationController = new ValidationController();
         
-        // Vérifier l'accès au contrat
         if (!$validationController->verifierAccesContrat($id_contrat)) {
             $msg = urlencode("Accès non autorisé à ce contrat.");
             Flight::redirect("/migration/contrats?msg={$msg}&msg_type=error");
@@ -83,7 +83,6 @@ class MigrationController {
         $validationModel = new ValidationContratModel(Flight::db());
         $role_utilisateur = $validationController->getRoleUtilisateur();
 
-        // Vérifier les permissions
         if (!$validationModel->verifierPermission($id_contrat, $role_utilisateur)) {
             $msg = urlencode("Vous n'avez pas la permission de valider cette étape.");
             Flight::redirect("/migration/contrat/edit?id={$id_contrat}&msg={$msg}&msg_type=error");
@@ -91,18 +90,33 @@ class MigrationController {
         }
 
         try {
-            // Avance le contrat à l'étape suivante
             $prochain_statut = $validationModel->envoyerPourValidation(
-                $id_contrat, 
+                $id_contrat,
                 $_SESSION['admin']['id_employe'] ?? null,
                 $note
             );
 
-            // Utilisation de ValidationController pour la notification
+            // ✅ Notification au prochain validateur
             $validationController->notifierProchaineEtape($id_contrat, $prochain_statut);
 
-            $msg = urlencode("Contrat envoyé pour validation (nouveau statut : {$prochain_statut}).");
-            Flight::redirect("/migration/contrat/edit?id={$id_contrat}&msg={$msg}&msg_type=success");
+            // ✅ Message au candidat comme avant
+            $messagerieModel = new MessagerieModel();
+            $contratModel = Flight::Contrat();
+            $candidatModel = Flight::Candidat();
+
+            $contrat = $contratModel->getBy('id_contrat', $id_contrat);
+            $candidat = $candidatModel->getBy('id_candidat', $contrat['id_candidat']);
+
+            $lien_contrat = "/migration/contrat/edit?id={$id_contrat}";
+            $formated_link = $messagerieModel->styliserLiens($lien_contrat, "Voir le contrat");
+            $messagerieModel->repondreA($candidat['id_candidat'], $candidat['id_annonce'], 
+                "📄 Votre contrat a été validé et envoyé pour la prochaine étape. {$formated_link}");
+
+            // ✅ Redirection si appel via route HTTP
+            if (!$id_contrat_param) {
+                $msg = urlencode("Contrat envoyé pour validation (nouveau statut : {$prochain_statut}).");
+                Flight::redirect("/migration/contrat/edit?id={$id_contrat}&msg={$msg}&msg_type=success");
+            }
 
         } catch (\Exception $e) {
             $msg = urlencode("Erreur lors de l'envoi : " . $e->getMessage());
@@ -377,17 +391,15 @@ class MigrationController {
             case 'valider':
                 $etat = $etatModel->getBy("nom", "Validé");
                 if (!$etat) {
-                    $etatModel->save(['nom'=>'Validé']);
-                    $etat = $etatModel->getBy("nom","Validé"); 
+                    $etatModel->save(['nom' => 'Validé']);
+                    $etat = $etatModel->getBy("nom", "Validé"); 
                 }
                 $actionLabel = "Validation";
-                    $messagerieModel=new MessagerieModel();
-                    $lien_contrat = "/migration/contrat/edit?id={$id_contrat}";
-                    $formated_link = $messagerieModel->styliserLiens($lien_contrat, "Voir le contrat");
-                    $messagerieModel->repondreA($id_candidat, $candidat['id_annonce'], 
-                    "📄 Votre contrat a été généré.{$formated_link}");
-                    
-            break;
+
+                // Appel de la méthode d’envoi pour validation
+                $migrationController = new MigrationController();
+                $migrationController->envoyerValidation($id_contrat);
+                break;
             case 'refuser':
                 $etat = $etatModel->getBy("nom", "Non validé");
                 if (!$etat) { $etatModel->save(['nom'=>'Non validé']); $etat = $etatModel->getBy("nom","Non validé"); }
