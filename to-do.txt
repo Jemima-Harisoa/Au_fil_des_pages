@@ -1,7 +1,8 @@
 Module entretien(automatique)
 
 controleurEntretien:
-MettreAJourEntretiens($listeEntretien,$date): 20min
+
+MettreAJourEntretiens($listeEntretien,$date): 20min OK
 -$date doit etre la date actuelle
 -verifier  la taille de la liste :
 	*si vide:
@@ -9,11 +10,12 @@ MettreAJourEntretiens($listeEntretien,$date): 20min
 	*sinon
 		on fait un boucle sur $listeEntretien acceptees ou reportes
 		si :
-			si $etat_planning == "accepte" ||$etat_planning == "reporte"
+			si $etat_planning == "accepte" || $etat_planning == "reporte"
 
 			+date_entretien == $date
-			etat planning entretien devient "en cours"
-			insertion dans la table historique_Planning_Entretien
+
+			insertion dans la table historique_Planning_Entretien avec l'ancien etat
+			mettre le planning d'entretien dans la table planning_entretien
 
 informerCandidat($candidat): 20min
 	profil associé a des responsables d'entretien:
@@ -44,8 +46,8 @@ planning_entretien.php
 		7- filtrerEntretien($criteres)20min(ok)
 
 		8-envoyerMessage($emetteur , $recepteur)(ok)
-
-		9-checkValiditeDate($dateProposee)20min
+	
+		9-ListeCandidatsAEntretenir($listeCandidats,$idAmdin)
 
 		10-voirAgendaResponsable($id_responsable)(calendrier)(30min)
 
@@ -56,7 +58,8 @@ planning_entretien.php
 		13-entretienExiste($id_entretien);5 min
 
 		14-modifierEntretien($id_entretien,$id_etat)10min
-		
+
+		15-prochaineDateDisponible($id_responsable)30min
 	Affichage:
 		-bouton pour planification automatique(ok)5min
 		-table(Datatable) liste des entretiens avec derniere colonne ,
@@ -72,7 +75,7 @@ planning_entretien.php
 		Sinon :
 		-chaque ligne avec une colonne actions:
 			si date entretien == date du jour 
-				soit etat entretien "accepter":
+				soit etat entretien "accepter" ou "reporter":
 					on a deux bouton  : "commencer","terminer"
 					on ne peut pas terminer un entretien non commence
 					=>si on termine un entretien non commence, exception("ce n'est pas un entretien")
@@ -144,3 +147,17 @@ planning_entretien.php
 				-si valider appeler la fonction modifierEntretien($id_planning_entretien,$id_etat)
 				-sinon on affiche()
 
+disponibilite_entretien.php
+	Base:
+		-responsable_entretien
+		-disponibilite_entretien
+	Affichage:
+		table qui affiche les jours et heure de debut et heure fin des disponibilites entretien admin connecte
+
+	Fonctions:
+		getDisponibiliteEntretienValide($idAdmin):
+			recuperer les disponiblites encore valides
+
+
+	Integration:
+		appel de la fonction getDisponibiliteEntretienValide()
