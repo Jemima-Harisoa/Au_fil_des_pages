@@ -123,7 +123,10 @@ class cvController {
 
                 // $treshold = CVModel::getLastTreshold();
                 // echo "Note: ".$note_similarite." || Validation: ".$boolean_validation." || Seuil de tolerabilite: ".$treshold;
-
+                
+                /// ajout cas ou l'utilisateur passe le test plus tard => il faut lie les utisateur a une candidature => message -> lien test    
+                //$_SESSION['utilisateur']['idAnnonce'] =  $idAnnonce;
+                //$_SESSION['utilisateur']['idCandidat'] =  $idCandidat;
             
                 Flight::render('CV/Postuler/confirmation', ['note_similarite' => $note_similarite, 'boolean_validation' => $boolean_validation, 'idAnnonce' => $idAnnonce, 'idCandidat' => $idCandidat]);
             } else {

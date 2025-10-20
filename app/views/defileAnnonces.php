@@ -76,56 +76,67 @@ $postes = array_unique($postes);
     <!-- Annonces -->
     <?php if (!empty($Annonces)): ?>
         <?php foreach ($Annonces as $annonce): ?>
-        <?php
-            $jsonPath = $_SERVER['DOCUMENT_ROOT'] . $annonce['lien'];
-            $contenuExtrait = "Aucune description disponible.";
-            $nomEntreprise = "";
-            if (file_exists($jsonPath)) {
-                $details = json_decode(file_get_contents($jsonPath), true);
-                if (!empty($details['contenu'])) {
-                    $contenuExtrait = mb_strimwidth($details['contenu'], 0, 200, "...");
+            <?php
+                $jsonPath = $_SERVER['DOCUMENT_ROOT'] . $annonce['lien'];
+                $contenuExtrait = "Aucune description disponible.";
+                $nomEntreprise = "";
+
+                if (file_exists($jsonPath)) {
+                    $details = json_decode(file_get_contents($jsonPath), true);
+                    if (!empty($details['contenu'])) {
+                        $contenuExtrait = mb_strimwidth($details['contenu'], 0, 200, "...");
+                    }
+                    if (!empty($details['nom_entreprise'])) {
+                        $nomEntreprise = $details['nom_entreprise'];
+                    }
                 }
-                if (!empty($details['nom_entreprise'])) $nomEntreprise = $details['nom_entreprise'];
-            }
-        ?>
-        <div class="card shadow-sm mb-3 rounded-3 hover-shadow annonce-card"
-             data-entreprise="<?= htmlspecialchars($nomEntreprise) ?>"
-             data-date="<?= htmlspecialchars($annonce['date_publication']) ?>"
-             data-poste="<?= htmlspecialchars($annonce['titre']) ?>">
-            <div class="card-body d-flex align-items-start">
-                <img src="https://cdn-icons-png.flaticon.com/512/149/149071.png"
-                     class="rounded-circle mr-3" alt="Anonyme"
-                     style="width:50px; height:50px; object-fit:cover;">
-                <div class="flex-grow-1">
-                    <div class="d-flex justify-content-between align-items-start mb-1">
-                        <div>
-                            <h5 class="mb-1" style="font-weight:600; font-size:1rem;"><?= htmlspecialchars($annonce['titre']) ?></h5>
-                            <?php if ($nomEntreprise): ?>
-                                <small class="text-muted d-block">Entreprise: <?= htmlspecialchars($nomEntreprise) ?></small>
-                            <?php endif; ?>
+            ?>
+            <div class="card shadow-sm mb-3 rounded-3 hover-shadow annonce-card"
+                data-entreprise="<?= htmlspecialchars($nomEntreprise) ?>"
+                data-date="<?= htmlspecialchars($annonce['date_publication']) ?>"
+                data-poste="<?= htmlspecialchars($annonce['titre']) ?>">
+                <div class="card-body d-flex align-items-start">
+                    <img src="https://cdn-icons-png.flaticon.com/512/149/149071.png"
+                        class="rounded-circle mr-3" alt="Anonyme"
+                        style="width:50px; height:50px; object-fit:cover;">
+                    <div class="flex-grow-1">
+                        <div class="d-flex justify-content-between align-items-start mb-1">
+                            <div>
+                                <h5 class="mb-1" style="font-weight:600; font-size:1rem;">
+                                    <?= htmlspecialchars($annonce['titre']) ?>
+                                </h5>
+                                <?php if ($nomEntreprise): ?>
+                                    <small class="text-muted d-block">
+                                        Entreprise: <?= htmlspecialchars($nomEntreprise) ?>
+                                    </small>
+                                <?php endif; ?>
+                            </div>
+                            <small class="text-muted"><?= htmlspecialchars($annonce['date_publication']) ?></small>
                         </div>
-                        <small class="text-muted"><?= htmlspecialchars($annonce['date_publication']) ?></small>
-                    </div>
-                    <p class="card-text mb-1" style="max-height:80px; overflow:hidden; white-space:pre-line; font-size:0.9rem;">
-                        <?= nl2br(htmlspecialchars($contenuExtrait)) ?>
-                    </p>
-                    <div class="d-flex justify-content-between align-items-center mt-2">
-                        <small class="text-muted">
-                            Expiration : <?= $annonce['date_expiration'] ?? 'Non précisée' ?>
-                        </small>
-                        <button class="btn btn-sm btn-outline-primary voirPlusBtn" data-json="<?= htmlspecialchars($annonce['lien'], ENT_QUOTES) ?>">
-                            Voir plus
-                        </button>
+                        <p class="card-text mb-1" style="max-height:80px; overflow:hidden; white-space:pre-line; font-size:0.9rem;">
+                            <?= nl2br(htmlspecialchars($contenuExtrait)) ?>
+                        </p>
+                        <div class="d-flex justify-content-between align-items-center mt-2">
+                            <small class="text-muted">
+                                Expiration : <?= $annonce['date_expiration'] ?? 'Non précisée' ?>
+                            </small>
+                            <button class="btn btn-sm btn-outline-primary voirPlusBtn"
+                                    data-json="<?= htmlspecialchars($annonce['lien'], ENT_QUOTES) ?>"
+                                    data-id-annonce="<?= $annonce['id_annonce'] ?>"
+                                    data-id-profil="<?= $annonce['id_profil'] ?>">
+                                Voir plus
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
         <?php endforeach; ?>
     <?php else: ?>
         <div class="alert alert-info text-center" role="alert">
             Aucune annonce pour le moment.
         </div>
     <?php endif; ?>
+
 </div>
 
 <!-- Modal Bootstrap -->
@@ -159,16 +170,25 @@ $postes = array_unique($postes);
 document.querySelectorAll('.voirPlusBtn').forEach(button => {
     button.addEventListener('click', () => {
         const jsonPath = button.getAttribute('data-json');
+        const idAnnonce = button.getAttribute('data-id-annonce');
+        const idProfil = button.getAttribute('data-id-profil');
+
         fetch(jsonPath)
             .then(res => res.json())
             .then(data => {
+                if (!data || Object.keys(data).length === 0) {
+                    alert("Aucune donnée d'annonce trouvée.");
+                    return;
+                }
+
                 $('#annonceModal').modal('show');
                 const entreprise = data.nom_entreprise ? "Entreprise: " + data.nom_entreprise + "\n\n" : "";
                 document.getElementById('annonceModalLabel').textContent = data.titre;
                 document.getElementById('annonceModalContent').textContent = entreprise + data.contenu;
 
-                document.getElementById('postulerButton').setAttribute('href', '/<?= $idUtilisateur?>/Annonce/<?= $annonce['id_annonce']?>/<?= $annonce['id_profil']?>/fillCV'); // mettre lien réel si besoin
-
+                const entreprise = data.nom_entreprise
+                    ? "Entreprise: " + data.nom_entreprise + "\n\n"
+                    : "";
 
             })
             .catch(err => {
