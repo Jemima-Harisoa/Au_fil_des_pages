@@ -4,9 +4,9 @@ namespace app\models;
 use PDO;
 
 class DisponibiliteEntretienModel {
-    private PDO $db;
+    private $db;
 
-    public function __construct(PDO $db) {
+    public function __construct($db) {
         $this->db = $db;
     }
 
@@ -42,6 +42,18 @@ class DisponibiliteEntretienModel {
 
     // Mettre à jour une disponibilité
     public function update(int $id, array $data): bool {
+
+        $dispo_entretien = self::find($id);
+        $historique = Flight::historiqueDisponibiliteEntretienModel();
+        $data = array();
+        $data= [
+            "id_dispo" =>$dispo_entretien["id_dispo"],
+            "heure_debut" =>$dispo_entretien["heure_debut"],
+            "heure_fin" =>$dispo_entretien["heure_fin"],
+            "jour" =>$dispo_entretien["jour"],
+            "est_valide"=>$dispo_entretien["est_valide"]
+        ];
+        $historique->create($data);
         $stmt = $this->db->prepare("
             UPDATE disponibilite_entretien 
             SET id_responsable = :id_responsable,
@@ -63,13 +75,28 @@ class DisponibiliteEntretienModel {
 
     // Supprimer une disponibilité
     public function delete(int $id): bool {
-        $stmt = $this->db->prepare("DELETE FROM disponibilite_entretien WHERE id_dispo = ?");
+        $dispo_entretien = self::find($id);
+        $dispo_entretien = [
+            "id_dispo" =>$dispo_entretien["id_dispo"],
+            "id_responsable" =>$dispo_entretien["id_responsable"],
+            "heure_debut" =>$dispo_entretien["heure_debut"],
+            "heure_fin" =>$dispo_entretien["heure_fin"],
+            "jour" =>$dispo_entretien["jour"],
+            "est_valide"=>false
+        ];
+        self::update($dispo_entretien);
+        $data= [
+            "id_dispo" =>$dispo_entretien["id_dispo"],
+            "id_responsable" =>$dispo_entretien["id_responsable"],
+            "heure_debut" =>$dispo_entretien["heure_debut"],
+            "heure_fin" =>$dispo_entretien["heure_fin"],
+            "jour" =>$dispo_entretien["jour"],
+            "est_valide"=>$dispo_entretien["est_valide"]
+        ];
         return $stmt->execute([$id]);
     }
-
-
     public function getTempsDisponiblesEntretien($idResponsable){
-        $query = "SELECT * FROM disponibilite_entretien where id_responsable = :id_responsable ORDER by jour asc";
+        $query = "SELECT * FROM disponibilite_entretien where id_responsable = :id_responsable ORDER by jour asc ";
         $db = $this->db;
         try{
             if($idResponsable== 0 || $idResponsable == null){
@@ -82,6 +109,62 @@ class DisponibiliteEntretienModel {
             throw new \Exception($e->getMessage());
         }
     }
+
+    public function getDisponibiliteEntretienByIdAdmin($idAdmin, $draw, $start, $length) {
+        try {
+            $connexion = $this->db;
+            // 1️⃣ Compter le nombre total de lignes
+            $countSql = "
+                SELECT COUNT(*) as total
+                FROM disponibilite_entretien de
+                JOIN responsable_entretien re ON re.id_responsable = de.id_responsable
+                WHERE re.id_admin = :id_admin
+            ";
+            $stmtCount = $connexion->prepare($countSql);
+            $stmtCount->bindParam(':id_admin', $idAdmin, PDO::PARAM_INT);
+            $stmtCount->execute();
+            $totalData = $stmtCount->fetch(PDO::FETCH_ASSOC)['total'];
+
+            $sql = "
+                SELECT 
+                    de.id_dispo,
+                    de.id_responsable,
+                    de.heure_debut,
+                    de.heure_fin,
+                    de.jour,
+                    de.est_valide,
+                    re.id_admin,
+                    re.ordre_passage
+                FROM disponibilite_entretien de
+                JOIN responsable_entretien re ON re.id_responsable = de.id_responsable
+                WHERE re.id_admin = :id_admin
+                ORDER BY de.jour, de.heure_debut
+                OFFSET :start LIMIT :length
+            ";
+            $stmt = $connexion->prepare($sql);
+            $stmt->bindParam(':id_admin', $idAdmin, \PDO::PARAM_INT);
+            $stmt->bindParam(':start', $start, \PDO::PARAM_INT);
+            $stmt->bindParam(':length', $length, \PDO::PARAM_INT);
+            $stmt->execute();
+            $rows = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+            
+
+            // 3️⃣ Structure de réponse compatible DataTables
+            return [
+                "draw" => intval($draw),
+                "recordsTotal" => intval($totalData),
+                "recordsFiltered" => intval($totalData),
+                "data" => $rows
+            ];
+
+        } catch (PDOException $e) {
+            return [
+                "error" => "Erreur : " . $e->getMessage()
+            ];
+        }
+    }
+
+
     // fonction qui sert a trouver la date de disponibilite d'entretien ouvrable
     public static function getDateNonFerieProche($dateHeure,$listeDisponibiliteEntretien){
         $indiceActuel = 0;
@@ -166,4 +249,5 @@ class DisponibiliteEntretienModel {
         }
         return DisponibiliteEntretienModel::getDateNonFerieProche($dateHeure,$listeDisponibiliteEntretien);
     }
+
 }

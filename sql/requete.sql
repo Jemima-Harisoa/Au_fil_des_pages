@@ -70,7 +70,16 @@ CREATE OR REPLACE VIEW v_disponibilite_employe_valide as(
     and de.est_valide
 );
     --recuperer candidats dans un departement apres une date
-    -- en utilisant la table candidat en jointure avec les 
+    -- en utilisant la table candidat en joint
+    
+    
+    
+    
+    
+    
+    
+    
+    ure avec les 
     -- tables planning_entretien,employes
 CREATE OR REPLACE VIEW v_entretien_candidat_apres_une_date as(
 SELECT  pe.*,e.id_departement;

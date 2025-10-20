@@ -221,7 +221,7 @@ class PlanningEntretienModel{
        vrp.prenom as prenom_responsable,
        e.nom as etat
     FROM planning_entretien pe
-    JOIN (
+        JOIN (
         SELECT vcp.id_candidat,
                 vcp.nom_candidat,
                 vcp.prenom_candidat,

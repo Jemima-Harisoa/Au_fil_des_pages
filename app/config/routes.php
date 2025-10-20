@@ -2,6 +2,7 @@
 use app\controllers\WelcomeController;
 use app\controllers\PlanningEntretienController;
 use app\controllers\ApiPlanningEntretienController;
+use app\controllers\DisponibiliteEntretienController;
 use app\controllers\ConnexionController;
 
 use flight\Engine;
@@ -38,3 +39,6 @@ $router->post('/planning_entretien/filtre', [$api_planning_entretien_controller,
 $router->get('/api/planifier-entretien',[$api_planning_entretien_controller,'planifierEntretien']);
 $router->post('/api/planning-entretien/modification',[$api_planning_entretien_controller,'updateEntretien']);
 
+$disponibilite_entretien_controller = new DisponibiliteEntretienController();
+$router->get('/disponibilite-entretien/liste',[$disponibilite_entretien_controller,'liste']);
+$router->get('/disponibilite-entretien',[$disponibilite_entretien_controller,'renderPage']);

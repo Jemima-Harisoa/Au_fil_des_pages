@@ -7,7 +7,7 @@ use flight\database\PdoWrapper;
 use flight\debug\database\PdoQueryCapture;
     class DateModel{ 
  private \DateTime $dateTime;
- private const JourEnLettres = ['Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi','Dimache'];
+ public const JourEnLettres = ['Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi','Dimache'];
     // Constructeur : accepte soit un timestamp, soit une chaîne de date
     public function __construct(int|string|null $timeOrDateTime = null)
     {
@@ -95,6 +95,8 @@ use flight\debug\database\PdoQueryCapture;
             }
         }
     }
+
+    
     public static function recupererHeure(\DateTime $dateHeure){
         $resultat = $dateHeure->format("H:i:s");
         return $resultat;

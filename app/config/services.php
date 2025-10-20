@@ -83,3 +83,7 @@ Flight::map('etatModel', function () {
 Flight::map('historiquePlanningEntretienModel', function () {
     return new HistoriquePlanningEntretienModel(Flight::db());
 });
+
+Flight::map('historiqueDisponibiliteEntretienModel', function () {
+    return new HistoriqueDisponibiliteEntretienModel(Flight::db());
+});

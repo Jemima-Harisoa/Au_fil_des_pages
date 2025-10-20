@@ -148,16 +148,77 @@ planning_entretien.php
 				-sinon on affiche()
 
 disponibilite_entretien.php
-	Base:
-		-responsable_entretien
+	Base :
 		-disponibilite_entretien
+		-responsable_entretien
 	Affichage:
 		table qui affiche les jours et heure de debut et heure fin des disponibilites entretien admin connecte
+		avec des boutons modifier (data.id = ${row.id_disponbilite}) et supprimer pour chaque ligne (data.id = ${row.id_disponbilite})
 
-	Fonctions:
-		getDisponibiliteEntretienValide($idAdmin):
-			recuperer les disponiblites encore valides
+	I.LISTE DES DONNÉES
+		fonction:
+			getDisponibiliteEntretienByIdAdmin($idAdmin):10min
+				disponibilite_entretien de join responsable_entretien re on re.id_responsable = de.id_responsable
+				and re.id_admin = : id_admin
+		Integration:
+			appel  getDisponibiliteEntretienByIdAdmin par ajax dans disponibilite-entretien.js(utilisation de dataTable)
+			if row.est_valide true  on garde la ligne sinon on ignore
+
+	II.INSERTION
+		affichage supp:
+			formulaire:
+				jour(select lundi à samedi)
+				heure_debut(type time)
+				heure_fin(type time)
+		fonctions:
+			save() (DisponibiliteEntretienModel)
+		integration :
+			clic sur le bouton modifier,affichage de popup
+			ajax vers url 'api/disponibilite-entretien/insertion' dans disponibilite-entretien.js
+			data = {
+				heure_debut:
+				heure_fin:
+				jour:
+			}
+			appel de save cote serveur
+			si message == "success" alert("nouvelle disponibilite inseree")
+			sinon alert("erreur lors de la creation de disponibilite",error.message)
 
 
-	Integration:
-		appel de la fonction getDisponibiliteEntretienValide()
+	III-MODIFICATION
+		affichage supp
+			popup qui s'affiche avec champs:
+				input hidden: id_disponibilite
+				input time: heure_debut
+				input time: heure_fin
+				boutons: valider url = 'api/disponibillite-entretien/modicfication',
+						annuler 
+		integration:
+		clic sur le bouton modifier,affichage de popup
+			ajax vers url 'api/disponibilite-entretien/insertion' dans disponibilite-entretien.js
+			data = {
+				heure_debut:
+				heure_fin:
+				jour:
+			}
+			appel de save cote serveur
+			clic sur le bouton supprimer
+
+			ajax via url 'api/disponibillite-entretien/modification' dans disponibilite-entretien.js'
+			donnees a envoyer:{
+				id_disponibilite:id_disponibilite,
+			}
+			si message == "success" alert("disponibilite numero ${id_disponibilite} mise  a jour")
+			sinon alert("erreur lors de la mise  a jour de disponibilite",error.message)
+
+	IV-SUPPRESSION
+		fonctions:
+			updateValiditeDisponibilite($id_dispo) (DisponibiliteEntreitienModel)
+		integration
+		clic sur le bouton supprimer
+			ajax via url 'api/disponibillite-entretien/suppression' dans disponibilite-entretien.js'
+			donnees a envoyer:{
+				id_disponibilite:id_disponibilite,
+			}
+		si message == "success" alert("disponibilite numero ${id_disponibilite} supprime")
+			sinon alert("erreur lors de la suppression  a jour de disponibilite",error.message)
