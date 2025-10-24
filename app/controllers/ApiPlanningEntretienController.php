@@ -5,12 +5,10 @@ class ApiPlanningEntretienController {
     public function planifierEntretien() {
         try {
             // Récupère les 4 meilleurs candidats
-            $candidats = Flight::testModel()->getCandidatsAvecSuccesTest(4);
+            $candidats = Flight::testModel()->getCandidatsAvecSuccesTest(3);
 
-            // Id responsable (tu peux le récupérer depuis une requête POST, une session, etc.)
-            $idResponsable = $_SESSION["IdAdmin"]; // ou Flight::request()->data->id_responsable;
             // Appel du modèle
-            $resultat = Flight::planningEntretienModel()->planifierEntretien($candidats, $idResponsable);
+            $resultat = Flight::planningEntretienModel()->planifierEntretien($candidats, $_SESSION["admin"]["id_admin"]);
 
             // Retour JSON (le modèle retourne déjà du JSON si j’ai bien vu, mais tu peux sécuriser ici)
             Flight::json([
@@ -28,7 +26,7 @@ class ApiPlanningEntretienController {
 
     public function filtrerEntretien(){
         $data = Flight::request()->data->getData();
-        $data["id_admin"] = $_SESSION["IdAdmin"];
+        $data["id_admin"] = $_SESSION["admin"]["id_admin"];
         return Flight::json(Flight::planningEntretienModel()->filtreEntretien($data));
     }
     public function updateEntretien(){
