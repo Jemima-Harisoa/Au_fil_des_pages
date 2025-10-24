@@ -209,7 +209,7 @@ $(document).on("click", ".btn-reporter", function () {
     openPopup("reporter", "reporté", false);
 });
 
-$("#bouton-planification").on("click", function () {
+$("#bouton-planification").off("click").on("click", function () {
     $(this).prop("disabled", true);
     $.ajax({
         url: "/api/planifier-entretien/",
