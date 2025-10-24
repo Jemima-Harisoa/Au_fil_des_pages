@@ -30,7 +30,7 @@ INSERT INTO departements (nom) VALUES
 INSERT INTO type_contrats (nom) VALUES
 ('CDI'),
 ('CDD'),
-('Mi-temps'),
+('Mi-temps'), 
 ('Stage');
 
 
@@ -230,7 +230,7 @@ INSERT INTO config_entretien (id_departement, duree_entretien) VALUES
 (1, INTERVAL '00:30:00'), -- Vente : entretiens courts (30 min)
 (2, INTERVAL '00:40:00'), -- Stock : un peu plus long pour tester organisation et logistique
 (3, INTERVAL '01:00:00'), -- Comptabilite : plus technique, 1 heure
-(4, INTERVAL '01:15:00'); -- Direction : entretien approfondi (1h15)
+(4, INTERVAL '01:15:00'), -- Direction : entretien approfondi (1h15)
 (5, INTERVAL '00:45:00'); -- Direction : entretien approfondi (1h15)
 
 -- Vendeur (profil 1)
@@ -260,47 +260,28 @@ INSERT INTO responsable_entretien (id_profil, id_admin, ordre_passage) VALUES
 
 
 
--- Responsable 1 (Vendeur senior)
--- Vendeur, Jean (principal) = id_responsable 1
-INSERT INTO disponibilite_entretien (id_responsable, heure_debut, heure_fin, jour) VALUES
-(1, '09:00', '11:00', 1), -- Lundi
-(1, '09:00', '11:00', 3), -- Mercredi
+INSERT INTO disponibilite_entretien (id_admin, heure_debut, heure_fin, jour, est_valide) VALUES
+-- Admin Jean (id_admin = 1)
+(1, '08:00', '10:00', 1, TRUE),  -- Lundi matin
+(1, '10:30', '12:00', 1, TRUE),  -- Lundi fin de matinée
+(1, '14:00', '16:00', 2, TRUE),  -- Mardi après-midi
+(1, '09:00', '11:00', 3, TRUE),  -- Mercredi matin
+(1, '13:30', '15:30', 4, TRUE),  -- Jeudi après-midi
+(1, '08:00', '10:00', 5, FALSE), -- Vendredi matin (indisponible)
 
--- Vendeur, Lina (RH) = id_responsable 2
-(2, '13:00', '15:00', 1),
-(2, '13:00', '15:00', 3),
+-- Admin Claire (id_admin = 2)
+(2, '09:00', '11:30', 1, TRUE),
+(2, '13:00', '15:30', 2, TRUE),
+(2, '09:00', '12:00', 3, TRUE),
+(2, '14:00', '16:00', 4, FALSE), -- créneau désactivé
+(2, '10:00', '12:00', 5, TRUE),
 
--- Caissier, Jean (principal) = id_responsable 3
-(3, '09:30', '11:30', 2),
-(3, '09:30', '11:30', 4),
-
--- Caissier, Lina (RH) = id_responsable 4
-(4, '13:00', '15:00', 2),
-(4, '13:00', '15:00', 4),
-
--- Magasinier, Paul (principal) = id_responsable 5
-(5, '10:00', '12:00', 1),
-(5, '10:00', '12:00', 3),
-
--- Magasinier, Lina (RH) = id_responsable 6
-(6, '13:00', '15:00', 1),
-(6, '13:00', '15:00', 3),
-
--- Comptable, Claire (principal) = id_responsable 7
-(7, '09:00', '11:00', 2),
-(7, '09:00', '11:00', 4),
-
--- Comptable, Lina (RH) = id_responsable 8
-(8, '13:00', '15:00', 2),
-(8, '13:00', '15:00', 4),
-
--- Gérant, Jean (principal) = id_responsable 9
-(9, '09:00', '11:00', 1),
-(9, '09:00', '11:00', 3),
-
--- Gérant, Lina (RH) = id_responsable 10
-(10, '13:00', '15:00', 1),
-(10, '13:00', '15:00', 3);
+-- Admin Lina (id_admin = 6)
+(3, '08:30', '10:30', 1, TRUE),
+(3, '10:45', '12:15', 2, TRUE),
+(3, '13:30', '15:30', 3, TRUE),
+(3, '09:00', '11:00', 4, TRUE),
+(3, '14:00', '16:00', 5, TRUE);
 
 
 INSERT INTO jour_ferie("date") VALUES
@@ -311,7 +292,6 @@ INSERT INTO jour_ferie("date") VALUES
 ('2025-08-15'), -- Assomption
 ('2025-11-01'), -- Toussaint
 ('2025-12-25'); -- Noël
-('2025-02-20'); -- Noël
 
 
 INSERT INTO etat (nom) VALUES
