@@ -1,5 +1,4 @@
 $(document).ready(function () {
-
     const idAdmin = $('#id_admin').val(); // récupéré depuis une variable cachée ou session
     let table;
 
@@ -12,7 +11,6 @@ $(document).ready(function () {
             url: `/disponibilite-entretien/liste`,
             dataSrc: function (json) {
                 // Ne garder que les lignes valides
-                console.log("tena eto e: "+json.data.length);
                 return json.data.filter(row => row.est_valide === true);
             }
         },
@@ -54,12 +52,13 @@ $(document).ready(function () {
             url: url,
             method: 'POST',
             dataType: 'json',
-            data: {
-                id_disponibilite: id_dispo,
+            contentType:'application/json',
+            data:JSON.stringify({
+                id_dispo: id_dispo,
                 jour: jour,
                 heure_debut: heure_debut,
                 heure_fin: heure_fin
-            },
+            }),
             success: function (response) {
                 if (response.message === "success") {
                     const msg = id_dispo ? 
@@ -102,7 +101,7 @@ $(document).ready(function () {
                 url: '/disponibilite-entretien/suppression',
                 method: 'POST',
                 dataType: 'json',
-                data: { id_disponibilite: id },
+                data: { id_dispo: id },
                 success: function (response) {
                     if (response.message === "success") {
                         alert(`Disponibilité n°${id} supprimée.`);
