@@ -1,7 +1,5 @@
 <?php include("headerA.php");?>
-                
-                    <!-- Page Heading -->
-                    <button class="btn btn-primary btn-icon-split" id="bouton-planification" type="button" <?php echo is_array($entretiens) && count($entretiens) != 0 ? "disabled":""?>>
+                    <button class="btn btn-primary btn-icon-split" id="bouton-planification" type="button" <?php echo $verified ? "disabled":""?>>
                         <span class="icon text-white-50">
                             <i class="fas fa-calendar-alt"></i>
                         </span>
@@ -10,7 +8,7 @@
                     <div class="my-2"></div>
                     
                     <?php 
-                 if(isset($entretiens) && is_array($entretiens) && count($entretiens) != 0){ ?>
+                 if($verified){ ?>
                     <div class="alert alert-info "id="message" role="alert">
                         Les entretiens sont tous planifiés</div>  
                 <?php }
@@ -130,4 +128,4 @@
             </div>
         </div>
         </div>
-        <?php include("footerA.php")?>
+        <?php include("footerA.php");?>
