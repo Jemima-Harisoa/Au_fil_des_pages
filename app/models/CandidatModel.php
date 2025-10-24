@@ -57,7 +57,7 @@ class CandidatModel {
     public static function estDansLaListe($candidat,$candidats){
         $compte = 0;
         foreach($candidats as $cand){
-            if($candidat["id_candidat"] == $candidat["id_candidat"]){
+            if($cand["id_candidat"] == $candidat["id_candidat"]){
                 return true;
             }
         }

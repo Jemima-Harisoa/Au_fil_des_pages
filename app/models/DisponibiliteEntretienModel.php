@@ -27,23 +27,23 @@ class DisponibiliteEntretienModel {
     // Créer une nouvelle disponibilité
     public function create(array $data): int {
         $stmt = $this->db->prepare("
-            INSERT INTO disponibilite_entretien (id_responsable, heure_debut, heure_fin, jour, est_valide)
-            VALUES (:id_responsable, :heure_debut, :heure_fin, :jour, :est_valide)
+            INSERT INTO disponibilite_entretien (id_admin, heure_debut, heure_fin, jour, est_valide)
+            VALUES (:id_admin, :heure_debut, :heure_fin, :jour, :est_valide)
         ");
         $stmt->execute([
-            ':id_responsable' => $data['id_responsable'],
+            ':id_admin' => $data['id_admin'],
             ':heure_debut'    => $data['heure_debut'],
             ':heure_fin'      => $data['heure_fin'],
             ':jour'           => $data['jour'],
-            ':est_valide'     => $data['est_valide'] ?? true, // valeur par défaut
+            ':est_valide'     => true, 
         ]);
         return (int)$this->db->lastInsertId();
     }
 
     // Mettre à jour une disponibilité
-    public function update(int $id, array $data): bool {
+    public function update(array $data): bool {
 
-        $dispo_entretien = self::find($id);
+        $dispo_entretien = self::find( $data["id_dispo"]);
         $historique = Flight::historiqueDisponibiliteEntretienModel();
         $data = array();
         $data= [
@@ -56,7 +56,7 @@ class DisponibiliteEntretienModel {
         $historique->create($data);
         $stmt = $this->db->prepare("
             UPDATE disponibilite_entretien 
-            SET id_responsable = :id_responsable,
+            SET id_admin = :id_admin,
                 heure_debut = :heure_debut,
                 heure_fin = :heure_fin,
                 jour = :jour,
@@ -64,7 +64,7 @@ class DisponibiliteEntretienModel {
             WHERE id_dispo = :id
         ");
         return $stmt->execute([
-            ':id_responsable' => $data['id_responsable'],
+            ':id_admin' => $data['id_admin'],
             ':heure_debut'    => $data['heure_debut'],
             ':heure_fin'      => $data['heure_fin'],
             ':jour'           => $data['jour'],
@@ -78,7 +78,7 @@ class DisponibiliteEntretienModel {
         $dispo_entretien = self::find($id);
         $dispo_entretien = [
             "id_dispo" =>$dispo_entretien["id_dispo"],
-            "id_responsable" =>$dispo_entretien["id_responsable"],
+            "id_admin" =>$dispo_entretien["id_admin"],
             "heure_debut" =>$dispo_entretien["heure_debut"],
             "heure_fin" =>$dispo_entretien["heure_fin"],
             "jour" =>$dispo_entretien["jour"],
@@ -87,7 +87,7 @@ class DisponibiliteEntretienModel {
         self::update($dispo_entretien);
         $data= [
             "id_dispo" =>$dispo_entretien["id_dispo"],
-            "id_responsable" =>$dispo_entretien["id_responsable"],
+            "id_admin" =>$dispo_entretien["id_admin"],
             "heure_debut" =>$dispo_entretien["heure_debut"],
             "heure_fin" =>$dispo_entretien["heure_fin"],
             "jour" =>$dispo_entretien["jour"],
@@ -95,15 +95,15 @@ class DisponibiliteEntretienModel {
         ];
         return $stmt->execute([$id]);
     }
-    public function getTempsDisponiblesEntretien($idResponsable){
-        $query = "SELECT * FROM disponibilite_entretien where id_responsable = :id_responsable ORDER by jour asc ";
+    public function getTempsDisponiblesEntretien($idAdmin){
+        $query = "SELECT * FROM disponibilite_entretien where id_admin = :id_admin ORDER by jour asc ";
         $db = $this->db;
         try{
-            if($idResponsable== 0 || $idResponsable == null){
+            if($idAdmin== 0 || $idAdmin == null){
                 throw new \Exception("l'id du Responsable doit etre positive et non nul");
             }
             $stmt= $db->prepare($query);
-            $stmt->execute(["id_responsable"=> $idResponsable]);
+            $stmt->execute(["id_admin"=> $idAdmin]);
         return $stmt->fetchAll(\PDO::FETCH_ASSOC);
         } catch (\Exception $e) {
             throw new \Exception($e->getMessage());
@@ -117,8 +117,7 @@ class DisponibiliteEntretienModel {
             $countSql = "
                 SELECT COUNT(*) as total
                 FROM disponibilite_entretien de
-                JOIN responsable_entretien re ON re.id_responsable = de.id_responsable
-                WHERE re.id_admin = :id_admin
+                WHERE de.id_admin = :id_admin
             ";
             $stmtCount = $connexion->prepare($countSql);
             $stmtCount->bindParam(':id_admin', $idAdmin, PDO::PARAM_INT);
@@ -128,15 +127,13 @@ class DisponibiliteEntretienModel {
             $sql = "
                 SELECT 
                     de.id_dispo,
-                    de.id_responsable,
+                    de.id_admin,
                     de.heure_debut,
                     de.heure_fin,
                     de.jour,
                     de.est_valide,
-                    re.id_admin,
                     re.ordre_passage
                 FROM disponibilite_entretien de
-                JOIN responsable_entretien re ON re.id_responsable = de.id_responsable
                 WHERE re.id_admin = :id_admin
                 ORDER BY de.jour, de.heure_debut
                 OFFSET :start LIMIT :length

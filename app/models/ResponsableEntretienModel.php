@@ -132,7 +132,7 @@ class ResponsableEntretienModel
             throw new \Exception($e->getMessage());
         }
     }
-    public function getProfilsEntretiens($idAdmin){
+    public function getResponsableEntretiensByIdAdmin($idAdmin){
         $db = $this->db;
         $query = "SELECT * FROM responsable_entretien  where id_admin = ?";
        
@@ -149,8 +149,8 @@ class ResponsableEntretienModel
         }
     }
     public function getListeCandidatsAEntretenir($listeCandidats,$idAdmin):?array{
-        $results = [];
-        $profilsEntretiens = self::getProfilsEntretiens($idAdmin);
+        $results = array();
+        $profilsEntretiens = self::getResponsableEntretiensByIdAdmin($idAdmin);
         $i = 0;
         foreach($listeCandidats as $candidat){
             foreach($profilsEntretiens as $profil){
