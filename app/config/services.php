@@ -17,6 +17,7 @@ use app\models\EtatModel;
 use app\models\ProfilsModel;
 use app\models\PlanningEntretienModel;
 use app\models\HistoriquePlanningEntretienModel;
+use app\models\HistoriqueDisponibiliteEntretienModel;
 
 /** 
  * @var array $config This comes from the returned array at the bottom of the config.php file

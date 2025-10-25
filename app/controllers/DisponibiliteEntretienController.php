@@ -24,22 +24,34 @@ class DisponibiliteEntretienController {
     public function creer(){
         $input = file_get_contents("php://input");
         $data = json_decode($input,true);
-        error_log(count($data));
-        $data["id_responsable"] = Flight::responsableEntretienModel()->findByIdAdmin($_SESSION["admin"]["id_admin"])[0]["id_responsable"];
-        error_log($data["id_responsable"]);
+        $data["id_admin"] = $_SESSION["admin"]["id_admin"];
         $model = Flight::disponibiliteEntretienModel();
-        $model->create($data);
+        $result = $model->create($data);
+        if($result != 0){
+            return Flight::json(["message"=>"success"]);
+        }
+        else{
+            return Flight::json(["message"=>"error"]);   
+        }
     }
     public function modifier(){
         $input = file_get_contents("php://input");
         $data = json_decode($input,true);
+        $data["id_admin"] = $_SESSION["admin"]["id_admin"];
         $disponibiliteEntretien = Flight::disponibiliteEntretienModel();
-        $disponibiliteEntretien->update($data);
+        $result = $disponibiliteEntretien->update($data);
+        if($result){
+            return Flight::json(["message"=>"success"]);
+        }
+        else{
+            return Flight::json(["message"=>"error"]);   
+        }
     }
     public function supprimer(){
-        $id_dispo = $_POST["data"]["id_dispo"];
+        $input = file_get_contents("php://input");
+        $data = json_decode($input,true);
         $disponibiliteEntretien = Flight::disponibiliteEntretienModel();
-        $disponibiliteEntretien->delete($id_dispo);
+        $disponibiliteEntretien->delete($data["id_dispo"]);
     }
 }
 ?>

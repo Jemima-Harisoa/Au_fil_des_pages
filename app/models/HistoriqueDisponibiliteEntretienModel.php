@@ -27,11 +27,11 @@ class HistoriqueDisponibiliteEntretienModel {
     // Créer une nouvelle disponibilité
     public function create(array $data): int {
         $stmt = $this->db->prepare("
-            INSERT INTO disponibilite_entretien (id_dispo, heure_debut, heure_fin, jour, est_valide)
+            INSERT INTO historique_disponibilite_entretien (id_dispo, heure_debut, heure_fin, jour, est_valide)
             VALUES (:id_dispo, :heure_debut, :heure_fin, :jour, :est_valide)
         ");
         $stmt->execute([
-            ':id_dispo' => $data['id_responsable'],
+            ':id_dispo' => $data['id_dispo'],
             ':heure_debut'    => $data['heure_debut'],
             ':heure_fin'      => $data['heure_fin'],
             ':jour'           => $data['jour'],

@@ -59,15 +59,5 @@
         </div>
     </div>
 </div>
-
-<script src="vendor/jquery/jquery.min.js"></script>
-
-<!-- Bootstrap 4 -->
-<script src="vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
-
-<!-- DataTables -->
-<script src="vendor/datatables/jquery.dataTables.min.js"></script>
-<script src="vendor/datatables/dataTables.bootstrap4.min.js"></script>
-
-<!-- Ton script -->
+<?php include("footerA.php");?>
 <script src="js/disponibilite-entretien.js"></script>

@@ -47,7 +47,7 @@ $(document).ready(function () {
         const heure_fin = $('#heure_fin').val();
 
         const url = id_dispo ? '/disponibilite-entretien/modification' : '/disponibilite-entretien/insertion';
-
+        
         $.ajax({
             url: url,
             method: 'POST',
@@ -57,7 +57,8 @@ $(document).ready(function () {
                 id_dispo: id_dispo,
                 jour: jour,
                 heure_debut: heure_debut,
-                heure_fin: heure_fin
+                heure_fin: heure_fin,
+                est_valide:true
             }),
             success: function (response) {
                 if (response.message === "success") {
@@ -81,7 +82,6 @@ $(document).ready(function () {
     $('#tableDisponibilite').on('click', '.btn-modifier', function () {
         const id = $(this).data('id');
         const row = table.rows().data().toArray().find(r => r.id_dispo == id);
-
         if (row) {
             $('#id_dispo').val(row.id_dispo);
             $('#jour').val(row.jour);
@@ -95,13 +95,13 @@ $(document).ready(function () {
     // 🔹 4. SUPPRESSION
     $('#tableDisponibilite').on('click', '.btn-supprimer', function () {
         const id = $(this).data('id');
-
         if (confirm(`Voulez-vous vraiment supprimer la disponibilité n°${id} ?`)) {
             $.ajax({
                 url: '/disponibilite-entretien/suppression',
                 method: 'POST',
                 dataType: 'json',
-                data: { id_dispo: id },
+                contentType:'application/json',
+                data: JSON.stringify({ id_dispo: id }),
                 success: function (response) {
                     if (response.message === "success") {
                         alert(`Disponibilité n°${id} supprimée.`);
@@ -111,7 +111,7 @@ $(document).ready(function () {
                     }
                 },
                 error: function (xhr, status, error) {
-                    alert("Erreur AJAX : " + error);
+                    alert("Erreur AJAX : " + error+status);
                 }
             });
         }

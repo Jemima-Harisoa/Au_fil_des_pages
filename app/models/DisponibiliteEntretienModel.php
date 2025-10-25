@@ -1,6 +1,6 @@
 <?php
 namespace app\models;
-
+use Flight;
 use PDO;
 
 class DisponibiliteEntretienModel {
@@ -42,17 +42,17 @@ class DisponibiliteEntretienModel {
 
     // Mettre à jour une disponibilité
     public function update(array $data): bool {
-
-        $dispo_entretien = self::find( $data["id_dispo"]);
+        $dispo_entretien = self::find($data["id_dispo"]);
         $historique = Flight::historiqueDisponibiliteEntretienModel();
-        $data = array();
-        $data= [
-            "id_dispo" =>$dispo_entretien["id_dispo"],
-            "heure_debut" =>$dispo_entretien["heure_debut"],
-            "heure_fin" =>$dispo_entretien["heure_fin"],
-            "jour" =>$dispo_entretien["jour"],
-            "est_valide"=>$dispo_entretien["est_valide"]
+        $donnees= [
+            "id_admin"=>$data["id_admin"],
+            "id_dispo" =>$data["id_dispo"],
+            "heure_debut" =>$data["heure_debut"],
+            "heure_fin" =>$data["heure_fin"],
+            "jour" =>$data["jour"],
+            "est_valide"=>$data["est_valide"]
         ];
+        error_log("eto eeeeeee: ".$donnees['heure_fin']);
         $historique->create($data);
         $stmt = $this->db->prepare("
             UPDATE disponibilite_entretien 
@@ -64,17 +64,18 @@ class DisponibiliteEntretienModel {
             WHERE id_dispo = :id
         ");
         return $stmt->execute([
-            ':id_admin' => $data['id_admin'],
-            ':heure_debut'    => $data['heure_debut'],
-            ':heure_fin'      => $data['heure_fin'],
-            ':jour'           => $data['jour'],
-            ':est_valide'     => $data['est_valide'],
-            ':id'             => $id
+            ':id_admin' => $donnees['id_admin'],
+            ':heure_debut'    => $donnees['heure_debut'],
+            ':heure_fin'      => $donnees['heure_fin'],
+            ':jour'           => $donnees['jour'],
+            ':est_valide'     => $donnees['est_valide'],
+            ':id'             => $donnees["id_dispo"]
         ]);
     }
 
     // Supprimer une disponibilité
     public function delete(int $id): bool {
+        $result = false;
         $dispo_entretien = self::find($id);
         $dispo_entretien = [
             "id_dispo" =>$dispo_entretien["id_dispo"],
@@ -84,7 +85,6 @@ class DisponibiliteEntretienModel {
             "jour" =>$dispo_entretien["jour"],
             "est_valide"=>false
         ];
-        self::update($dispo_entretien);
         $data= [
             "id_dispo" =>$dispo_entretien["id_dispo"],
             "id_admin" =>$dispo_entretien["id_admin"],
@@ -93,7 +93,9 @@ class DisponibiliteEntretienModel {
             "jour" =>$dispo_entretien["jour"],
             "est_valide"=>$dispo_entretien["est_valide"]
         ];
-        return $stmt->execute([$id]);
+        self::update($dispo_entretien);
+        $result = true;
+        return $result;
     }
     public function getTempsDisponiblesEntretien($idAdmin){
         $query = "SELECT * FROM disponibilite_entretien where id_admin = :id_admin ORDER by jour asc ";
@@ -134,6 +136,7 @@ class DisponibiliteEntretienModel {
                     de.est_valide,
                     re.ordre_passage
                 FROM disponibilite_entretien de
+                join responsable_entretien re on re.id_admin = de.id_admin
                 WHERE re.id_admin = :id_admin
                 ORDER BY de.jour, de.heure_debut
                 OFFSET :start LIMIT :length

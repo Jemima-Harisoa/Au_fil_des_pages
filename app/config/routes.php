@@ -44,4 +44,4 @@ $router->get('/disponibilite-entretien/liste',[$disponibilite_entretien_controll
 $router->get('/disponibilite-entretien',[$disponibilite_entretien_controller,'renderPage']);
 $router->post('/disponibilite-entretien/insertion',[$disponibilite_entretien_controller,'creer']);
 $router->post('/disponibilite-entretien/modification',[$disponibilite_entretien_controller,'modifier']);
-$router->get('/disponibilite-entretien/supression',[$disponibilite_entretien_controller,'supprimer']);
+$router->post('/disponibilite-entretien/suppression',[$disponibilite_entretien_controller,'supprimer']);

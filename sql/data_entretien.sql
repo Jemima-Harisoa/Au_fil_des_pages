@@ -183,7 +183,7 @@ INSERT INTO employes (id_personne, id_contrat, id_departement, poste, date_embau
 (3, 3, 2, 'Magasinier principal', '2022-03-15'), -- Paul
 (4, 1, 1, 'Vendeuse', '2023-05-20'),         -- Sophie
 (5, 2, 1, 'Caissier', '2023-08-10'),         -- Lucas
-(6, 6, 3, 'RH', '2023-01-05');    
+(6, 6, 5, 'Directeur RH', '2023-01-05');    
 
 INSERT INTO admins(id_employe, nom, mdp) VALUES
 (1, 'admin_jean', 'hashedpwd1'),   -- Gérant
