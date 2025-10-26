@@ -11,7 +11,7 @@ $(document).ready(function () {
             url: `/disponibilite-entretien/liste`,
             dataSrc: function (json) {
                 // Ne garder que les lignes valides
-                return json.data.filter(row => row.est_valide === true);
+                return json.data.filter(row => row.est_valide === 1);
             }
         },
         columns: [
@@ -58,7 +58,7 @@ $(document).ready(function () {
                 jour: jour,
                 heure_debut: heure_debut,
                 heure_fin: heure_fin,
-                est_valide:true
+                est_valide:1
             }),
             success: function (response) {
                 if (response.message === "success") {
@@ -84,7 +84,12 @@ $(document).ready(function () {
         const row = table.rows().data().toArray().find(r => r.id_dispo == id);
         if (row) {
             $('#id_dispo').val(row.id_dispo);
-            $('#jour').val(row.jour);
+            $('#jour option').each(function() {
+                if ($(this).text() === row.jour) 
+                {
+                    $(this).prop('selected', true);
+                }
+            });
             $('#heure_debut').val(row.heure_debut);
             $('#heure_fin').val(row.heure_fin);
             $('#modalDispoLabel').text(`Modifier disponibilité #${id}`);
@@ -101,7 +106,7 @@ $(document).ready(function () {
                 method: 'POST',
                 dataType: 'json',
                 contentType:'application/json',
-                data: JSON.stringify({ id_dispo: id }),
+                data: JSON.stringify({ id_dispo: id ,est_valide:0}),
                 success: function (response) {
                     if (response.message === "success") {
                         alert(`Disponibilité n°${id} supprimée.`);

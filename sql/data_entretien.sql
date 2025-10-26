@@ -253,26 +253,26 @@ INSERT INTO responsable_entretien (id_profil, id_admin, ordre_passage) VALUES
 
 INSERT INTO disponibilite_entretien (id_admin, heure_debut, heure_fin, jour, est_valide) VALUES
 -- Admin Jean (id_admin = 1)
-(1, '08:00', '10:00', 1, TRUE),  -- Lundi matin
-(1, '10:30', '12:00', 1, TRUE),  -- Lundi fin de matinée
-(1, '14:00', '16:00', 2, TRUE),  -- Mardi après-midi
-(1, '09:00', '11:00', 3, TRUE),  -- Mercredi matin
-(1, '13:30', '15:30', 4, TRUE),  -- Jeudi après-midi
-(1, '08:00', '10:00', 5, FALSE), -- Vendredi matin (indisponible)
+(1, '08:00', '10:00', 1, 1),  -- Lundi matin
+(1, '10:30', '12:00', 1, 1),  -- Lundi fin de matinée
+(1, '14:00', '16:00', 2, 1),  -- Mardi après-midi
+(1, '09:00', '11:00', 3, 1),  -- Mercredi matin
+(1, '13:30', '15:30', 4, 1),  -- Jeudi après-midi
+(1, '08:00', '10:00', 5, 0), -- Vendredi matin (indisponible)
 
 -- Admin Claire (id_admin = 2)
-(2, '09:00', '11:30', 1, TRUE),
-(2, '13:00', '15:30', 2, TRUE),
-(2, '09:00', '12:00', 3, TRUE),
-(2, '14:00', '16:00', 4, FALSE), -- créneau désactivé
-(2, '10:00', '12:00', 5, TRUE),
+(2, '09:00', '11:30', 1, 1),
+(2, '13:00', '15:30', 2, 1),
+(2, '09:00', '12:00', 3, 1),
+(2, '14:00', '16:00', 4, 0), -- créneau désactivé
+(2, '10:00', '12:00', 5, 1),
 
 -- Admin Lina (id_admin = 6)
-(3, '08:30', '10:30', 1, TRUE),
-(3, '10:45', '12:15', 2, TRUE),
-(3, '13:30', '15:30', 3, TRUE),
-(3, '09:00', '11:00', 4, TRUE),
-(3, '14:00', '16:00', 5, TRUE);
+(3, '08:30', '10:30', 1, 1),
+(3, '10:45', '12:15', 2, 1),
+(3, '13:30', '15:30', 3, 1),
+(3, '09:00', '11:00', 4, 1),
+(3, '14:00', '16:00', 5, 1);
 
 
 INSERT INTO jour_ferie("date") VALUES

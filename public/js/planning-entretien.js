@@ -109,6 +109,7 @@ var table = $("#dataTable").DataTable({
     destroy: true,
     processing: true,
     serverSide: true,
+    ordering:true,
     ajax: {
         url: "/planning_entretien/filtre",
         type: "POST",
@@ -135,6 +136,7 @@ var table = $("#dataTable").DataTable({
     },
     columns: [
         { data: null, render: row => `${row.nom_candidat ?? ""} ${row.prenom_candidat ?? ""}` },
+        { data: "profil" },
         {
             data: "date_naissance",
             render: d => {
@@ -143,8 +145,8 @@ var table = $("#dataTable").DataTable({
                 return new Date().getFullYear() - birth.getFullYear();
             }
         },
-        { data: "profil" },
-        { data: "score_test" },
+        
+        { data: "score_test" ,},
         { data: "date_test" },
         {data: "etat"},
         { data: "date_heure_entretien" },

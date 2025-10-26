@@ -49,9 +49,17 @@ class DisponibiliteEntretienController {
     }
     public function supprimer(){
         $input = file_get_contents("php://input");
+        error_log("Contenu brut reçu : ".$input);
         $data = json_decode($input,true);
+        error_log("Décodé : ".print_r($data, true));
         $disponibiliteEntretien = Flight::disponibiliteEntretienModel();
-        $disponibiliteEntretien->delete($data["id_dispo"]);
+        $result  = $disponibiliteEntretien->delete($data);
+                if($result){
+            return Flight::json(["message"=>"success"]);
+        }
+        else{
+            return Flight::json(["message"=>"error"]);   
+        }
     }
 }
 ?>

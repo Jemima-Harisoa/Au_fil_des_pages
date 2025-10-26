@@ -35,7 +35,7 @@ class HistoriqueDisponibiliteEntretienModel {
             ':heure_debut'    => $data['heure_debut'],
             ':heure_fin'      => $data['heure_fin'],
             ':jour'           => $data['jour'],
-            ':est_valide'     => $data['est_valide'] 
+            ':est_valide'     => $data['est_valide']
         ]);
         return (int)$this->db->lastInsertId();
     }

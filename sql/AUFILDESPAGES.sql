@@ -202,7 +202,7 @@ CREATE TABLE disponibilite_entretien (
   heure_debut TIME, 
   heure_fin TIME,
   jour INT,
-  est_valide BOOLEAN DEFAULT TRUE
+  est_valide integer
 );
 
 create table historique_disponibilite_entretien(
@@ -211,7 +211,7 @@ create table historique_disponibilite_entretien(
   heure_debut TIME, 
   heure_fin TIME,
   jour INT,
-  est_valide BOOLEAN 
+  est_valide Integer 
 );
 
 
