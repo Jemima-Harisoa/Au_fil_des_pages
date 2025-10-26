@@ -28,7 +28,7 @@ class MigrationController {
             session_start();
         }
 
-        // ✅ Vérifier si c'est un admin
+        // Vérifier si c'est un admin
         if (isset($_SESSION['admin'])) {
             $connModel = new ConnexionModel(Flight::db());
             $adminSession = $_SESSION['admin'];
@@ -41,38 +41,48 @@ class MigrationController {
             }
         }
 
-        // ✅ Vérifier si c'est un utilisateur lié à un employé via candidat
+        // NOUVELLE VÉRIFICATION SIMPLIFIÉE : utilisateur → personne → employe
         if (isset($_SESSION['utilisateur'])) {
             $utilisateurSession = $_SESSION['utilisateur'];
-            $id_utilisateur = $utilisateurSession['id_utilisateur'] ?? null;
+            $id_personne = $utilisateurSession['id_personne'] ?? null;
 
-            if ($id_utilisateur) {
-                // Récupérer le candidat lié à cet utilisateur
-                $candidatModel = Flight::Candidat();
-                $candidat = $candidatModel->getBy('id_utilisateur', $id_utilisateur);
+            if ($id_personne) {
+                // Vérifier directement si cette personne est un employé
+                $employeModel = Flight::Employe();
+                $employe = $employeModel->getBy('id_personne', $id_personne);
 
-                if ($candidat && !empty($candidat['id_personne'])) {
-                    // Vérifier si cette personne est un employé
-                    $employeModel = Flight::Employe();
-                    $employe = $employeModel->getBy('id_personne', $candidat['id_personne']);
-
-                    if ($employe && !empty($employe['id_employe'])) {
-                        // ✅ Créer la session employe dynamiquement
-                        $_SESSION['employe'] = [
-                            'id_employe' => $employe['id_employe'],
-                            'id_personne' => $employe['id_personne'],
-                            'id_contrat' => $employe['id_contrat'],
+                if ($employe && !empty($employe['id_employe'])) {
+                    // Récupérer les informations complètes du département
+                    $departementModel = Flight::Departement();
+                    $departement = $departementModel->findById($employe['id_departement']);
+                    
+                    // Créer la session employe dynamiquement
+                    $_SESSION['employe'] = [
+                        'id_employe' => $employe['id_employe'],
+                        'id_personne' => $employe['id_personne'],
+                        'id_contrat' => $employe['id_contrat'],
+                        'id_departement' => $employe['id_departement'],
+                        'poste' => $employe['poste'],
+                        'date_embauche' => $employe['date_embauche']
+                    ];
+                    
+                    // Ajouter les données complètes du département dans la session
+                    if ($departement) {
+                        $_SESSION['departement'] = $departement;
+                    } else {
+                        // Fallback si le département n'est pas trouvé
+                        $_SESSION['departement'] = [
                             'id_departement' => $employe['id_departement'],
-                            'poste' => $employe['poste'],
-                            'date_embauche' => $employe['date_embauche']
+                            'nom_departement' => 'Département inconnu'
                         ];
-                        return true;
                     }
+                    //Flight::render('Atest', ['data' => $departement]);
+                    return true;
                 }
             }
         }
 
-        // ❌ Si aucune session valide, redirection
+        //  Redirection si aucun accès valide
         $_SESSION = [];
         if (ini_get("session.use_cookies")) {
             $params = session_get_cookie_params();
@@ -87,14 +97,13 @@ class MigrationController {
         Flight::redirect("/admin?msg={$msg}&msg_type=warning");
         return false;
     }
-
     /**
      * 🔹 ENVOYER POUR VALIDATION - CONSERVÉE DANS MIGRATIONCONTROLLER
      */
     public function envoyerValidation($id_contrat_param = null) {
         if (!$this->requireEmployeOrAdmin()) return;
 
-        // ✅ Si la fonction est appelée depuis registerContrat
+        // Si la fonction est appelée depuis registerContrat
         $id_contrat = $id_contrat_param ?? (Flight::request()->query['id'] ?? null);
         $note = Flight::request()->data->note ?? '';
 
@@ -131,10 +140,10 @@ class MigrationController {
                 $note
             );
 
-            // ✅ Notification au prochain validateur
+            // Notification au prochain validateur
             $validationController->notifierProchaineEtape($id_contrat, $prochain_statut);
 
-            // ✅ Message au candidat comme avant
+            // Message au candidat comme avant
             $messagerieModel = new MessagerieModel();
             $contratModel = Flight::Contrat();
             $candidatModel = Flight::Candidat();
@@ -147,7 +156,7 @@ class MigrationController {
             $messagerieModel->repondreA($candidat['id_candidat'], $candidat['id_annonce'], 
                 "📄 Votre contrat a été validé et envoyé pour la prochaine étape. {$formated_link}");
 
-            // ✅ Redirection si appel via route HTTP
+            // Redirection si appel via route HTTP
             if (!$id_contrat_param) {
                 $msg = urlencode("Contrat envoyé pour validation (nouveau statut : {$prochain_statut}).");
                 Flight::redirect("/migration/contrat/edit?id={$id_contrat}&msg={$msg}&msg_type=success");
