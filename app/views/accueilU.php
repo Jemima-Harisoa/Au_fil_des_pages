@@ -1,4 +1,5 @@
 <?php include "headerU.php" ?>
+<?php var_dump($_SESSION) ?>
 
 <div class="min-h-screen bg-gradient-to-b from-blue-100 to-gray-200 flex flex-col items-center justify-center p-6">
     <div class="bg-white shadow-2xl rounded-3xl p-10 max-w-lg w-full text-center">

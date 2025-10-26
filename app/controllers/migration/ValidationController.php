@@ -4,6 +4,7 @@ namespace app\controllers\migration;
 use Flight;
 use app\models\migration\ValidationContratModel;
 use app\models\MessagerieModel;
+use app\models\ConnexionModel;
 
 class ValidationController {
     
@@ -67,14 +68,114 @@ class ValidationController {
     }
 
     /**
-     * 🔹 Détermine le rôle de l'utilisateur connecté
+     * Retourne le rôle de l'utilisateur courant basé sur les sessions et la BD.
+     * Valeurs retournées possibles : 'visiteur', 'utilisateur', 'admin', 'gestion', 'rh',
+     * 'compta', 'stock', 'vente', 'responsable' (prioritaire si l'admin/employe est responsable d'entretien).
      */
-    public function getRoleUtilisateur() {
-        if (!isset($_SESSION['admin'])) {
-            return 'visiteur';
+    public static function getRoleUtilisateur()
+    {
+        // session_start() est déjà appelé en haut du fichier, donc on suppose la session active.
+
+        // 1) Si c'est un simple utilisateur connecté
+        if (isset($_SESSION['utilisateur']) && !isset($_SESSION['admin']) && !isset($_SESSION['employe'])) {
+            return 'utilisateur';
         }
-        
-        return 'rh'; // Par défaut, tous les admins sont considérés comme RH
+
+        // 2) Si c'est un employé connecté (NOUVEAU)
+        if (isset($_SESSION['employe'])) {
+            $idEmploye = $_SESSION['employe']['id_employe'] ?? null;
+
+            // Vérifier si l'employé est responsable d'entretien
+            if ($idEmploye) {
+                try {
+                    $db = Flight::db();
+                    $stmt = $db->prepare('SELECT 1 FROM responsable_entretien WHERE id_employe = :id_employe LIMIT 1');
+                    $stmt->execute(['id_employe' => $idEmploye]);
+                    if ($stmt->fetchColumn()) {
+                        return 'responsable';
+                    }
+                } catch (\Exception $e) {
+                    // silent fallback si la requête échoue
+                }
+            }
+
+            // Déterminer le département de l'employé
+            $idDepartement = $_SESSION['employe']['id_departement'] ?? null;
+            
+            // mapping id_departement -> rôle
+            switch ($idDepartement) {
+                case 1: // Direction
+                    return 'gestion';
+                case 2: // Comptabilité
+                    return 'compta';
+                case 3: // Stock
+                    return 'stock';
+                case 4: // RH
+                    return 'rh';
+                case 5: // Vente
+                    return 'vente';
+                default:
+                    return 'employe'; // rôle générique pour employé
+            }
+        }
+
+        // 3) Si c'est un admin connecté
+        if (isset($_SESSION['admin'])) {
+            // Priorité : si l'admin est aussi responsable d'entretien => 'responsable'
+            $idEmploye = $_SESSION['admin']['id_employe'] ?? null;
+
+            if ($idEmploye) {
+                try {
+                    $db = Flight::db();
+                    $stmt = $db->prepare('SELECT 1 FROM responsable_entretien WHERE id_employe = :id_employe LIMIT 1');
+                    $stmt->execute(['id_employe' => $idEmploye]);
+                    if ($stmt->fetchColumn()) {
+                        return 'responsable';
+                    }
+                } catch (\Exception $e) {
+                    // silent fallback
+                }
+            }
+
+            // Ensuite, on détermine le département (id_departement) soit depuis la session
+            // soit en interrogeant ConnexionModel
+            $idDepartement = null;
+            if (isset($_SESSION['departement']['id_departement'])) {
+                $idDepartement = (int) $_SESSION['departement']['id_departement'];
+            } else {
+                // fallback : essayer de récupérer depuis le modèle
+                try {
+                    $db = Flight::db();
+                    $connexionModel = new ConnexionModel($db);
+                    $depart = $connexionModel->getDepartementAdmin($_SESSION['admin']['id_admin'] ?? null);
+                    if (!empty($depart) && isset($depart['id_departement'])) {
+                        $idDepartement = (int) $depart['id_departement'];
+                        $_SESSION['departement'] = $depart;
+                    }
+                } catch (\Exception $e) {
+                    // fallback silencieux
+                }
+            }
+
+            // mapping simple id_departement -> rôle
+            switch ($idDepartement) {
+                case 1: // Direction
+                    return 'gestion';
+                case 2: // Comptabilité
+                    return 'compta';
+                case 3: // Stock
+                    return 'stock';
+                case 4: // RH
+                    return 'rh';
+                case 5: // Vente
+                    return 'vente';
+                default:
+                    return 'admin'; // admin générique
+            }
+        }
+
+        // 4) Par défaut : visiteur non authentifié
+        return 'visiteur';
     }
 
     /**
@@ -88,8 +189,8 @@ class ValidationController {
             return false;
         }
         
-        // 🔹 Si admin, accès autorisé (à affiner selon les départements)
-        if (isset($_SESSION['admin'])) {
+        // 🔹 Si admin ou employé, accès autorisé
+        if (isset($_SESSION['admin']) || isset($_SESSION['employe'])) {
             return true;
         }
         

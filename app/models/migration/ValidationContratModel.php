@@ -124,4 +124,94 @@ class ValidationContratModel {
         
         return in_array($statut_nom, $permissions[$role_utilisateur] ?? []);
     }
+
+    /**
+     * Retourne le rôle de l'utilisateur courant basé sur les sessions et la base de données.
+     * 
+     * Cas possibles :
+     *  - 'visiteur' : non connecté
+     *  - 'candidat' : utilisateur simple (postulant)
+     *  - 'employe' : employé avec département associé (renvoie aussi le nom du département)
+     *  - 'responsable_rh' : responsable du département RH
+     *  - 'responsable_departement' : responsable d’un autre département (hors RH)
+     */
+    public static function getRoleUtilisateur()
+    {
+        // On suppose que session_start() est déjà appelé avant
+        $db = Flight::db();
+
+        // ---- 1️⃣ Candidat (utilisateur simple) ----
+        if (isset($_SESSION['utilisateur']) && !isset($_SESSION['admin'])) {
+            return [
+                'role' => 'candidat',
+                'departement' => null
+            ];
+        }
+
+        // ---- 2️⃣ Employé connecté ----
+        if (isset($_SESSION['admin'])) {
+            $idEmploye = $_SESSION['admin']['id_employe'] ?? null;
+            $departementModel = new Departement();
+            if ($idEmploye) {
+                try {
+                    // Récupérer le département de l’employé
+                    $departement = $departementModel-> getDepartementEmploye($idEmploye);
+
+                    if ($departement) {
+                        // Cas particulier : si l’employé est du département RH
+                        if (strtolower($departement['departement_nom']) === 'rh') {
+                            // Vérifions s’il est marqué comme responsable RH
+                            $stmt2 = $db->prepare("SELECT 1 FROM responsable_departement WHERE id_employe = :id LIMIT 1");
+                            $stmt2->execute(['id' => $idEmploye]);
+                            $isResponsable = (bool)$stmt2->fetchColumn();
+
+                            if ($isResponsable) {
+                                return [
+                                    'role' => 'responsable_rh',
+                                    'departement' => $departement['departement_nom']
+                                ];
+                            }
+                        }
+
+                        // Sinon, si c’est un autre département et qu’il est responsable de celui-ci
+                        $stmt3 = $db->prepare("SELECT 1 FROM responsable_departement WHERE id_employe = :id LIMIT 1");
+                        $stmt3->execute(['id' => $idEmploye]);
+                        $isResponsable = (bool)$stmt3->fetchColumn();
+
+                        if ($isResponsable) {
+                            return [
+                                'role' => 'responsable_departement',
+                                'departement' => $departement['departement_nom']
+                            ];
+                        }
+
+                        // Sinon, employé simple
+                        return [
+                            'role' => 'employe',
+                            'departement' => $departement['departement_nom']
+                        ];
+                    }
+                } catch (\Exception $e) {
+                    // En cas d’erreur DB, on renvoie admin par défaut
+                    return [
+                        'role' => 'employe',
+                        'departement' => null
+                    ];
+                }
+            }
+
+            // Si aucun employé trouvé mais admin existe → c’est probablement un admin système
+            return [
+                'role' => 'admin',
+                'departement' => null
+            ];
+        }
+
+        // ---- 3️⃣ Visiteur non connecté ----
+        return [
+            'role' => 'visiteur',
+            'departement' => null
+        ];
+    }
+
 }

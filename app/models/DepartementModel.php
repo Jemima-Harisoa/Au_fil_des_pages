@@ -112,4 +112,16 @@ class DepartementModel {
         $stmt->execute(['value' => $value]);
         return $stmt->fetch(\PDO::FETCH_ASSOC);
     }
+
+    // Récupérer le département de l’employé
+    public function getDepartementEmploye($idEmploye)
+    {
+        $sql = "SELECT d.id_departement, d.nom AS departement_nom
+            FROM employes e
+            JOIN departements d ON e.id_departement = d.id_departement
+            WHERE e.id_employe = :id";
+        $stmt = $db->prepare($sql);
+        $stmt->execute(['id' => $idEmploye]);
+        return  $stmt->fetch(\PDO::FETCH_ASSOC);
+    }
 }
