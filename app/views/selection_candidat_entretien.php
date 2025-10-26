@@ -1,4 +1,4 @@
-<h1>Tri des candid</h1>
+<h1>Tri des candidats</h1>
 <form action="" method="post">
     
 </form>
