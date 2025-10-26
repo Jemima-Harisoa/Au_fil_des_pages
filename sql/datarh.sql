@@ -92,17 +92,17 @@ INSERT INTO employes (id_personne, id_departement, poste, date_embauche) VALUES
 (8, 5, 'Responsable Vente', '2018-07-12'),
 (9, 5, 'Commercial', '2022-01-30');
 
--- 3. Insertion des comptes utilisateurs pour les employés
-INSERT INTO utilisateurs (nom, mdp) VALUES
-('jean.rakoto', 'directeur123'),
-('marie.rasoa', 'rhresponsable123'),
-('paul.randria', 'rhassistant123'),
-('lova.rabe', 'comptableresponsable123'),
-('miora.razafy', 'comptable123'),
-('tiana.andria', 'stockresponsable123'),
-('hery.ravo', 'stock123'),
-('sandra.razaka', 'venteresponsable123'),
-('toky.rasolo', 'commercial123');
+-- 3. Insertion des comptes utilisateurs pour les employés (avec id_personne)
+INSERT INTO utilisateurs (nom, mdp, id_personne) VALUES
+('jean.rakoto', 'directeur123', 1),
+('marie.rasoa', 'rhresponsable123', 2),
+('paul.randria', 'rhassistant123', 3),
+('lova.rabe', 'comptableresponsable123', 4),
+('miora.razafy', 'comptable123', 5),
+('tiana.andria', 'stockresponsable123', 6),
+('hery.ravo', 'stock123', 7),
+('sandra.razaka', 'venteresponsable123', 8),
+('toky.rasolo', 'commercial123', 9);
 
 -- 4. Insertion des comptes admin pour les responsables
 INSERT INTO admins (id_employe, nom, mdp) VALUES
@@ -154,13 +154,14 @@ INSERT INTO annonces (id_profil, titre, date_publication, date_expiration, nombr
 (4, 'Magasinier', '2024-02-01', '2024-03-01', 1, '/annonces/magasinier-004'),
 (5, 'Vendeur/Vendeuse Librairie', '2024-02-05', '2024-03-05', 1, '/annonces/vendeur-005');
 
--- 7. Insertion des candidats avec comptes utilisateurs
-INSERT INTO utilisateurs (nom, mdp) VALUES
-('nirina.ramanana', 'candidat123'),
-('hajatiana.randriama', 'candidat123'),
-('fenitra.razafindra', 'candidat123'),
-('mamisoa.andrianja', 'candidat123'),
-('voahangy.ralison', 'candidat123');
+-- 7. Insertion des candidats avec comptes utilisateurs (avec id_personne)
+INSERT INTO utilisateurs (nom, mdp, id_personne) VALUES
+('nirina.ramanana', 'candidat123', 10),
+('hajatiana.randriama', 'candidat123', 11),
+('fenitra.razafindra', 'candidat123', 12),
+('mamisoa.andrianja', 'candidat123', 13),
+('voahangy.ralison', 'candidat123', 14);
+
 
 INSERT INTO candidats (id_personne, id_annonce, id_profil, cv_url, poste, id_utilisateur) VALUES
 (10, 1, 1, '/cv/nirina_caissiere.pdf', 'Caissière', 10),
