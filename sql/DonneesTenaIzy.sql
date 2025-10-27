@@ -34,10 +34,40 @@ INSERT INTO personnes (nom, prenom, date_naissance, contact, lien_image) VALUES
   ('Rasoazanamanga', 'Sophie', '1989-09-20', '0347890123', 'images/sophie.jpg'); -- admin RH
 
 -- employes
-INSERT INTO employes (id_personne, id_contrat, id_departement, poste, date_embauche) VALUES
-  (1, NULL, 1, 'Directeur', '2020-01-15'),  
-  (2, NULL, 2, 'Comptable', '2021-06-01'),
-  (6, NULL, 4, 'Assistant RH', '2022-03-10');  -- employé RH
+-- INSERT INTO employes (id_personne, id_contrat, id_departement, poste, date_embauche) VALUES
+--   (1, NULL, 1, 'Directeur', '2020-01-15'),  
+--   (2, NULL, 2, 'Comptable', '2021-06-01'),
+--   (6, NULL, 4, 'Assistant RH', '2022-03-10');  -- employé RH
+
+INSERT INTO employes (id_personne, id_departement, poste, date_embauche) VALUES
+-- Direction (id_departement = 1)
+(1, 1, 'Directeur Général', '2015-01-15'),
+
+-- RH (id_departement = 4)
+(2, 4, 'Responsable RH', '2018-03-20'),
+(3, 4, 'Assistant RH', '2020-06-10'),
+
+-- Comptabilité (id_departement = 2)
+(4, 2, 'Responsable Comptabilité', '2017-09-05'),
+(5, 2, 'Comptable', '2021-02-14'),
+
+-- Stock (id_departement = 3)
+(6, 3, 'Responsable Stock', '2016-11-08'),
+(7, 3, 'Gestionnaire Stock', '2019-04-25'),
+
+-- Vente (id_departement = 5)
+(8, 5, 'Responsable Vente', '2018-07-12'),
+(9, 5, 'Commercial', '2022-01-30');
+
+
+-- 4. Insertion des comptes admin pour les responsables
+INSERT INTO admins (id_employe, nom, mdp) VALUES
+(1, 'admin_direction', 'admindir123'),      -- Admin Direction
+(2, 'admin_rh', 'adminrh123'),              -- Admin RH
+(4, 'admin_comptabilite', 'admincompta123'), -- Admin Comptabilité
+(6, 'admin_stock', 'adminstock123'),        -- Admin Stock
+(8, 'admin_vente', 'adminvente123');        -- Admin Vente
+
 
 -- admins
 INSERT INTO admins (id_employe, nom, mdp) VALUES
