@@ -4,7 +4,6 @@ namespace app\controllers\migration;
 use Flight;
 use app\models\migration\ValidationContratModel;
 use app\models\MessagerieModel;
-use app\models\ConnexionModel;
 
 class ValidationController {
     
@@ -203,64 +202,14 @@ class ValidationController {
         return false;
     }
     /**
-     * Retourne le rôle de l'utilisateur courant basé sur les sessions et la BD.
-     * Version simplifiée pour la validation des contrats
+     * 🔹 Détermine le rôle de l'utilisateur connecté
      */
-    public static function getRoleUtilisateur()
-    {
-        // session_start() est déjà appelé en haut du fichier, donc on suppose la session active.
-
-        // 1) Si c'est un simple utilisateur connecté (candidat)
-        if (isset($_SESSION['utilisateur']) && !isset($_SESSION['admin']) && !isset($_SESSION['employe'])) {
-            return 'candidat';
+    public function getRoleUtilisateur() {
+        if (!isset($_SESSION['admin'])) {
+            return 'visiteur';
         }
-
-        // 2) Si c'est un employé connecté
-        if (isset($_SESSION['employe'])) {
-            $idEmploye = $_SESSION['employe']['id_employe'] ?? null;
-            $idDepartement = $_SESSION['employe']['id_departement'] ?? null;
-
-            // Déterminer le rôle principal par département
-            switch ($idDepartement) {
-                case 1: // Direction
-                    return 'gestion';
-                case 2: // Comptabilité
-                    return 'compta';
-                case 3: // Stock
-                    return 'stock';
-                case 4: // RH
-                    return 'rh';
-                case 5: // Vente
-                    return 'vente';
-                default:
-                    return 'employe';
-            }
-        }
-
-        // 3) Si c'est un admin connecté
-        if (isset($_SESSION['admin'])) {
-            // Utiliser le département stocké dans la session
-            $idDepartement = $_SESSION['departement']['id_departement'] ?? null;
-            
-            // mapping simple id_departement -> rôle
-            switch ($idDepartement) {
-                case 1: // Direction
-                    return 'gestion';
-                case 2: // Comptabilité
-                    return 'compta';
-                case 3: // Stock
-                    return 'stock';
-                case 4: // RH
-                    return 'rh';
-                case 5: // Vente
-                    return 'vente';
-                default:
-                    return 'admin';
-            }
-        }
-
-        // 4) Par défaut : visiteur non authentifié
-        return 'visiteur';
+        
+        return 'rh'; // Par défaut, tous les admins sont considérés comme RH
     }
     /**
      * 🔹 Vérifie que l'utilisateur connecté a le droit d'accéder à ce contrat
@@ -273,8 +222,8 @@ class ValidationController {
             return false;
         }
         
-        // 🔹 Si admin ou employé, accès autorisé
-        if (isset($_SESSION['admin']) || isset($_SESSION['employe'])) {
+        // 🔹 Si admin, accès autorisé (à affiner selon les départements)
+        if (isset($_SESSION['admin'])) {
             return true;
         }
         
