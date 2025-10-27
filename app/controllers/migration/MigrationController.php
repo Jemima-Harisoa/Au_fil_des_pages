@@ -195,9 +195,6 @@ class MigrationController {
             $data['peut_valider'] = $infosValidation['peut_valider'];
         }
 
-        // 🔹 NOUVEAU : Mettre à jour les sessions de notification pour l'utilisateur connecté
-        $this->updateUserNotificationSession();
-
         Flight::render('validation/form', ['data' => $data]);
     }
 
@@ -235,9 +232,6 @@ class MigrationController {
             }
             $contratsParEtat[$etat][] = $contrat;
         }
-
-        // 🔹 NOUVEAU : Mettre à jour les sessions de notification pour l'utilisateur connecté
-        $this->updateUserNotificationSession();
 
         Flight::render('validation/listContrat', [
             'contratsParEtat' => $contratsParEtat
@@ -560,9 +554,6 @@ class MigrationController {
                 'contrat_class'=> $contratBtnClass
             ];
         }
-
-        // 🔹 NOUVEAU : Mettre à jour les sessions de notification pour l'utilisateur connecté
-        $this->updateUserNotificationSession();
 
         Flight::render('migration/listCandidat', ['rows' => $rows]);
     }
