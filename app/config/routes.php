@@ -149,6 +149,14 @@ Flight::route('GET /messagerie/markAsRead/@id_candidat/@id_annonce', [Messagerie
 Flight::route('GET /messagerie/sse', [MessagerieController::class, 'sseNotifications']);
 Flight::route('GET /messagerie/refreshSession', [MessagerieController::class, 'refreshConversation']);
 
+// NOUVELLES ROUTES POUR LES NOTIFICATIONS EMPLOYÉ
+Flight::route('GET /notifications/employe', [MessagerieController::class, 'getNotificationsEmploye']);
+Flight::route('POST /notifications/employe/send', [MessagerieController::class, 'sendNotificationEmploye']);
+Flight::route('GET /notifications/employe/sse', [MessagerieController::class, 'sseNotificationsEmploye']);
+Flight::route('GET /notifications/employe/refresh', [MessagerieController::class, 'refreshEmployeNotifications']);
+Flight::route('POST /notifications/employe/markRead', [MessagerieController::class, 'markNotificationsAsRead']);
+Flight::route('GET /notifications/employe/updateSession', [MessagerieController::class, 'updateEmployeNotificationsSession']);
+
 $planning_entretien_controller = new PlanningEntretienController();
 $router->get('/planning-entretien',[$planning_entretien_controller,'showPageEntretien']);
 
@@ -173,6 +181,10 @@ $router->group( "/migration" , function($router) use ($Migration_Controller){
 
 		// route vers la page d'editon des contrat pour retouche ou bien validation
 		$router->get("/contrat/edit", [$Migration_Controller, 'editContrat']);   
+
+		// route de test
+		$router->get("/test", [$Migration_Controller, 'test']);   
+
 	}
 );
 
@@ -180,5 +192,3 @@ $router->group( "/migration" , function($router) use ($Migration_Controller){
 Flight::route('GET /messagerie/sse', [MessagerieController::class, 'sseNotifications']);
 
 ?>
-
-

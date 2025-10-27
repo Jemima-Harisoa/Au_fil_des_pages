@@ -3,7 +3,7 @@ namespace app\controllers\migration;
 
 use Flight;
 use app\models\migration\PersonneModel;
-use app\models\migration\CandidatModel;
+use app\models\CandidatModel;
 use app\models\migration\ScoringModel;
 use app\models\migration\TypeContratModel;
 use app\models\migration\ContratModel;
@@ -14,55 +14,165 @@ use app\models\ProfilsModel;
 use app\models\EtatModel;
 use app\models\ConnexionModel;
 use app\models\MessagerieModel;
+use app\models\EmployeModel;
+
+//session_start();
 
 class MigrationController {
-    
+        
+    public function __construct() {
+    }
+
+    // Ajoutez cette méthode de mapping dans MigrationController ou ValidationController
+    private function mapRoleToValidationRole($role_utilisateur) {
+        switch ($role_utilisateur) {
+            case 'rh':
+                return 'rh';
+            case 'candidat':
+                return 'candidat';
+            case 'gestion':
+            case 'compta':
+            case 'stock':
+            case 'vente':
+            case 'employe':
+                return 'service';
+            case 'admin':
+                return 'rh'; // L'admin peut valider comme RH par défaut
+            default:
+                return $role_utilisateur;
+        }
+    }
+
     /**
-     * Vérifie qu'une session admin est présente et active.
+     * 🔹 Mettre à jour les sessions de notification pour l'utilisateur connecté
      */
-    private function requireAdmin() {
+    private function updateUserNotificationSession() {
+        if (isset($_SESSION['employe']) || isset($_SESSION['admin'])) {
+            $id_employe = $_SESSION['employe']['id_employe'] ?? $_SESSION['admin']['id_employe'] ?? null;
+            $messagerieModel = new MessagerieModel();
+            if ($id_employe) {
+                $notifications = $messagerieModel->getNotificationsEmploye($id_employe);
+                $notificationCount = $messagerieModel->countNouvellesNotifications($id_employe);
+                
+                $_SESSION['notifications_employe'] = $notifications;
+                $_SESSION['notifications_employe_count'] = $notificationCount;
+            }
+        }
+    }
+
+    /**
+     * Vérifie qu'une session appartenant à un admin ou employé est présente et active.
+     */
+    private function requireEmployeOrAdmin() {
         if (session_status() === PHP_SESSION_NONE) {
             session_start();
         }
 
-        if (empty($_SESSION['admin']) || !is_array($_SESSION['admin'])) {
-            $msg = urlencode("Accès réservé aux administrateurs. Veuillez vous connecter.");
-            Flight::redirect("/admin?msg={$msg}&msg_type=warning");
-            return false;
-        }
+        // Vérifier si c'est un admin
+        if (isset($_SESSION['admin'])) {
+            $connModel = new ConnexionModel(Flight::db());
+            $adminSession = $_SESSION['admin'];
 
-        $connModel = new ConnexionModel(Flight::db());
-        $adminSession = $_SESSION['admin'];
+            $nom = $adminSession['nom'] ?? null;
+            $mdp = $adminSession['mdp'] ?? null;
 
-        $nom = $adminSession['nom'] ?? null;
-        $mdp = $adminSession['mdp'] ?? null;
-
-        if (!$nom || !$mdp || !$connModel->verifierAdmin($nom, $mdp)) {
-            $_SESSION = [];
-            if (ini_get("session.use_cookies")) {
-                $params = session_get_cookie_params();
-                setcookie(session_name(), '', time() - 42000,
-                    $params["path"], $params["domain"],
-                    $params["secure"], $params["httponly"]
-                );
+            if ($nom && $mdp && $connModel->verifierAdmin($nom, $mdp)) {
+                // Récupérer les infos complètes de l'admin
+                $adminModel = new AdminModel(Flight::db());
+                $_SESSION['infoAdmin'] = $adminModel->getDetailsPersoAdmin($_SESSION['admin']['id_admin']);
+                
+                // Mettre à jour les sessions de notification
+                $this->updateUserNotificationSession();
+                return true;
             }
-            session_destroy();
-
-            $msg = urlencode("Session administrateur invalide ou expirée. Veuillez vous reconnecter.");
-            Flight::redirect("/admin?msg={$msg}&msg_type=warning");
-            return false;
         }
 
-        return true;
-    }
+        // NOUVELLE VÉRIFICATION SIMPLIFIÉE : utilisateur → personne → employe
+        if (isset($_SESSION['utilisateur'])) {
+            $utilisateurSession = $_SESSION['utilisateur'];
+            $id_personne = $utilisateurSession['id_personne'] ?? null;
 
+            if ($id_personne) {
+                // Vérifier directement si cette personne est un employé
+                $employeModel = Flight::Employe();
+                $employe = $employeModel->getBy('id_personne', $id_personne);
+
+                if ($employe && !empty($employe['id_employe'])) {
+                    // Récupérer les informations complètes de la personne
+                    $personneModel = Flight::Personne();
+                    $personne = $personneModel->getBy('id_personne', $id_personne);
+                    
+                    // Récupérer les informations complètes du département
+                    $departementModel = Flight::Departement();
+                    $departement = $departementModel->findById($employe['id_departement']);
+                    
+                    // Créer la session employe dynamiquement
+                    $_SESSION['employe'] = [
+                        'id_employe' => $employe['id_employe'],
+                        'id_personne' => $employe['id_personne'],
+                        'id_contrat' => $employe['id_contrat'],
+                        'id_departement' => $employe['id_departement'],
+                        'poste' => $employe['poste'],
+                        'date_embauche' => $employe['date_embauche']
+                    ];
+                    
+                    // Stocker toutes les infos dans $_SESSION['infoAdmin'] comme pour les admins
+                    $_SESSION['infoAdmin'] = [
+                        'id_employe' => $employe['id_employe'],
+                        'id_personne' => $personne['id_personne'],
+                        'nom' => $personne['nom'],
+                        'prenom' => $personne['prenom'],
+                        'nom_complet' => $personne['nom'] . ' ' . $personne['prenom'],
+                        'date_naissance' => $personne['date_naissance'],
+                        'contact' => $personne['contact'],
+                        'lien_image' => $personne['lien_image'],
+                        'poste' => $employe['poste'],
+                        'date_embauche' => $employe['date_embauche'],
+                        'id_departement' => $employe['id_departement'],
+                        'nom_departement' => $departement['nom'] ?? 'Département inconnu',
+                        'type_utilisateur' => 'employe' // Pour distinguer admin/employe
+                    ];
+                    
+                    // Ajouter les données complètes du département dans la session
+                    if ($departement) {
+                        $_SESSION['departement'] = $departement;
+                    } else {
+                        // Fallback si le département n'est pas trouvé
+                        $_SESSION['departement'] = [
+                            'id_departement' => $employe['id_departement'],
+                            'nom' => 'Département inconnu'
+                        ];
+                    }
+                    
+                    // Mettre à jour les sessions de notification
+                    $this->updateUserNotificationSession();
+                    return true;
+                }
+            }
+        }
+
+        // Redirection si aucun accès valide
+        $_SESSION = [];
+        if (ini_get("session.use_cookies")) {
+            $params = session_get_cookie_params();
+            setcookie(session_name(), '', time() - 42000,
+                $params["path"], $params["domain"],
+                $params["secure"], $params["httponly"]
+            );
+        }
+        session_destroy();
+
+        $msg = urlencode("Accès réservé aux employés et administrateurs. Veuillez vous connecter.");
+        Flight::redirect("/admin?msg={$msg}&msg_type=warning");
+        return false;
+    }
+    
     /**
      * 🔹 ENVOYER POUR VALIDATION - CONSERVÉE DANS MIGRATIONCONTROLLER
      */
     public function envoyerValidation($id_contrat_param = null) {
-        if (!$this->requireAdmin()) return;
+        if (!$this->requireEmployeOrAdmin()) return;
 
-        // ✅ Si la fonction est appelée depuis registerContrat
         $id_contrat = $id_contrat_param ?? (Flight::request()->query['id'] ?? null);
         $note = Flight::request()->data->note ?? '';
 
@@ -71,7 +181,8 @@ class MigrationController {
             return;
         }
 
-        // Utilisation de ValidationController pour les vérifications
+        error_log("🚀 Début envoyerValidation pour contrat: $id_contrat");
+
         $validationController = new ValidationController();
         
         if (!$validationController->verifierAccesContrat($id_contrat)) {
@@ -82,43 +193,44 @@ class MigrationController {
 
         $validationModel = new ValidationContratModel(Flight::db());
         $role_utilisateur = $validationController->getRoleUtilisateur();
+        $role_validation = $this->mapRoleToValidationRole($role_utilisateur);
 
-        if (!$validationModel->verifierPermission($id_contrat, $role_utilisateur)) {
+        error_log("👤 Rôle utilisateur: $role_utilisateur -> $role_validation");
+
+        if (!$validationModel->verifierPermission($id_contrat, $role_validation)) {
             $msg = urlencode("Vous n'avez pas la permission de valider cette étape.");
             Flight::redirect("/migration/contrat/edit?id={$id_contrat}&msg={$msg}&msg_type=error");
             return;
         }
 
         try {
+            // Récupérer l'ID de l'employé/admin connecté
+            $id_employe_connecte = $_SESSION['admin']['id_employe'] ?? $_SESSION['employe']['id_employe'] ?? null;
+
+            error_log("🔧 Envoi validation - Contrat: $id_contrat, Validateur: $id_employe_connecte, Note: $note");
+
             $prochain_statut = $validationModel->envoyerPourValidation(
                 $id_contrat,
-                $_SESSION['admin']['id_employe'] ?? null,
+                $id_employe_connecte,
                 $note
             );
 
-            // ✅ Notification au prochain validateur
+            error_log("✅ Statut après validation: $prochain_statut");
+
+            // ✅ CORRECTION : Notification aux prochains validateurs selon la liste de priorité
             $validationController->notifierProchaineEtape($id_contrat, $prochain_statut);
 
-            // ✅ Message au candidat comme avant
-            $messagerieModel = new MessagerieModel();
-            $contratModel = Flight::Contrat();
-            $candidatModel = Flight::Candidat();
+            // 🔹 NOUVEAU : Mettre à jour les sessions de notification pour tous les employés concernés
+            $validationController->updateNotificationsSessions($id_contrat);
 
-            $contrat = $contratModel->getBy('id_contrat', $id_contrat);
-            $candidat = $candidatModel->getBy('id_candidat', $contrat['id_candidat']);
-
-            $lien_contrat = "/migration/contrat/edit?id={$id_contrat}";
-            $formated_link = $messagerieModel->styliserLiens($lien_contrat, "Voir le contrat");
-            $messagerieModel->repondreA($candidat['id_candidat'], $candidat['id_annonce'], 
-                "📄 Votre contrat a été validé et envoyé pour la prochaine étape. {$formated_link}");
-
-            // ✅ Redirection si appel via route HTTP
+            // Redirection si appel via route HTTP
             if (!$id_contrat_param) {
                 $msg = urlencode("Contrat envoyé pour validation (nouveau statut : {$prochain_statut}).");
                 Flight::redirect("/migration/contrat/edit?id={$id_contrat}&msg={$msg}&msg_type=success");
             }
 
         } catch (\Exception $e) {
+            error_log("❌ Erreur envoyerValidation: " . $e->getMessage());
             $msg = urlencode("Erreur lors de l'envoi : " . $e->getMessage());
             Flight::redirect("/migration/contrat/edit?id={$id_contrat}&msg={$msg}&msg_type=error");
         }
@@ -126,7 +238,7 @@ class MigrationController {
 
     // Redirection vers la pages d'edition du contrat
     public function editContrat() {
-        // if (!$this->requireAdmin()) return; pas besoin car l'utilisateur peut valider
+        // Pas besoin de vérification car l'utilisateur peut valider
 
         $id_contrat = Flight::request()->query['id'] ?? null;
 
@@ -148,8 +260,9 @@ class MigrationController {
         $candidatModel  = Flight::Candidat();
         $personneModel  = Flight::Personne();
         $typeContratModel = Flight::TypeContrat();
-        $employeModel      = Flight::Employe();      // ✅ nouveau
-        $departementModel  = Flight::Departement();  // ✅ nouveau
+        $employeModel      = Flight::Employe();
+        $departementModel  = Flight::Departement();
+        $validationModel = new ValidationContratModel(Flight::db());
 
         // Récupérer le contrat
         $contrat = $contratModel->getBy('id_contrat', $id_contrat);
@@ -177,6 +290,22 @@ class MigrationController {
         // Extraire la partie employe depuis le modele
         $employeFromModele = $modele['employe'] ?? [];
 
+        // Récupérer la liste des employés et départements
+        $listeEmployes = $employeModel->listWithDetails();
+        $listeDepartements = $departementModel->list();
+
+        // 🔹 NOUVEAU : Récupérer les prochains validateurs selon l'étape actuelle
+        $statut_actuel = $validationModel->getStatutActuel($id_contrat);
+        $prochains_validateurs = [];
+        
+        if ($statut_actuel) {
+            $roles_validateurs = $validationModel->getValidateursPourEtape($statut_actuel['nom']);
+            foreach ($roles_validateurs as $role) {
+                $employes_role = $validationModel->getEmployesParRole($role);
+                $prochains_validateurs[$role] = $employes_role;
+            }
+        }
+
         // Construire le tableau $data
         $data = [
             'contrat' => $contrat,
@@ -185,9 +314,10 @@ class MigrationController {
             'type_contrats' => $typeContrats,
             'modele' => $modele,
             'employe' => $employeFromModele,
-            'liste_employes' => $listeEmployes,        // ✅ ajouté ici
-            'liste_departements' => $listeDepartements, // ✅ ajouté ici
-            'profil' => null
+            'liste_employes' => $listeEmployes,
+            'liste_departements' => $listeDepartements,
+            'profil' => null,
+            'prochains_validateurs' => $prochains_validateurs // 🔹 NOUVEAU
         ];
         
         // Utilisation de ValidationController pour les informations de validation
@@ -198,12 +328,15 @@ class MigrationController {
             $data['peut_valider'] = $infosValidation['peut_valider'];
         }
 
+        // 🔹 NOUVEAU : Mettre à jour les sessions de notification pour l'utilisateur connecté
+        $this->updateUserNotificationSession();
+
         Flight::render('validation/form', ['data' => $data]);
     }
 
     // Redirection vers la liste des contrats classer par etat dynamique
     public function getContrat() {
-        if (!$this->requireAdmin()) return;
+        if (!$this->requireEmployeOrAdmin()) return;
 
         // Modèles
         $historiqueContratModel = Flight::HistoriqueContrat();
@@ -236,6 +369,9 @@ class MigrationController {
             $contratsParEtat[$etat][] = $contrat;
         }
 
+        // 🔹 NOUVEAU : Mettre à jour les sessions de notification pour l'utilisateur connecté
+        $this->updateUserNotificationSession();
+
         Flight::render('validation/listContrat', [
             'contratsParEtat' => $contratsParEtat
         ]);
@@ -243,7 +379,7 @@ class MigrationController {
 
     // Enregistrement / action sur contrat (création JSON puis sauvegarde / validation / refus / attente)
     public function registerContrat() {
-        if (!$this->requireAdmin()) return;
+        if (!$this->requireEmployeOrAdmin()) return;
 
         $id_candidat = Flight::request()->query['id_candidat'] ?? null;
         if (!$id_candidat) {
@@ -265,8 +401,7 @@ class MigrationController {
 
         // Vérification du candidat
         $candidat = $candidatModel->getBy('id_candidat', $id_candidat);
-        $personne = $personneModel->getBy('id_personne', $candidat['id_candidat']);
-        $personne = $personneModel->getBy('id_personne', $candidat['id_candidat']);
+        $personne = $personneModel->getBy('id_personne', $candidat['id_personne']);
 
         if (!$personne || !$candidat) {
             Flight::halt(404, "Candidat non trouvé.");
@@ -381,53 +516,66 @@ class MigrationController {
         
         // INITIALISER le statut "draft" si nouveau contrat
         if ($createdNewFile && $id_contrat) {
+            // Récupérer l'ID de l'employé/admin connecté
+            $id_employe_connecte = $_SESSION['admin']['id_employe'] ?? $_SESSION['employe']['id_employe'] ?? null;
+
             // Utilisation de ValidationController pour initialiser le statut
             $validationController = new ValidationController();
             $validationController->initialiserStatutDraft(
                 $id_contrat,
-                $_SESSION['admin']['id_employe'] ?? null,
+                $id_employe_connecte,
                 'Création du contrat (brouillon)'
             );
         }
 
-        // Déterminer l'état en fonction du bouton cliqué (action)
+        // Déterminer l'action
         $action = $data['action'] ?? null;
-        switch ($action) {
-            case 'valider':
-                $etat = $etatModel->getBy("nom", "Validé");
-                if (!$etat) {
-                    $etatModel->save(['nom' => 'Validé']);
-                    $etat = $etatModel->getBy("nom", "Validé"); 
-                }
-                $actionLabel = "Validation";
+        
+        // 🔹 CORRECTION : Utiliser le workflow de validation pour l'action 'valider'
+        if ($action === 'valider' && $id_contrat) {
+            // Utiliser le système de validation avec liste de priorité
+            $this->envoyerValidation($id_contrat); 
+            
+            $actionLabel = "Validation et envoi dans le workflow";
+        } else {
+            // Pour les autres actions (refuser, attente), garder l'ancien système
+            switch ($action) {
+                case 'refuser':
+                    $etat = $etatModel->getBy("nom", "Non validé");
+                    if (!$etat) { 
+                        $etatModel->save(['nom'=>'Non validé']); 
+                        $etat = $etatModel->getBy("nom","Non validé"); 
+                    }
+                    $actionLabel = "Refus";
+                    break;
+                case 'attente':
+                default:
+                    $etat = $etatModel->getBy("nom", "En attente de validation");
+                    if (!$etat) { 
+                        $etatModel->save(['nom'=>'En attente de validation']); 
+                        $etat = $etatModel->getBy("nom","En attente de validation"); 
+                    }
+                    $actionLabel = "Mise en attente";
+                    break;
+            }
 
-                // Appel de la méthode d’envoi pour validation
-                $migrationController = new MigrationController();
-                $migrationController->envoyerValidation($id_contrat);
-                break;
-            case 'refuser':
-                $etat = $etatModel->getBy("nom", "Non validé");
-                if (!$etat) { $etatModel->save(['nom'=>'Non validé']); $etat = $etatModel->getBy("nom","Non validé"); }
-                $actionLabel = "Refus";
-                break;
-            case 'attente':
-            default:
-                $etat = $etatModel->getBy("nom", "En attente de validation");
-                if (!$etat) { $etatModel->save(['nom'=>'En attente de validation']); $etat = $etatModel->getBy("nom","En attente de validation"); }
-                $actionLabel = "Mise en attente";
-                break;
+            // Enregistrer l'historique (si état disponible) seulement pour les actions non "valider"
+            if (!empty($etat) && isset($etat['id_etat'])) {
+                // Récupérer l'ID de l'employé/admin connecté
+                $id_employe_connecte = $_SESSION['admin']['id_employe'] ?? $_SESSION['employe']['id_employe'] ?? $id_candidat;
+
+                $historiqueData = [
+                    'id_employe'            => $id_employe_connecte,
+                    'id_candidat'           => $id_candidat,
+                    'date_heure_validation' => date('Y-m-d H:i:s'),
+                    'id_etat'               => $etat['id_etat']
+                ];
+                $historiqueModel->save($historiqueData);
+            }
         }
 
-        // Enregistrer l'historique (si état disponible)
-        if (!empty($etat) && isset($etat['id_etat'])) {
-            $historiqueData = [
-                'id_employe'            => $_SESSION['admin']['id_employe'] ?? $id_candidat, // préférence : id de l'admin connecté
-                'id_candidat'           => $id_candidat,
-                'date_heure_validation' => date('Y-m-d H:i:s'),
-                'id_etat'               => $etat['id_etat']
-            ];
-            $historiqueModel->save($historiqueData);
-        }
+        // 🔹 NOUVEAU : Mettre à jour les sessions de notification pour l'utilisateur connecté
+        $this->updateUserNotificationSession();
 
         // Construire message pour redirection
         $msgParts = [];
@@ -442,10 +590,9 @@ class MigrationController {
             Flight::redirect("/migration/contrat/create?id={$id_candidat}&msg={$msg}&msg_type=info");
         }
     }
-
     // Redirection vers la page de generation de contrat 
     public function createContrat() {
-        if (!$this->requireAdmin()) return;
+        if (!$this->requireEmployeOrAdmin()) return;
 
         $id_candidat = Flight::request()->query['id'] ?? null;
 
@@ -455,8 +602,8 @@ class MigrationController {
         $contratModel      = Flight::Contrat();
         $typeContratModel  = Flight::TypeContrat();
         $etatModel         = Flight::Etat();
-        $employeModel      = Flight::Employe();      // ✅ nouveau
-        $departementModel  = Flight::Departement();  // ✅ nouveau
+        $employeModel      = Flight::Employe();
+        $departementModel  = Flight::Departement();
 
         // Récupérer la liste des employés et départements
         $listeEmployes     = $employeModel->listWithDetails();
@@ -498,8 +645,8 @@ class MigrationController {
             'personne' => $personne,
             'type_contrats' => $typeContrats,
             'etats' => $etats,
-            'liste_employes' => $listeEmployes,        // ✅ ajouté ici
-            'liste_departements' => $listeDepartements // ✅ ajouté ici
+            'liste_employes' => $listeEmployes,
+            'liste_departements' => $listeDepartements
         ];
 
         Flight::render('migration/form', ['data' => $data]);
@@ -507,7 +654,7 @@ class MigrationController {
 
     // Redirection vers la page de résultat des tests et entretiens
     public function getCandidatRetenu() {
-        if (!$this->requireAdmin()) return;
+        if (!$this->requireEmployeOrAdmin()) return;
 
         $personneModel = Flight::Personne();
         $candidatModel = Flight::Candidat();
@@ -559,14 +706,21 @@ class MigrationController {
             ];
         }
 
+        // 🔹 NOUVEAU : Mettre à jour les sessions de notification pour l'utilisateur connecté
+        $this->updateUserNotificationSession();
+
         Flight::render('migration/listCandidat', ['rows' => $rows]);
     }
 
     // Test des modèles (optionnel)
     public function test(){
-        if (!$this->requireAdmin()) return;
+        if (!$this->requireEmployeOrAdmin()) return;
 
         // ... logique test (inchangée)
-        Flight::render('migration/test', ['data' => []]);
+        
+        // 🔹 NOUVEAU : Mettre à jour les sessions de notification pour l'utilisateur connecté
+        $this->updateUserNotificationSession();
+
+        Flight::render('Atest', ['data' => []]);
     }
 }
