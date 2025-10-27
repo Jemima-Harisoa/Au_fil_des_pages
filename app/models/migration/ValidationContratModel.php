@@ -201,7 +201,6 @@ class ValidationContratModel {
         
         return $result;
     }
-<<<<<<< HEAD
     /**
      * Retourne le rôle de l'utilisateur courant basé sur les sessions et la base de données.
      * 
@@ -376,6 +375,4 @@ class ValidationContratModel {
         ];
     }
 
-=======
->>>>>>> parent of c23ab3c (data test rh)
 }

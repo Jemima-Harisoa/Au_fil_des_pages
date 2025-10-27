@@ -41,7 +41,6 @@ class ValidationController {
      * 🔹 Envoie une notification à la prochaine personne concernée selon la liste de priorité
      */
     public function notifierProchaineEtape($id_contrat, $prochain_statut) {
-        $messagerieModel = new MessagerieModel();
         $validationModel = new ValidationContratModel(Flight::db());
         $contratModel = Flight::Contrat();
         $candidatModel = Flight::Candidat();
@@ -98,20 +97,12 @@ class ValidationController {
         // 🔹 1. Notification au candidat
         if ($candidat) {
             try {
+                $messagerieModel = new MessagerieModel();
                 $formated_link = $messagerieModel->styliserLiens($lien_contrat, "Voir le contrat");
                 $message_complet = $config['message_candidat'] . " " . $formated_link;
                 
-                $result = $messagerieModel->repondreA(
-                    $candidat['id_candidat'],
-                    $candidat['id_annonce'] ?? 1,
-                    $message_complet
-                );
-                
-                if ($result) {
-                    error_log("✅ Notification envoyée au candidat: {$candidat['id_candidat']}");
-                } else {
-                    error_log("❌ Échec envoi notification candidat: {$candidat['id_candidat']}");
-                }
+                $mess = $messagerieModel->repondreA($idCandidat, $idAnnonce, $message_complet);  
+                            
             } catch (\Exception $e) {
                 error_log("❌ Erreur notification candidat: " . $e->getMessage());
             }
@@ -126,18 +117,20 @@ class ValidationController {
                 try {
                     $id_employe = $employe['id_employe'];
                     $employe_info = $employeModel->getBy('id_employe', $id_employe);
+                    $cand = $candidatModel->getBy('id_personne', $employe['id_personne']);
                     
                     if (!$employe_info) continue;
                     
                     // 🔹 NOUVELLE METHODE : Notification interne dédiée avec lien
-                    $message_employe = $config['message_validateur'] . " [Contrat #$id_contrat]";
-                    $result = $messagerieModel->notifierEmploye($id_employe, $message_employe);
-                    
-                    if ($result) {
-                        error_log("✅ Notification interne pour employé {$employe_info['poste']}");
-                    } else {
-                        error_log("❌ Échec notification interne employé {$employe_info['poste']}");
-                    }
+                     $formated_link = $messagerieModel->styliserLiens($lien_contrat, "Voir le contrat");
+                    $message_complet = $config['message_candidat'] . " " . $formated_link;
+                   // employe => id personnes et candidat id personne 
+
+                    $result = $messagerieModel->repondreA(
+                        $cand['id_candidat'],
+                        $cand ['id_annonce'] ?? 1,
+                        $message_complet
+                    );
                     
                 } catch (\Exception $e) {
                     error_log("❌ Erreur notification employé {$employe['id_employe']}: " . $e->getMessage());

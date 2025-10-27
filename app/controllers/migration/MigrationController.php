@@ -18,8 +18,30 @@ use app\models\MessagerieModel;
 
 class MigrationController {
     
+
+    // Ajoutez cette méthode de mapping dans MigrationController ou ValidationController
+    private function mapRoleToValidationRole($role_utilisateur) {
+        switch ($role_utilisateur) {
+            case 'rh':
+                return 'rh';
+            case 'candidat':
+                return 'candidat';
+            case 'gestion':
+            case 'compta':
+            case 'stock':
+            case 'vente':
+            case 'employe':
+                return 'service';
+            case 'admin':
+                return 'rh'; // L'admin peut valider comme RH par défaut
+            default:
+                return $role_utilisateur;
+        }
+    }
+
     /**
-     * Vérifie qu'une session admin est présente et active.
+     * Vérifie qu'une session appartenant à un admin ou employé est présente et active.
+     * VERSION OPTIMISÉE
      */
     private function requireAdmin() {
         if (session_status() === PHP_SESSION_NONE) {
@@ -159,6 +181,10 @@ class MigrationController {
         $candidat = $candidatModel->getBy('id_candidat', $contrat['id_candidat'] ?? null);
         $personne = $personneModel->getBy('id_personne', $candidat['id_personne'] ?? null);
 
+        // Récupérer la liste des employés et départements
+        $listeEmployes     = $employeModel->listWithDetails();
+        $listeDepartements = $departementModel->list();
+        
         // Liste types de contrat
         $typeContrats = $typeContratModel->list();
 
@@ -391,10 +417,15 @@ class MigrationController {
         $action = $data['action'] ?? null;
         switch ($action) {
             case 'valider':
-                $etat = $etatModel->getBy("nom", "Validé");
+                $validationController = new ValidationController();    
+                $info = $validationController->getInfosValidation($id_contrat);
+                $validationModel = new ValidationContratModel(Flight::db());
+        
+                $status = $validationModel->getProchainStatut($info['statut_actuel']['nom']);
+                $etat = $etatModel->getBy("nom", "$status");
                 if (!$etat) {
-                    $etatModel->save(['nom' => 'Validé']);
-                    $etat = $etatModel->getBy("nom", "Validé"); 
+                    $etatModel->save(['nom' => $status]);
+                    $etat = $etatModel->getBy("nom", "$status"); 
                 }
                 $actionLabel = "Validation";
 

@@ -97,13 +97,13 @@ class ConnexionController {
             $_SESSION['messagerie'] = $messagerieModel->getTitresConversationsA();  
             $_SESSION['nbNonLus'] = $messagerieModel->countNouveauxMessagesA();
 
-            if($_SESSION['departement']['id_departement'] ==  $idGestion  )
-            {
+            // if($_SESSION['departement']['id_departement'] ==  $idGestion  )
+            // {
                 Flight::render('accueilG',null);    
-            }
-            else{
-                Flight::render('accueilA',null);
-            }
+            // }
+            // else{
+            //     Flight::render('accueilA',null);
+            // }
 
 
         }
