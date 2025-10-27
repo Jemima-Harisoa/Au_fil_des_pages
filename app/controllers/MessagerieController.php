@@ -157,11 +157,6 @@ class MessagerieController {
             
             // Attendre 5 secondes avant la prochaine vérification
             sleep(5);
-            
-            // Vérifier si la connexion est encore active
-            if (connection_aborted()) {
-                break;
-            }
         }
     }
 

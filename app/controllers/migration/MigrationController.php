@@ -12,6 +12,7 @@ use app\models\migration\HistoriqueContratModel;
 use app\models\migration\ValidationContratModel;
 use app\models\ProfilsModel;
 use app\models\EtatModel;
+use app\models\AdminModel;
 use app\models\ConnexionModel;
 use app\models\MessagerieModel;
 use app\models\EmployeModel;
@@ -78,7 +79,7 @@ class MigrationController {
 
             if ($nom && $mdp && $connModel->verifierAdmin($nom, $mdp)) {
                 // Récupérer les infos complètes de l'admin
-                $adminModel = new AdminModel(Flight::db());
+                $adminModel = new AdminModel();
                 $_SESSION['infoAdmin'] = $adminModel->getDetailsPersoAdmin($_SESSION['admin']['id_admin']);
                 
                 // Mettre à jour les sessions de notification
