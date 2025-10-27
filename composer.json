@@ -25,6 +25,7 @@
         "ext-json": "*",
         "flightphp/core": "^3.0",
         "mikecao/flight": "^2.0",
+        "phpoffice/phpspreadsheet": "^5.2",
         "tracy/tracy": "^2.9"
     },
     "config": {

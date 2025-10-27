@@ -8,6 +8,16 @@ use app\models\CVModel;
 use Flight;
 
 class cvController {
+
+    // public function exportExcel() {
+    //     Flight::render('CV/exportCV');
+    // }
+    public function exportExcel() {
+    // appelle la méthode statique qui génère et envoie l'xlsx
+        CVModel::exportCVCandidatsExcel();
+    // exportCVCandidatsExcel() fait un exit() après avoir envoyé le fichier,
+    // donc normalement tu n'as pas besoin de return ici.
+    }
     public function home() {
         Flight::render('CV/temp');
     }

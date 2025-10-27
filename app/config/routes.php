@@ -69,6 +69,8 @@ $router->get('/retourFill',[ $cvController, 'retourAccueilU']);
 
 $router->get('/listeCV',[ $cvController, 'listeCV']);
 
+$router->get('/exportCV',[ $cvController, 'exportExcel']);
+
 // $router->get('/CV', [ $cvController, 'redirectCV']);
 
 // $router->get('/CV/fillCV/@idUser/@idAnnonce', [ $cvController, 'fillCV']);

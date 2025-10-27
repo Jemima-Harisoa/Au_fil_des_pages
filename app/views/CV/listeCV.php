@@ -79,10 +79,11 @@ if (!isset($layout)) {
       </div>
     </div>
     
-    <!-- Filter and Reset Buttons -->
+    <!-- Filter, Reset, and Export Buttons -->
     <div class="col-span-1 md:col-span-3 flex justify-center space-x-4 mt-4">
       <button id="apply-filters" class="bg-indigo-600 text-white py-2 px-4 rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500">Appliquer les filtres</button>
       <button id="reset-filters" class="bg-gray-500 text-white py-2 px-4 rounded-md hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-500">Tous les CVs</button>
+      <a href="/exportCV" class="inline-block"><button class="bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500">Exporter CV</button></a>
     </div>
   </div>
 
@@ -269,9 +270,6 @@ if (!isset($layout)) {
   // Add event listeners for buttons
   document.getElementById('apply-filters').addEventListener('click', applyFilters);
   document.getElementById('reset-filters').addEventListener('click', resetFilters);
-
-  // Initial application
-  applyFilters();
 </script>
 
 <?php
