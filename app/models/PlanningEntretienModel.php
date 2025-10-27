@@ -195,7 +195,9 @@ class PlanningEntretienModel{
                             $planningEntretien->setIdResponsable($responsable["id_responsable"]);
                             if($lastPlanning && is_array($lastPlanning)){
                                 $dateModel= new DateModel($lastPlanning["date_heure_entretien"]);
+                                error_log("DATE HEURE 1: ".$dateModel->format("Y-m-d H:i:s"));
                                 $dateHeureEntretien= $dateModel->addInterval($configEntretien["duree_entretien"]);
+                                error_log("DATE HEURE 2: ".$dateModel->format("Y-m-d H:i:s"));
                                 $planningEntretien->setDateHeureEntretien (DisponibiliteEntretienModel::checkDateDisponible($dateHeureEntretien,$disponibilitesEntretien));
                             }
                             else{
@@ -212,16 +214,26 @@ class PlanningEntretienModel{
         }
     }
 
-    public static function getEntretiensParEtat($etat) {
+    public static function getEntretiensByIdEtatAndIdAdmin($idEtat,$idAdmin) {
         $db = Flight::db();
-
+        $responsables = Flight::responsableEntretienModel()->findByIdAdmin($idAdmin);
+        // Construire la liste des IDs responsables
+        $ids = array_column($responsables, "id_responsable");
+        $placeholders = implode(',', array_fill(0, count($ids), '?'));
+        $params = array();
+        $params[0]=$idEtat;
+        $i=1;
+        foreach($ids as $id){
+            $params[$i] =$id;
+            $i++;
+        } 
         $sql = "
         SELECT pe.*,
-       te.*,
-       vrp.nom as nom_responsable,
-       vrp.prenom as prenom_responsable,
-       e.nom as etat
-    FROM planning_entretien pe
+        te.*,
+        vrp.nom as nom_responsable,
+        vrp.prenom as prenom_responsable,
+        e.nom as etat
+        FROM planning_entretien pe
         JOIN (
         SELECT vcp.id_candidat,
                 vcp.nom_candidat,
@@ -240,20 +252,51 @@ class PlanningEntretienModel{
     on vrp.id_responsable = pe.id_responsable
     JOIN etat e
     ON e.id_etat = pe.etat
-    WHERE pe.etat = ?";
+    WHERE pe.etat = ? and pe.id_responsable in ($placeholders)";
 
-        try {
-            $stmt = $db->prepare($sql);
-            $stmt->execute([$etat]);
-            return $stmt->fetchAll(\PDO::FETCH_ASSOC);
-        } catch (\PDOException $e) {
-            Flight::halt(500, "Erreur DB: " . $e->getMessage());
-        }
+    // Compter le total filtré
+    $count_sql = "SELECT COUNT(*) FROM ($sql) AS sub";
+    $stmt = $db->prepare($count_sql);
+    $stmt->execute($params);
+    $recordsFiltered = $stmt->fetchColumn();
+
+    // Pagination DataTables
+    $draw = isset($_POST['draw']) ? intval($_POST['draw']) : 1;
+    $start = isset($_POST['start']) ? intval($_POST['start']) : 0;
+    $length = isset($_POST['length']) ? intval($_POST['length']) : 10;
+
+    $sql .= " ORDER BY pe.date_heure_entretien DESC OFFSET ? LIMIT ?";
+    $params[] = $start;
+    $params[] = $length;
+
+    // Exécution finale
+    $stmt = $db->prepare($sql);
+    $stmt->execute($params);
+    $dataRows = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+
+    // Total général (sans filtre)
+    $params2 = array();
+    $j = 0;
+    foreach($ids as $id){
+        $params2[$j] = $id;
+        $j++;
+    }
+    $params2[] = $idEtat;
+    $total_sql = "SELECT COUNT(*) FROM planning_entretien where id_responsable in ($placeholders) and etat = ?";
+    $stmt= $db->prepare($total_sql);
+    $stmt->execute($params2);
+    $totalRecords = $stmt->fetchColumn();
+    
+    return [
+        "draw" => $draw,
+        "recordsTotal" => intval($totalRecords),
+        "recordsFiltered" => intval($recordsFiltered),
+        "data" => $dataRows
+        ];
     }
     public function checkCandidatsInEntretien($candidats){
         
         $candidatsEntretien = self::all();
-        error_log("eto aho:".count($candidatsEntretien));
         $compteur = 0;
         foreach($candidats as $candidat){
             if(CandidatModel::estDansLaListe($candidat,$candidatsEntretien)){
@@ -282,7 +325,6 @@ class PlanningEntretienModel{
     // Construire la liste des IDs responsables
     $ids = array_column($responsables, "id_responsable");
     $placeholders = implode(',', array_fill(0, count($ids), '?'));
-
     // Requête principale
     $sql = "
         SELECT 
@@ -306,10 +348,8 @@ class PlanningEntretienModel{
         JOIN v_responsable_personnes vrp ON vrp.id_responsable = pe.id_responsable
         JOIN etat e ON e.id_etat = pe.etat
         WHERE vrp.id_responsable IN ($placeholders)
-    ";
-
+        ";
     $params = $ids;
-
     // Ajout des filtres dynamiques
     if (!empty($data["candidat"])) {
         $sql .= " AND (te.nom_candidat ILIKE ? OR te.prenom_candidat ILIKE ?)";
@@ -369,10 +409,12 @@ class PlanningEntretienModel{
     $stmt = $pdo->prepare($sql);
     $stmt->execute($params);
     $dataRows = $stmt->fetchAll(\PDO::FETCH_ASSOC);
-
+    error_log("dataRows: ".count($dataRows));
     // Total général (sans filtre)
-    $total_sql = "SELECT COUNT(*) FROM planning_entretien";
-    $totalRecords = $pdo->query($total_sql)->fetchColumn();
+    $total_sql = "SELECT COUNT(*) FROM planning_entretien where id_responsable in ($placeholders)";
+    $stmt= $pdo->prepare($total_sql);
+    $stmt->execute($ids);
+    $totalRecords = $stmt->fetchColumn();
 
     return [
         "draw" => $draw,
@@ -381,7 +423,6 @@ class PlanningEntretienModel{
         "data" => $dataRows
         ];
     }
-
     public function modifierEntretien($data){
         $result = array();
         try{
@@ -444,5 +485,4 @@ class PlanningEntretienModel{
         }
         return $result;
     }
-    
 }

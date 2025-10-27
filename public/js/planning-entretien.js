@@ -173,6 +173,7 @@ var table = $("#dataTable").DataTable({
                     }
                 } else if (entretienDate.getTime() > now.getTime()) {
                     if (row.etat === "planifie") {
+                        console.log("mankato ve")
                         html = `
                             <button data-id="${row.id_entretien}" class="btn-accepter btn btn-success btn-icon-split btn-fixed" type="button">
                                 <span class="icon text-white-50"><i class="fas fa-check"></i></span>
@@ -235,6 +236,7 @@ $("#bouton-planification").off("click").on("click", function () {
         success: function () {
             alert("Planification créée avec succès");
             table.ajax.reload();
+            console.log("mbola tonga et")
         },
         error: function () {
             alert("Erreur lors de la planification");

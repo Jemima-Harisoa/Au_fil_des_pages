@@ -33,6 +33,9 @@ $router->post('/loginA', [ $ConnexionController, 'VerificationConnectionA' ]);
 $router->get('/deconnexionA', [ $ConnexionController, 'deconnexionA' ]);
 $planning_entretien_controller = new PlanningEntretienController();
 $router->get('/planning-entretien',[$planning_entretien_controller,'showPageEntretien']);
+$router->get('/scoring-entretien',[$planning_entretien_controller,'renderPageScoreEntretien']);
+$router->post('/scoring-entretien/liste',[$planning_entretien_controller,'listeScoringEntretien']);
+$router->post('/scoring-entretien/@id',[$planning_entretien_controller,'listeScoringEntretien']);
 
 $api_planning_entretien_controller = new ApiPlanningEntretienController();
 $router->post('/planning_entretien/filtre', [$api_planning_entretien_controller, 'filtrerEntretien']);

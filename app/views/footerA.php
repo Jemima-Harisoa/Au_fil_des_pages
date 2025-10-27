@@ -54,7 +54,8 @@
     <!-- Page level custom scripts -->
      <script src="js/demo/datatables-demo.js"></script>
     <script src="js/planning-entretien.js"></script>
-
+    <script src="js/disponibilite-entretien.js"></script>
+    <script src="js/scoring-entretien.js"></script>
 </body>
 
 </html>

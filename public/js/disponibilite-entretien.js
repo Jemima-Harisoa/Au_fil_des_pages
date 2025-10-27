@@ -4,6 +4,7 @@ $(document).ready(function () {
 
     // 🔹 1. INITIALISATION DATATABLE
     table = $('#tableDisponibilite').DataTable({
+        destroy:true,
         ordering:true,
         processing:true,
         serverSide:true,

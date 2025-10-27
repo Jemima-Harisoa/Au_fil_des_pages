@@ -13,7 +13,7 @@ class ApiPlanningEntretienController {
             // Retour JSON (le modèle retourne déjà du JSON si j’ai bien vu, mais tu peux sécuriser ici)
             Flight::json([
                 "message" => "Planification terminée",
-                "resultat" => Flight::planningEntretienModel()->getEntretiensParEtat(1),
+                "resultat" => Flight::planningEntretienModel()->getEntretiensByIdEtatAndIdAdmin(1,$_SESSION["admin"]["id_admin"]),
                 "status" => 200
             ]);
         } catch (\Exception $e) {

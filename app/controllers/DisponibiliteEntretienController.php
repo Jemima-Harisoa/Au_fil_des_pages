@@ -3,8 +3,6 @@ namespace app\controllers;
 use app\models\DateModel;
 use Flight;
 class DisponibiliteEntretienController {
-        
-    
     public function renderPage(){
         return Flight::render("disponibilite_entretien");
     }
@@ -49,9 +47,7 @@ class DisponibiliteEntretienController {
     }
     public function supprimer(){
         $input = file_get_contents("php://input");
-        error_log("Contenu brut reçu : ".$input);
         $data = json_decode($input,true);
-        error_log("Décodé : ".print_r($data, true));
         $disponibiliteEntretien = Flight::disponibiliteEntretienModel();
         $result  = $disponibiliteEntretien->delete($data);
                 if($result){

@@ -132,11 +132,9 @@ class DisponibiliteEntretienModel {
                     de.heure_debut,
                     de.heure_fin,
                     de.jour,
-                    de.est_valide,
-                    re.ordre_passage
+                    de.est_valide
                 FROM disponibilite_entretien de
-                join responsable_entretien re on re.id_admin = de.id_admin
-                WHERE re.id_admin = :id_admin
+                WHERE DE.id_admin = :id_admin
                 ORDER BY de.jour, de.heure_debut
                 OFFSET :start LIMIT :length
             ";
@@ -168,16 +166,14 @@ class DisponibiliteEntretienModel {
     public static function getDateNonFerieProche($dateHeure,$listeDisponibiliteEntretien){
         $indiceActuel = 0;
         $diffJour = 0;
-        error_log("jour ferie ngah: ".$dateHeure->format("Y-m-d H:i:s"));
         $chiffreJour = DateModel::getJourChiffreDate($dateHeure);
         for($i = 0 ; $i < count($listeDisponibiliteEntretien);$i++){
             if($listeDisponibiliteEntretien[$i]["jour"] == $chiffreJour){
-                error_log("mankato eezljlkj");
                 $indiceActuel = $i;
                 break;
             }
         }
-        
+
         while(JourFerieModel::estJourFerie($dateHeure)){
             if($indiceActuel==count($listeDisponibiliteEntretien) -1){
                 $diffJour = ($listeDisponibiliteEntretien[0]["jour"]+7)-$listeDisponibiliteEntretien[$indiceActuel];
@@ -187,6 +183,7 @@ class DisponibiliteEntretienModel {
                 $diffJour = $listeDisponibiliteEntretien[$indiceActuel+1]["jour"]-$listeDisponibiliteEntretien[$indiceActuel]["jour"];
             }
             $dateHeure = DateModel::ajouterJours($dateHeure,$diffJour);
+            DateModel::changerHeure($dateHeure,$listeDisponibiliteEntretien[$indiceActuel+1]["heure_debut"]);
             $indiceActuel++;
         }
         return $dateHeure;
@@ -208,11 +205,14 @@ class DisponibiliteEntretienModel {
             if($jourChiffreDate<$jourDispo){
                 $diffJour = $jourDispo - $jourChiffreDate;
                 $indiceArret= $i;
+                $resultat = 
                 DateModel::changerHeure($resultat,\DateTime::createFromFormat('H:i:s', $listeDisponibiliteEntretien[$i]["heure_debut"]));
+
                 break;
             }
             else if($jourChiffreDate == $jourDispo){
-                if($dateTestCandidat != $dateActuelle){
+                if($dateTestCandidat < $dateActuelle){
+                    $resultat = $dateHeureActuelle;
                     DateModel::changerHeure($resultat,\DateTime::createFromFormat('H:i:s', $listeDisponibiliteEntretien[$i]["heure_debut"]));
                 }
                 else{
@@ -256,27 +256,41 @@ class DisponibiliteEntretienModel {
     }
     public static function checkDateDisponible($dateHeure,$listeDisponibiliteEntretien){
         $diffJour = 0;
+        $result = $dateHeure;
+        error_log("jour chiffre date: ".DateModel::getJourChiffreDate($dateHeure));
         for($i=0; $i<count($listeDisponibiliteEntretien);$i++){
+            $heureCourante = \DateTime::createFromFormat('H:i:s', $dateHeure->format('H:i:s'));
+            $heureFin = \DateTime::createFromFormat('H:i:s', $listeDisponibiliteEntretien[$i]['heure_fin']);
+            $heureDebut = \DateTime::createFromFormat('H:i:s', $listeDisponibiliteEntretien[$i]['heure_debut']);
             if($listeDisponibiliteEntretien[$i]["jour"] == DateModel::getJourChiffreDate($dateHeure)){
-                $heureFin = new DateModel($listeDisponibiliteEntretien[$i]["heure_fin"]);
-                if(DateModel::recupererHeure($dateHeure) <= $heureFin){
-                    return DisponibiliteEntretienModel::getDateNonFerieProche($dateHeure,$listeDisponibiliteEntretien);
+                error_log("heure Courante: ".$heureCourante->format('H:i:s'));
+                error_log("heure Debut: ".$heureDebut->format('H:i:s'));
+                error_log("heure Fin: ".$heureFin->format('H:i:s'));
+                error_log("jour: ".$listeDisponibiliteEntretien[$i]["jour"]);
+                if($heureCourante <= $heureFin && $heureCourante >= $heureDebut)  {
+                    $result= DisponibiliteEntretienModel::getDateNonFerieProche($dateHeure,$listeDisponibiliteEntretien);
                 }
-                else{
+
+                else if($heureCourante > $heureFin){
+                    error_log("mankato lesy zandry e");
                     switch($i){
                         case count($listeDisponibiliteEntretien)-1:
                             $diffJour = ($listeDisponibiliteEntretien[0]["jour"]+7)-$listeDisponibiliteEntretien[$i]["jour"];
+                            
                             break;
                         default:
                             $diffJour = $listeDisponibiliteEntretien[$i+1]["jour"]-$listeDisponibiliteEntretien[$i]["jour"];
                             break;
                     }
-                    $dateHeure = DateModel::ajouterJours($dateHeure,$diffJour);
+                    $result = DateModel::ajouterJours($dateHeure,$diffJour);
+                    error_log("tena tsy mankato ve". $result->format("Y-m-d H:i:s"));
                     DateModel::changerHeure($dateHeure,new \DateTime($listeDisponibiliteEntretien[$i]["heure_debut"]));
                 }
+
             }
         }
-        return DisponibiliteEntretienModel::getDateNonFerieProche($dateHeure,$listeDisponibiliteEntretien);
+        error_log("date farany: ".$result->format("Y-m-d H:i:s"));
+        return DisponibiliteEntretienModel::getDateNonFerieProche($result,$listeDisponibiliteEntretien);
     }
     public function getDisponibiliteSuivantByDate($dateHeure,$listeDisponibiliteEntretien){
         $resultat = $dateHeure;
@@ -295,6 +309,7 @@ class DisponibiliteEntretienModel {
         return $resultat;
     }
     public function getDisponibliteEntretienApresDate($dateHeure,$listeDisponibiliteEntretien){
+        
         $jour = DateModel::getJourChiffreDate($dateHeure);
         $resultat = $dateHeureActuelle;
         $dateHeureActuelle = new \DateTime();

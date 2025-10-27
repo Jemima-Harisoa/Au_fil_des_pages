@@ -2,18 +2,23 @@
 namespace app\controllers;
 use app\models\PlanningEntretienModel;
 use Flight;
-class PlanningEntretienController {
+class PlanningEntretienController extends SessionController{
     public function showPageEntretien() {
-        if(!isset($_SESSION["admin"]["id_admin"])){
-            Flight::render('connexionA',null);
-            return;
-        }
+        parent::checkSessionAdmin();
         $candidats = Flight::testModel()->getCandidatsAvecSuccesTest(3);
         $candidats = Flight::responsableEntretienModel()->getListeCandidatsAEntretenir($candidats,$_SESSION['admin']["id_admin"]);
         $planningEntretien = Flight::planningEntretienModel();
         $allVerified = $planningEntretien-> checkCandidatsInEntretien($candidats);
         Flight::render('planning_entretien',["verified" => $allVerified]);
     }   
-
+    public function renderPageScoreEntretien(){
+        parent::checkSessionAdmin();
+        
+        Flight::render('scoring_entretien');
+    }
+    public function listeScoringEntretien(){
+        $candidats = Flight::planningEntretienModel()->getEntretiensByIdEtatAndIdAdmin(5,$_SESSION["admin"]["id_admin"]);
+        return Flight::json($candidats);
+    }
 }
 ?>
