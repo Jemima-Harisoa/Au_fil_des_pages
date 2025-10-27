@@ -7,6 +7,232 @@ use Flight;
 
 class MessagerieController {
     
+    // Méthode pour mettre à jour la session des notifications employé
+    public function updateEmployeNotificationsSession() {
+        if (!isset($_SESSION['employe']) && !isset($_SESSION['admin'])) {
+            return;
+        }
+        
+        $id_employe = $_SESSION['employe']['id_employe'] ?? $_SESSION['admin']['id_employe'] ?? null;
+        
+        if (!$id_employe) {
+            return;
+        }
+        
+        $messagerieModel = new MessagerieModel();
+        $notifications = $messagerieModel->getNotificationsEmploye($id_employe);
+        $notificationCount = $messagerieModel->countNouvellesNotifications($id_employe);
+        
+        // Mettre à jour la session
+        $_SESSION['notifications_employe'] = $notifications;
+        $_SESSION['notifications_employe_count'] = $notificationCount;
+        
+        return [
+            'notifications' => $notifications,
+            'count' => $notificationCount
+        ];
+    }
+
+    // Méthode pour rafraîchir les notifications employé via AJAX
+    public function refreshEmployeNotifications() {
+        $result = $this->updateEmployeNotificationsSession();
+        
+        if ($result) {
+            echo json_encode([
+                'success' => true,
+                'notifications' => $result['notifications'],
+                'count' => $result['count']
+            ]);
+        } else {
+            echo json_encode(['success' => false]);
+        }
+        exit;
+    }
+
+    // Dans MessagerieController ou un nouveau NotificationController
+    public function getNotificationsEmploye() {
+        if (!isset($_SESSION['employe']) && !isset($_SESSION['admin'])) {
+            Flight::redirect('/connexion');
+            return;
+        }
+        
+        $id_employe = $_SESSION['employe']['id_employe'] ?? $_SESSION['admin']['id_employe'] ?? null;
+        
+        if (!$id_employe) {
+            Flight::halt(403, "Accès non autorisé");
+            return;
+        }
+        
+        $messagerieModel = new MessagerieModel();
+        $notifications = $messagerieModel->getNotificationsEmploye($id_employe);
+        
+        Flight::render('notifications/employe', [
+            'notifications' => $notifications,
+            'id_employe' => $id_employe
+        ]);
+    }
+
+    // NOUVELLE MÉTHODE : Envoyer une notification à un employé
+    public function sendNotificationEmploye() {
+        if (!isset($_SESSION['admin'])) {
+            echo json_encode(['success' => false, 'message' => 'Accès non autorisé']);
+            exit;
+        }
+        
+        $data = json_decode(file_get_contents('php://input'), true);
+        $id_employe = $data['id_employe'] ?? null;
+        $message = $data['message'] ?? '';
+        
+        if ($id_employe && $message) {
+            $model = new MessagerieModel();
+            $success = $model->notifierEmploye($id_employe, $message);
+            
+            echo json_encode([
+                'success' => $success,
+                'message' => $success ? 'Notification envoyée' : 'Erreur lors de l\'envoi'
+            ]);
+        } else {
+            echo json_encode(['success' => false, 'message' => 'Paramètres manquants']);
+        }
+        exit;
+    }
+
+    // NOUVELLE MÉTHODE : Récupérer les notifications en temps réel pour employé
+    public function sseNotificationsEmploye() {
+        if (!isset($_SESSION['employe']) && !isset($_SESSION['admin'])) {
+            header('Content-Type: text/event-stream');
+            header('Cache-Control: no-cache');
+            echo "data: " . json_encode(['error' => 'Non connecté']) . "\n\n";
+            flush();
+            return;
+        }
+        
+        $id_employe = $_SESSION['employe']['id_employe'] ?? $_SESSION['admin']['id_employe'] ?? null;
+        
+        if (!$id_employe) {
+            header('Content-Type: text/event-stream');
+            header('Cache-Control: no-cache');
+            echo "data: " . json_encode(['error' => 'Accès non autorisé']) . "\n\n";
+            flush();
+            return;
+        }
+
+        // Configurer les headers pour SSE
+        header('Content-Type: text/event-stream');
+        header('Cache-Control: no-cache');
+        header('Connection: keep-alive');
+        header('Access-Control-Allow-Origin: *');
+        
+        // Empêcher la mise en buffer
+        if (ob_get_level()) ob_end_clean();
+        
+        $model = new MessagerieModel();
+        $lastCheck = 0;
+        
+        // Boucle infinie pour envoyer les mises à jour
+        while (true) {
+            try {
+                $notifications = $model->getNotificationsEmploye($id_employe);
+                $currentCheck = count($notifications);
+                
+                // Envoyer seulement si de nouvelles notifications
+                if ($currentCheck !== $lastCheck) {
+                    $data = [
+                        'count' => $currentCheck,
+                        'notifications' => $notifications,
+                        'timestamp' => time(),
+                        'type' => 'employe'
+                    ];
+                    
+                    echo "data: " . json_encode($data) . "\n\n";
+                    flush();
+                    $lastCheck = $currentCheck;
+                }
+                
+            } catch (Exception $e) {
+                echo "data: " . json_encode(['error' => $e->getMessage()]) . "\n\n";
+                flush();
+                break;
+            }
+            
+            // Attendre 5 secondes avant la prochaine vérification
+            sleep(5);
+            
+            // Vérifier si la connexion est encore active
+            if (connection_aborted()) {
+                break;
+            }
+        }
+    }
+
+    // NOUVELLE MÉTHODE : Rafraîchir les notifications employé via AJAX
+    public function refreshNotificationsEmploye() {
+        if (!isset($_SESSION['employe']) && !isset($_SESSION['admin'])) {
+            echo json_encode(['success' => false, 'message' => 'Non connecté']);
+            exit;
+        }
+        
+        $id_employe = $_SESSION['employe']['id_employe'] ?? $_SESSION['admin']['id_employe'] ?? null;
+        
+        if (!$id_employe) {
+            echo json_encode(['success' => false, 'message' => 'Accès non autorisé']);
+            exit;
+        }
+        
+        $model = new MessagerieModel();
+        
+        try {
+            $notifications = $model->getNotificationsEmploye($id_employe);
+            
+            echo json_encode([
+                'success' => true, 
+                'type' => 'employe',
+                'count' => count($notifications),
+                'notifications' => $notifications,
+                'timestamp' => time()
+            ]);
+        } catch (Exception $e) {
+            echo json_encode(['success' => false, 'message' => 'Erreur: ' . $e->getMessage()]);
+        }
+        exit;
+    }
+
+    // NOUVELLE MÉTHODE : Marquer les notifications employé comme lues
+    public function markNotificationsAsRead() {
+        if (!isset($_SESSION['employe']) && !isset($_SESSION['admin'])) {
+            echo json_encode(['success' => false, 'message' => 'Non connecté']);
+            exit;
+        }
+        
+        $id_employe = $_SESSION['employe']['id_employe'] ?? $_SESSION['admin']['id_employe'] ?? null;
+        
+        if (!$id_employe) {
+            echo json_encode(['success' => false, 'message' => 'Accès non autorisé']);
+            exit;
+        }
+        
+        $model = new MessagerieModel();
+        
+        try {
+            // Créer un fichier de marquage de lecture
+            $dir = __DIR__ . '/../../public/conversations/notifications';
+            $readFile = $dir . '/employe_' . $id_employe . '_read.txt';
+            file_put_contents($readFile, time());
+            
+            // Mettre à jour la session
+            $this->updateEmployeNotificationsSession();
+            
+            echo json_encode([
+                'success' => true,
+                'message' => 'Notifications marquées comme lues',
+                'timestamp' => time()
+            ]);
+        } catch (Exception $e) {
+            echo json_encode(['success' => false, 'message' => 'Erreur: ' . $e->getMessage()]);
+        }
+        exit;
+    }
+    
     public function showMessagerieU($id_candidat, $id_annonce) {
         $model = new MessagerieModel();
 

@@ -15,6 +15,81 @@ class MessagerieModel {
     public function __construct() {
         $this->db = Flight::db();
     }
+    /**
+     * Envoie une notification interne à un employé
+     */
+    public function notifierEmploye($id_employe, $message) {
+        try {
+            // Créer un dossier pour les notifications internes
+            $dir = __DIR__ . '/../../public/conversations/notifications';
+            if (!is_dir($dir)) {
+                mkdir($dir, 0777, true);
+            }
+
+            // Fichier de notification pour l'employé
+            $file = $dir . '/employe_' . $id_employe . '.txt';
+            $date = date('Y-m-d H:i:s');
+            
+            $log = "[$date] System: $message\n";
+            file_put_contents($file, $log, FILE_APPEND);
+            
+            return true;
+        } catch (\Exception $e) {
+            error_log("Erreur notification employé: " . $e->getMessage());
+            return false;
+        }
+    }
+
+    /**
+     * Récupère les notifications d'un employé
+     */
+    public function getNotificationsEmploye($id_employe) {
+        $dir = __DIR__ . '/../../public/conversations/notifications';
+        $file = $dir . '/employe_' . $id_employe . '.txt';
+        
+        $notifications = [];
+        
+        if (file_exists($file)) {
+            $lines = array_filter(file($file, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES));
+            foreach ($lines as $line) {
+                if (preg_match('/^\[(.*?)\]\s+([^:]+):\s*(.*)$/', $line, $matches)) {
+                    $notifications[] = [
+                        'date' => $matches[1],
+                        'auteur' => $matches[2],
+                        'message' => $matches[3]
+                    ];
+                }
+            }
+        }
+        
+        return array_reverse($notifications); // Plus récent en premier
+    }
+
+    // NOUVELLE MÉTHODE : Vérifier si l'employé a de nouvelles notifications
+    public function aNouvellesNotifications($id_employe) {
+        $dir = __DIR__ . '/../../public/conversations/notifications';
+        $file = $dir . '/employe_' . $id_employe . '.txt';
+        $readFile = $dir . '/employe_' . $id_employe . '_read.txt';
+        
+        if (!file_exists($file)) {
+            return false;
+        }
+        
+        $lastReadTime = file_exists($readFile) ? (int)file_get_contents($readFile) : 0;
+        $fileModTime = filemtime($file);
+        
+        return $fileModTime > $lastReadTime;
+    }
+
+    // NOUVELLE MÉTHODE : Compter les nouvelles notifications
+    public function countNouvellesNotifications($id_employe) {
+        if (!$this->aNouvellesNotifications($id_employe)) {
+            return 0;
+        }
+        
+        $notifications = $this->getNotificationsEmploye($id_employe);
+        return count($notifications);
+    }
     
     public function repondre($id_candidat, $id_annonce, $message, $destinateur) {
         $dir = __DIR__ . '/../../public/conversations';

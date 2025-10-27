@@ -39,70 +39,188 @@ class ValidationController {
     }
 
     /**
-     * 🔹 Envoie une notification à la prochaine personne concernée
+     * 🔹 Envoie une notification à la prochaine personne concernée selon la liste de priorité
      */
     public function notifierProchaineEtape($id_contrat, $prochain_statut) {
         $messagerieModel = new MessagerieModel();
+        $validationModel = new ValidationContratModel(Flight::db());
         $contratModel = Flight::Contrat();
-        $contrat = $contratModel->getBy('id_contrat', $id_contrat);
+        $candidatModel = Flight::Candidat();
+        $personneModel = Flight::Personne();
+        $employeModel = Flight::Employe();
         
-        if ($contrat) {
-            $lien_edition = Flight::get('flight.base_url') . "/migration/contrat/edit?id=" . $id_contrat;
+        $contrat = $contratModel->getBy('id_contrat', $id_contrat);
+        if (!$contrat) {
+            error_log("❌ Contrat introuvable pour notification: $id_contrat");
+            return;
+        }
+
+        $candidat = $candidatModel->getBy('id_candidat', $contrat['id_candidat']);
+        if (!$candidat) {
+            error_log("❌ Candidat introuvable pour contrat: $id_contrat");
+            return;
+        }
+
+        $lien_contrat = Flight::get('flight.base_url') . "/migration/contrat/edit?id=" . $id_contrat;
+        
+        // Récupérer les validateurs pour l'étape suivante
+        $validateurs = $validationModel->getValidateursPourEtape($prochain_statut);
+        error_log("🔔 Notification - Contrat: $id_contrat, Statut: $prochain_statut, Validateurs: " . implode(', ', $validateurs));
+        
+        $messages = [
+            'en_attente_etape1' => [
+                'role' => 'rh',
+                'message_candidat' => "📋 Votre contrat a été créé et est en cours de validation par les ressources humaines.",
+                'message_validateur' => "📋 Nouveau contrat nécessitant votre validation RH."
+            ],
+            'en_attente_etape2' => [
+                'role' => 'service', 
+                'message_candidat' => "✅ Votre contrat a été validé par les RH et est en cours de validation par le service concerné.",
+                'message_validateur' => "📋 Contrat validé par les RH, nécessite maintenant votre validation."
+            ],
+            'en_attente_etape3' => [
+                'role' => 'candidat',
+                'message_candidat' => "✅ Votre contrat a été validé par le service! Veuillez le consulter et le valider.",
+                'message_validateur' => "📋 Contrat en attente de validation finale par le candidat."
+            ],
+            'validé' => [
+                'role' => 'candidat',
+                'message_candidat' => "🎉 Félicitations! Votre contrat a été validé avec succès!",
+                'message_validateur' => "✅ Contrat validé avec succès!"
+            ]
+        ];
+        
+        $config = $messages[$prochain_statut] ?? [
+            'role' => 'rh',
+            'message_candidat' => "📋 Votre contrat est en cours de traitement (statut: {$prochain_statut}).",
+            'message_validateur' => "📋 Contrat en attente de validation (statut: {$prochain_statut})."
+        ];
+        
+        // 🔹 1. Notification au candidat
+        if ($candidat) {
+            try {
+                $formated_link = $messagerieModel->styliserLiens($lien_contrat, "Voir le contrat");
+                $message_complet = $config['message_candidat'] . " " . $formated_link;
+                
+                $result = $messagerieModel->repondreA(
+                    $candidat['id_candidat'],
+                    $candidat['id_annonce'] ?? 1,
+                    $message_complet
+                );
+                
+                if ($result) {
+                    error_log("✅ Notification envoyée au candidat: {$candidat['id_candidat']}");
+                } else {
+                    error_log("❌ Échec envoi notification candidat: {$candidat['id_candidat']}");
+                }
+            } catch (\Exception $e) {
+                error_log("❌ Erreur notification candidat: " . $e->getMessage());
+            }
+        }
+        
+        // 🔹 2. Notification aux validateurs internes (RH, service) - AVEC NOUVELLE MÉTHODE
+        if (in_array($config['role'], ['rh', 'service'])) {
+            $employes = $validationModel->getEmployesParRole($config['role'], $id_contrat);
+            error_log("🔔 Employés à notifier ({$config['role']}): " . count($employes));
             
-            $messages_par_statut = [
-                'en_attente_etape1' => "📋 Le contrat nécessite votre validation RH. \n🔗 Lien: {$lien_edition}",
-                'en_attente_etape2' => "📋 Le contrat nécessite la validation du service concerné. \n🔗 Lien: {$lien_edition}", 
-                'en_attente_etape3' => "📋 Veuillez consulter et valider votre contrat. \n🔗 Lien: {$lien_edition}",
-                'validé' => "✅ Contrat validé avec succès! \n🔗 Lien: {$lien_edition}"
-            ];
+            foreach ($employes as $employe) {
+                try {
+                    $id_employe = $employe['id_employe'];
+                    $employe_info = $employeModel->getBy('id_employe', $id_employe);
+                    
+                    if (!$employe_info) continue;
+                    
+                    // 🔹 NOUVELLE METHODE : Notification interne dédiée avec lien
+                    $message_employe = $config['message_validateur'] . " [Contrat #$id_contrat]";
+                    $result = $messagerieModel->notifierEmploye($id_employe, $message_employe);
+                    
+                    if ($result) {
+                        error_log("✅ Notification interne pour employé {$employe_info['poste']}");
+                    } else {
+                        error_log("❌ Échec notification interne employé {$employe_info['poste']}");
+                    }
+                    
+                } catch (\Exception $e) {
+                    error_log("❌ Erreur notification employé {$employe['id_employe']}: " . $e->getMessage());
+                }
+            }
+        }
+        error_log("🔔 Processus de notification terminé pour contrat: $id_contrat");
+    }
+
+    /**
+     * 🔹 Mettre à jour les sessions de notification pour tous les employés concernés
+     */
+    public function updateNotificationsSessions($id_contrat) {
+        $validationModel = new ValidationContratModel(Flight::db());
+        $messagerieModel = new MessagerieModel();
+        
+        // Récupérer tous les employés concernés par ce contrat
+        $employes_concernes = $validationModel->getEmployesConcernesParContrat($id_contrat);
+        
+        foreach ($employes_concernes as $employe) {
+            $id_employe = $employe['id_employe'];
             
-            $message = $messages_par_statut[$prochain_statut] ?? 
-                      "📋 Contrat en attente de validation (statut: {$prochain_statut}). \n🔗 Lien: {$lien_edition}";
-            
-            $messagerieModel->repondreA(
-                $contrat['id_candidat'],
-                $contrat['id_annonce'] ?? 1,
-                $message
-            );
+            // Mettre à jour la session si l'employé est actuellement connecté
+            if (isset($_SESSION['employe']['id_employe']) && $_SESSION['employe']['id_employe'] == $id_employe) {
+                $notifications = $messagerieModel->getNotificationsEmploye($id_employe);
+                $notificationCount = $messagerieModel->countNouvellesNotifications($id_employe);
+                
+                $_SESSION['notifications_employe'] = $notifications;
+                $_SESSION['notifications_employe_count'] = $notificationCount;
+            }
         }
     }
 
     /**
+     * Crée une notification pour un employé dans la base de données
+     */
+    private function creerNotificationEmploye($id_employe, $message, $id_contrat) {
+        try {
+            $db = Flight::db();
+            
+            // Récupérer l'id_personne de l'employé
+            $sql = "SELECT id_personne FROM employes WHERE id_employe = :id_employe";
+            $stmt = $db->prepare($sql);
+            $stmt->execute(['id_employe' => $id_employe]);
+            $employe = $stmt->fetch(PDO::FETCH_ASSOC);
+            
+            if ($employe && isset($employe['id_personne'])) {
+                $sql = "INSERT INTO notifications (id_personne, message, date_notification) 
+                        VALUES (:id_personne, :message, NOW())";
+                $stmt = $db->prepare($sql);
+                $stmt->execute([
+                    'id_personne' => $employe['id_personne'],
+                    'message' => $message . " (Contrat #$id_contrat)"
+                ]);
+                
+                error_log("✅ Notification BD créée pour employé: $id_employe");
+                return true;
+            }
+        } catch (\Exception $e) {
+            error_log("❌ Erreur création notification BD: " . $e->getMessage());
+        }
+        return false;
+    }
+    /**
      * Retourne le rôle de l'utilisateur courant basé sur les sessions et la BD.
-     * Valeurs retournées possibles : 'visiteur', 'utilisateur', 'admin', 'gestion', 'rh',
-     * 'compta', 'stock', 'vente', 'responsable' (prioritaire si l'admin/employe est responsable d'entretien).
+     * Version simplifiée pour la validation des contrats
      */
     public static function getRoleUtilisateur()
     {
         // session_start() est déjà appelé en haut du fichier, donc on suppose la session active.
 
-        // 1) Si c'est un simple utilisateur connecté
+        // 1) Si c'est un simple utilisateur connecté (candidat)
         if (isset($_SESSION['utilisateur']) && !isset($_SESSION['admin']) && !isset($_SESSION['employe'])) {
-            return 'utilisateur';
+            return 'candidat';
         }
 
-        // 2) Si c'est un employé connecté (NOUVEAU)
+        // 2) Si c'est un employé connecté
         if (isset($_SESSION['employe'])) {
             $idEmploye = $_SESSION['employe']['id_employe'] ?? null;
-
-            // Vérifier si l'employé est responsable d'entretien
-            if ($idEmploye) {
-                try {
-                    $db = Flight::db();
-                    $stmt = $db->prepare('SELECT 1 FROM responsable_entretien WHERE id_employe = :id_employe LIMIT 1');
-                    $stmt->execute(['id_employe' => $idEmploye]);
-                    if ($stmt->fetchColumn()) {
-                        return 'responsable';
-                    }
-                } catch (\Exception $e) {
-                    // silent fallback si la requête échoue
-                }
-            }
-
-            // Déterminer le département de l'employé
             $idDepartement = $_SESSION['employe']['id_departement'] ?? null;
-            
-            // mapping id_departement -> rôle
+
+            // Déterminer le rôle principal par département
             switch ($idDepartement) {
                 case 1: // Direction
                     return 'gestion';
@@ -115,48 +233,15 @@ class ValidationController {
                 case 5: // Vente
                     return 'vente';
                 default:
-                    return 'employe'; // rôle générique pour employé
+                    return 'employe';
             }
         }
 
         // 3) Si c'est un admin connecté
         if (isset($_SESSION['admin'])) {
-            // Priorité : si l'admin est aussi responsable d'entretien => 'responsable'
-            $idEmploye = $_SESSION['admin']['id_employe'] ?? null;
-
-            if ($idEmploye) {
-                try {
-                    $db = Flight::db();
-                    $stmt = $db->prepare('SELECT 1 FROM responsable_entretien WHERE id_employe = :id_employe LIMIT 1');
-                    $stmt->execute(['id_employe' => $idEmploye]);
-                    if ($stmt->fetchColumn()) {
-                        return 'responsable';
-                    }
-                } catch (\Exception $e) {
-                    // silent fallback
-                }
-            }
-
-            // Ensuite, on détermine le département (id_departement) soit depuis la session
-            // soit en interrogeant ConnexionModel
-            $idDepartement = null;
-            if (isset($_SESSION['departement']['id_departement'])) {
-                $idDepartement = (int) $_SESSION['departement']['id_departement'];
-            } else {
-                // fallback : essayer de récupérer depuis le modèle
-                try {
-                    $db = Flight::db();
-                    $connexionModel = new ConnexionModel($db);
-                    $depart = $connexionModel->getDepartementAdmin($_SESSION['admin']['id_admin'] ?? null);
-                    if (!empty($depart) && isset($depart['id_departement'])) {
-                        $idDepartement = (int) $depart['id_departement'];
-                        $_SESSION['departement'] = $depart;
-                    }
-                } catch (\Exception $e) {
-                    // fallback silencieux
-                }
-            }
-
+            // Utiliser le département stocké dans la session
+            $idDepartement = $_SESSION['departement']['id_departement'] ?? null;
+            
             // mapping simple id_departement -> rôle
             switch ($idDepartement) {
                 case 1: // Direction
@@ -170,14 +255,13 @@ class ValidationController {
                 case 5: // Vente
                     return 'vente';
                 default:
-                    return 'admin'; // admin générique
+                    return 'admin';
             }
         }
 
         // 4) Par défaut : visiteur non authentifié
         return 'visiteur';
     }
-
     /**
      * 🔹 Vérifie que l'utilisateur connecté a le droit d'accéder à ce contrat
      */

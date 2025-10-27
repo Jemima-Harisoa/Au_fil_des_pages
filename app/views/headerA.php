@@ -1,6 +1,6 @@
 
 <?php
-// var_dump($_SESSION['messagerie']);
+// Calcul des badges
 $nbNonLus = 0;
 if(!empty($_SESSION['messagerie'])) {
     foreach($_SESSION['messagerie'] as $msg) {
@@ -8,7 +8,12 @@ if(!empty($_SESSION['messagerie'])) {
             $nbNonLus++;
         }
     }
-}?>
+}
+
+// Récupérer le compte des notifications depuis la session
+$notificationCount = $_SESSION['notifications_employe_count'] ?? 0;
+$totalBadges = $nbNonLus + $notificationCount;
+?>
 
 <!DOCTYPE html>
 <html lang="en">
@@ -77,6 +82,20 @@ if(!empty($_SESSION['messagerie'])) {
     padding: 0 !important;
     margin: 0 !important;
 }
+
+.notification-item {
+    border-left: 3px solid #007bff;
+    background-color: #f8f9fa;
+}
+.notification-system {
+    font-style: italic;
+    color: #6c757d;
+}
+.notification-date {
+    font-size: 0.8rem;
+    color: #6c757d;
+}
+
 </style>
 
 </head>
@@ -207,7 +226,49 @@ if(!empty($_SESSION['messagerie'])) {
                             </a>
                         </li>
 
+                        <!-- Nav Item - Alerts (Notifications) -->
+                        <li class="nav-item dropdown no-arrow mx-1">
+                            <a class="nav-link dropdown-toggle" href="#" id="alertsDropdown" role="button"
+                               data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                <i class="fas fa-bell fa-fw"></i>
+                                <!-- Counter - Alerts -->
+                                <?php if($notificationCount > 0): ?>
+                                    <span class="badge badge-danger badge-counter"><?= $notificationCount ?></span>
+                                <?php endif; ?>
+                            </a>
+                            <!-- Dropdown - Alerts -->
+                            <div class="dropdown-list dropdown-menu dropdown-menu-right shadow animated--grow-in"
+                                 aria-labelledby="alertsDropdown">
+                                <h6 class="dropdown-header">
+                                    Centre de Notifications
+                                </h6>
+                                <?php if(!empty($_SESSION['notifications_employe'])): ?>
+                                    <?php foreach(array_slice($_SESSION['notifications_employe'], 0, 5) as $notif): ?>
+                                        <a class="dropdown-item d-flex align-items-center notification-item" href="#">
+                                            <div class="mr-3">
+                                                <div class="icon-circle bg-primary">
+                                                    <i class="fas fa-bell text-white"></i>
+                                                </div>
+                                            </div>
+                                            <div>
+                                                <div class="small text-gray-500 notification-date"><?= $notif['date'] ?></div>
+                                                <span class="notification-system"><?= htmlspecialchars($notif['auteur']) ?>:</span>
+                                                <?= htmlspecialchars($notif['message']) ?>
+                                            </div>
+                                        </a>
+                                    <?php endforeach; ?>
+                                    <a class="dropdown-item text-center small text-gray-500" href="/notifications/employe">
+                                        Voir toutes les notifications
+                                    </a>
+                                <?php else: ?>
+                                    <div class="dropdown-item text-center text-muted">
+                                        Aucune notification
+                                    </div>
+                                <?php endif; ?>
+                            </div>
+                        </li>
 
+                        <!-- Nav Item - Messages -->
                         <li class="nav-item dropdown no-arrow mx-1">
                             <a class="nav-link dropdown-toggle" href="#" id="messagesDropdown" role="button"
                                data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
@@ -290,3 +351,47 @@ if(!empty($_SESSION['messagerie'])) {
 
                 <div class="container-fluid">
 
+<script>
+// Script pour les notifications en temps réel
+document.addEventListener('DOMContentLoaded', function() {
+    // SSE pour les notifications
+    const eventSource = new EventSource('/notifications/employe/sse');
+    
+    eventSource.onmessage = function(event) {
+        const data = JSON.parse(event.data);
+        
+        if (data.count !== undefined) {
+            // Mettre à jour le badge des notifications
+            const badge = document.querySelector('#alertsDropdown .badge');
+            if (data.count > 0) {
+                if (badge) {
+                    badge.textContent = data.count;
+                } else {
+                    const newBadge = document.createElement('span');
+                    newBadge.className = 'badge badge-danger badge-counter';
+                    newBadge.textContent = data.count;
+                    document.querySelector('#alertsDropdown').appendChild(newBadge);
+                }
+            } else if (badge) {
+                badge.remove();
+            }
+            
+            // Rafraîchir le dropdown des notifications si ouvert
+            const alertsDropdown = document.querySelector('#alertsDropdown');
+            if (alertsDropdown.classList.contains('show')) {
+                fetch('/notifications/employe/refresh')
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            location.reload();
+                        }
+                    });
+            }
+        }
+    };
+    
+    eventSource.onerror = function(error) {
+        console.error('SSE error:', error);
+    };
+});
+</script>
