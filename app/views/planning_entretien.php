@@ -102,7 +102,7 @@
             <div class="modal-content">
             <div class="modal-header bg-gradient-primary text-white">
                 <h5 class="modal-title" id="modalEntretienLabel">Modification entretien</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"><i class="fa fa-times-circle"></i></button>
             </div>
 
             <div class="modal-body">
@@ -121,7 +121,7 @@
 
                 <div class="d-flex justify-content-between">
                     <button id="btn-annuler" type="button" class="btn btn-secondary w-50 me-2" data-bs-dismiss="modal">Annuler</button>
-                    <button type="submit" class="btn bg-gradient-primary w-50">Valider</button>
+                    <button type="submit" class="btn bg-gradient-primary text-white w-50">Valider</button>
                 </div>
                 </form>
             </div>

@@ -33,8 +33,15 @@ function AjaxModificationPlanning(data, nouvel_etat) {
 // ======================
 // 2️⃣ Gestion du popup
 // ======================
+let modalEntretien = null; // variable globale pour stocker une seule instance
+
 function openPopup(type_action, nouvel_etat, isRefus) {
-    const modal = new bootstrap.Modal(document.getElementById("modalEntretien"));
+    const modalElement = document.getElementById("modalEntretien");
+
+    // 🔹 Réutiliser la même instance si elle existe
+    if (!modalEntretien) {
+        modalEntretien = new bootstrap.Modal(modalElement, { backdrop: true });
+    }
 
     // Masquer ou afficher la date
     if (isRefus) {
@@ -45,13 +52,21 @@ function openPopup(type_action, nouvel_etat, isRefus) {
         $("#label-date").removeClass("d-none");
     }
 
-    modal.show();
+    modalEntretien.show();
 
-    // Nettoyage à la fermeture
-    $("#btn-annuler, .btn-close").off("click").on("click", function () {
-        modal.hide();
+    // Nettoyage propre à la fermeture
+    $(modalElement).off("hidden.bs.modal").on("hidden.bs.modal", function () {
         $("#form-historique")[0].reset();
         $("#date_heure_modification").removeClass("d-none");
+
+        // 🔹 Sécurité : supprimer tout backdrop restant
+        $(".modal-backdrop").remove();
+        $("body").removeClass("modal-open").css("overflow", "");
+    });
+
+    // Boutons de fermeture
+    $("#btn-annuler, .btn-close").off("click").on("click", function () {
+        modalEntretien.hide();
     });
 
     // Gestion de la soumission
@@ -81,10 +96,11 @@ function openPopup(type_action, nouvel_etat, isRefus) {
         };
 
         AjaxModificationPlanning(data, nouvel_etat);
-        modal.hide();
-        $("#form-historique")[0].reset();
+        modalEntretien.hide();
     });
 }
+
+
 
 // ======================
 // 3️⃣ Initialisation DataTable

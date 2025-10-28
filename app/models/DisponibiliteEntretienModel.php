@@ -52,7 +52,6 @@ class DisponibiliteEntretienModel {
             "jour" =>$data["jour"],
             "est_valide"=>$data["est_valide"]
         ];
-        error_log("eto eeeeeee: ".$donnees['heure_fin']);
         $historique->create($data);
         $stmt = $this->db->prepare("
             UPDATE disponibilite_entretien 
@@ -98,7 +97,7 @@ class DisponibiliteEntretienModel {
         return $result;
     }
     public function getTempsDisponiblesEntretien($idAdmin){
-        $query = "SELECT * FROM disponibilite_entretien where id_admin = :id_admin ORDER by jour asc ";
+        $query = "SELECT * FROM disponibilite_entretien where id_admin = :id_admin ORDER by jour,heure_debut asc ";
         $db = $this->db;
         try{
             if($idAdmin== 0 || $idAdmin == null){
@@ -171,7 +170,7 @@ class DisponibiliteEntretienModel {
         $diffJour = 0;
         $chiffreJour = DateModel::getJourChiffreDate($dateHeure);
         for($i = 0 ; $i < count($listeDisponibiliteEntretien);$i++){
-            if($listeDisponibiliteEntretien[$i]["jour"] ==$chiffreJour){
+            if($listeDisponibiliteEntretien[$i]["jour"] == $chiffreJour){
                 $indiceActuel = $i;
                 break;
             }
@@ -190,37 +189,60 @@ class DisponibiliteEntretienModel {
         }
         return $dateHeure;
     }
-
     public function jourOuvrableEntretien($candidat,$listeDisponibiliteEntretien){
         $compterSuperieur = 0;
         $diffJour = 0;
-        $jourChiffreDate = DateModel::getJourChiffreDate(new \DateTime($candidat['date_test']));
+        $date = new \DateTime($candidat["date_test"]);
+        $jourChiffreDate = DateModel::getJourChiffreDate($date);
         $jourDispo=0;
-        $resultat= new \DateTime($candidat["date_test"]);
-        foreach($listeDisponibiliteEntretien as $disponibiliteEntretien){
-            $jourDispo = $disponibiliteEntretien["jour"];
+        $resultat= $date;
+        $dateTestCandidat = $resultat->format("Y-m-d");
+        $dateHeureActuelle = new \DateTime(); 
+        $dateActuelle = $dateHeureActuelle->format("Y-m-d");
+        for($i= 0;$i < count($listeDisponibiliteEntretien) ;$i++){
+            $jourDispo = $listeDisponibiliteEntretien[$i]["jour"];
             if($jourChiffreDate<$jourDispo){
                 $diffJour = $jourDispo - $jourChiffreDate;
-                DateModel::changerHeure($resultat,\DateTime::createFromFormat('H:i:s', $disponibiliteEntretien["heure_debut"]));
+                DateModel::changerHeure($resultat,\DateTime::createFromFormat('H:i:s', $listeDisponibiliteEntretien[$i]["heure_debut"]));
                 break;
             }
             else if($jourChiffreDate == $jourDispo){
-                DateModel::changerHeure($resultat,\DateTime::createFromFormat('H:i:s', $disponibiliteEntretien["heure_debut"]));
+                if($dateTestCandidat != $dateActuelle){
+                    DateModel::changerHeure($resultat,\DateTime::createFromFormat('H:i:s', $listeDisponibiliteEntretien[$i]["heure_debut"]));
+                }
+                else{
+                    switch($i){
+                        case count($listeDisponibiliteEntretien) -1:
+                            $diffJour = ($listeDisponibiliteEntretien[0]["jour"]+7)-$listeDisponibiliteEntretien[$i]["jour"];
+                            break;
+                        default:
+                            error_log("TENA NANKATO KOSA");
+                            $j = $i;
+                            while($jourChiffreDate == $listeDisponibiliteEntretien[$j]["jour"]){
+                                $diffJour = $listeDisponibiliteEntretien[$j+1]["jour"]-$listeDisponibiliteEntretien[$j]["jour"];
+                                $nouvelleDate = DateModel::ajouterJours($resultat,$diffJour);
+                                DateModel::changerHeure($nouvelleDate,\DateTime::createFromFormat('H:i:s', $listeDisponibiliteEntretien[$j+1]["heure_debut"]));
+                                $resultat = $nouvelleDate;
+                                $j++;
+                            }
+                    }
+                                     
+                    $resultat = DateModel::ajouterJours($resultat,$diffJour);
+                    DateModel::changerHeure($resultat,\DateTime::createFromFormat('H:i:s', $listeDisponibiliteEntretien[$i]["heure_debut"]));
+                }
                 break;
             }
             else{
                 $compterSuperieur++;
             }
         }
+        
+        
         $resultat = DateModel::ajouterJours($resultat,$diffJour);
-       if (
-            $compterSuperieur == count($listeDisponibiliteEntretien) &&
-            !empty($listeDisponibiliteEntretien)
-        ) {
+        if ($compterSuperieur == count($listeDisponibiliteEntretien) && !empty($listeDisponibiliteEntretien)) {
             $diffJour = ($listeDisponibiliteEntretien[0]["jour"]+7)-$jourChiffreDate;
-            $date = new DateModel($candidat["date_test"]);
-            $resultat = DateModel::ajouterJours($date->getDateTime(),$diffJour);
-            DateModel::changerHeure($resultat,\DateTime::createFromFormat('H:i:s', $disponibiliteEntretien["heure_debut"]));
+            $resultat = DateModel::ajouterJours($date,$diffJour);
+            DateModel::changerHeure($resultat,\DateTime::createFromFormat('H:i:s', $listeDisponibiliteEntretien[0]["heure_debut"]));
         }
         
         $resultat = self::getDateNonFerieProche($resultat,$listeDisponibiliteEntretien);
@@ -234,7 +256,7 @@ class DisponibiliteEntretienModel {
                     return DisponibiliteEntretienModel::getDateNonFerieProche($dateHeure,$listeDisponibiliteEntretien);
                 }
                 else{
-                    switch($i ){
+                    switch($i){
                         case count($listeDisponibiliteEntretien)-1:
                             $diffJour = ($listeDisponibiliteEntretien[0]["jour"]+7)-$listeDisponibiliteEntretien[$i]["jour"];
                             break;
@@ -249,5 +271,20 @@ class DisponibiliteEntretienModel {
         }
         return DisponibiliteEntretienModel::getDateNonFerieProche($dateHeure,$listeDisponibiliteEntretien);
     }
-
+    public function getDisponibiliteSuivantByDate($dateHeure,$listeDisponibiliteEntretien){
+        $resultat = $dateHeure;
+        $date = $dateHeure->format("Y-m-d");
+        $dateHeureActuelle = new \DateTime();
+        $dateActuelle =  $dateHeureActuelle->format("Y-m-d");
+        $jourChiffreDate = DateModel::getJourChiffreDate($dateHeure);
+        if($dateActuelle == $date){
+            for($i=0 ; $i<count($listeDisponibiliteEntretien);$i++){
+                if($listeDisponibiliteEntretien[$i]["jour"] == $jourChiffreDate){
+                    $diffJour = $listeDisponibiliteEntretien[$i+1]["jour"]  - $listeDisponibiliteEntretien[$i]["jour"]; 
+                    $resultat = DateModel::ajouterJours($dateHeure,$diffJour);
+                }
+            }
+        }
+        return $result;
+    }
 }

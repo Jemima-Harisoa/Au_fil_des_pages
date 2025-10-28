@@ -186,10 +186,9 @@ class PlanningEntretienModel{
                 $responsables = Flight::responsableEntretienModel()->getResponsableEntretiensByIdAdmin($idAdmin);
                 foreach($candidats as $candidat){
                     foreach($responsables as $responsable){ 
-                        
                         if($candidat["id_profil"] == $responsable["id_profil"]){
-                            $disponibilitesEntretien = Flight::disponibiliteEntretienModel()->getTempsDisponiblesEntretien($responsable["id_responsable"]);
-                            $configEntretien = Flight::configEntretienModel()->getConfigurationEntretienResponsable($responsable);
+                            $disponibilitesEntretien = Flight::disponibiliteEntretienModel()->getTempsDisponiblesEntretien($idAdmin);
+                            $configEntretien = Flight::configEntretienModel()->getConfigEntretienRecentResponsable($responsable);
                             $lastPlanning = Flight::planningEntretienModel()->getLastPlanning($responsable["id_responsable"]);
                             $planningEntretien = Flight::planningEntretienModel();
                             $planningEntretien->setIdCandidat($candidat["id_candidat"]);
@@ -445,4 +444,5 @@ class PlanningEntretienModel{
         }
         return $result;
     }
+    
 }

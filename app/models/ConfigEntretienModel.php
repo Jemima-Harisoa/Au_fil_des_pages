@@ -61,12 +61,12 @@ class ConfigEntretienModel {
         $stmt->execute([$this->id_config_entretien]);
     }
 
-    public function getConfigurationEntretienResponsable($responsable){
+    public function getConfigEntretienRecentResponsable($responsable){
         $responsableEntretien = Flight::responsableEntretienModel();
         $departementResponsable = $responsableEntretien->getDepartement($responsable);
         $query = "SELECT *
                 FROM config_entretien 
-                where id_departement = ?
+                where  id_departement = ?
                 and id_config_entretien in(
                     SELECT MAX(id_config_entretien) 
                     FROM config_entretien ce

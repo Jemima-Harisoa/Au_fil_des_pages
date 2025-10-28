@@ -58,6 +58,9 @@ class JourFerieModel {
                 return true; // c'est un jour férié
             }
         }
+        if(DateModel::getJourChiffreDate($dateHeureReference) == 7){
+            return true;
+        }
 
         return false; // pas trouvé
     }
