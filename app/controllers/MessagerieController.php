@@ -51,7 +51,7 @@ class MessagerieController {
             
             // Retourner aussi le nouveau count pour l'actualisation du badge
             $newCount = $model->countNouveauxMessagesU($_SESSION['utilisateur']['id_utilisateur']);
-            
+           
             echo json_encode([
                 'success' => true,
                 'newCount' => $newCount,
