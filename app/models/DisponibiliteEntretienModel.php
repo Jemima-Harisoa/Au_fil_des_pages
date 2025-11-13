@@ -186,6 +186,7 @@ class DisponibiliteEntretienModel {
             DateModel::changerHeure($dateHeure,$listeDisponibiliteEntretien[$indiceActuel+1]["heure_debut"]);
             $indiceActuel++;
         }
+        error_log("JMKLJLKJMLKJMKLJMLK:".$dateHeure->format("Y-m-d H:i:s"));
         return $dateHeure;
     }
     public function jourOuvrableEntretien($candidat,$listeDisponibiliteEntretien){
@@ -195,6 +196,7 @@ class DisponibiliteEntretienModel {
         $jourChiffreDate = DateModel::getJourChiffreDate($date);
         $jourDispo=0;
         $resultat= $date;
+        error_log("date resultat:".$resultat->format("Y-m-d H:i:s"));
         $dateTestCandidat = $resultat->format("Y-m-d");
         $dateHeureActuelle = new \DateTime(); 
         $dateActuelle = $dateHeureActuelle->format("Y-m-d");
@@ -205,15 +207,16 @@ class DisponibiliteEntretienModel {
             if($jourChiffreDate<$jourDispo){
                 $diffJour = $jourDispo - $jourChiffreDate;
                 $indiceArret= $i;
-                $resultat = 
+                $dateHeureDebut = \DateTime::createFromFormat('H:i:s', $listeDisponibiliteEntretien[$i]["heure_debut"]);
+                $heureFin = \DateTime::createFromFormat('H:i:s', $listeDisponibiliteEntretien[$i]["heure_fin"]);
                 DateModel::changerHeure($resultat,\DateTime::createFromFormat('H:i:s', $listeDisponibiliteEntretien[$i]["heure_debut"]));
-
                 break;
             }
             else if($jourChiffreDate == $jourDispo){
                 if($dateTestCandidat < $dateActuelle){
                     $resultat = $dateHeureActuelle;
                     DateModel::changerHeure($resultat,\DateTime::createFromFormat('H:i:s', $listeDisponibiliteEntretien[$i]["heure_debut"]));
+                    error_log("mipoitra voalohany".$listeDisponibiliteEntretien[$i]["heure_debut"]);
                 }
                 else{
                     switch($i){
@@ -235,8 +238,8 @@ class DisponibiliteEntretienModel {
                         DateModel::changerHeure($resultat,\DateTime::createFromFormat('H:i:s', $listeDisponibiliteEntretien[$j]["heure_debut"]));
                         break;
                     }
-                    break;
                 }
+                break;
             }
             else{
                 $compterSuperieur++;
@@ -245,6 +248,7 @@ class DisponibiliteEntretienModel {
         
         
         $resultat = DateModel::ajouterJours($resultat,$diffJour);
+        error_log("resultat foana: ".$resultat->format("Y-m-d H:i:s"));
         if ($compterSuperieur == count($listeDisponibiliteEntretien) && !empty($listeDisponibiliteEntretien)) {
             $diffJour = ($listeDisponibiliteEntretien[0]["jour"]+7)-$jourChiffreDate;
             $resultat = DateModel::ajouterJours($date,$diffJour);
@@ -257,7 +261,6 @@ class DisponibiliteEntretienModel {
     public static function checkDateDisponible($dateHeure,$listeDisponibiliteEntretien){
         $diffJour = 0;
         $result = $dateHeure;
-        error_log("jour chiffre date: ".DateModel::getJourChiffreDate($dateHeure));
         for($i=0; $i<count($listeDisponibiliteEntretien);$i++){
             $heureCourante = \DateTime::createFromFormat('H:i:s', $dateHeure->format('H:i:s'));
             $heureFin = \DateTime::createFromFormat('H:i:s', $listeDisponibiliteEntretien[$i]['heure_fin']);
@@ -272,7 +275,6 @@ class DisponibiliteEntretienModel {
                 }
 
                 else if($heureCourante > $heureFin){
-                    error_log("mankato lesy zandry e");
                     switch($i){
                         case count($listeDisponibiliteEntretien)-1:
                             $diffJour = ($listeDisponibiliteEntretien[0]["jour"]+7)-$listeDisponibiliteEntretien[$i]["jour"];
@@ -283,7 +285,6 @@ class DisponibiliteEntretienModel {
                             break;
                     }
                     $result = DateModel::ajouterJours($dateHeure,$diffJour);
-                    error_log("tena tsy mankato ve". $result->format("Y-m-d H:i:s"));
                     DateModel::changerHeure($dateHeure,new \DateTime($listeDisponibiliteEntretien[$i]["heure_debut"]));
                 }
 

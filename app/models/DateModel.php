@@ -101,12 +101,57 @@ use flight\debug\database\PdoQueryCapture;
         $resultat = $dateHeure->format("H:i:s");
         return $resultat;
     }
-    public static function changerHeure($datetime,$time){
-        $datetime->setTime(
-        (int)$time->format("H"),
-        (int)$time->format("i"),
-        (int)$time->format("s")
-        );
+public static function changerHeure($datetime, $time)
+{
+    // --- Normaliser $datetime en DateTime ou DateTimeImmutable ---
+    if (!($datetime instanceof \DateTimeInterface)) {
+        // essayer formats courants
+        $d = \DateTime::createFromFormat('Y-m-d H:i:s', $datetime);
+        if (!$d) {
+            $d = \DateTime::createFromFormat('Y-m-d', $datetime);
+            if ($d) {
+                // si seulement Y-m-d, on met 00:00:00 par défaut
+                $d->setTime(0, 0, 0);
+            } else {
+                // fallback sur strtotime
+                $ts = strtotime($datetime);
+                if ($ts === false) {
+                    throw new \InvalidArgumentException("Datetime invalide : " . var_export($datetime, true));
+                }
+                $d = new \DateTime();
+                $d->setTimestamp($ts);
+            }
+        }
+        $datetime = $d;
     }
+
+        // --- Normaliser $time en DateTime (seulement l'heure) ---
+        if (!($time instanceof \DateTimeInterface)) {
+            // essayer H:i:s puis H:i
+            $t = \DateTime::createFromFormat('H:i:s', $time);
+            if (!$t) {
+                $t = \DateTime::createFromFormat('H:i', $time);
+                if (!$t) {
+                    throw new \InvalidArgumentException("Heure invalide : " . var_export($time, true));
+                }
+            }
+            $time = $t;
+        }
+
+        // Récupérer composantes d'heure
+        $h = (int)$time->format('H');
+        $i = (int)$time->format('i');
+        $s = (int)$time->format('s');
+
+        // Si DateTimeImmutable, setTime retourne un nouvel objet
+        if ($datetime instanceof \DateTimeImmutable) {
+            return $datetime->setTime($h, $i, $s);
+        }
+
+        // Sinon on modifie l'objet (DateTime) en place et on le retourne
+        $datetime->setTime($h, $i, $s);
+        return $datetime;
+    }
+
 }  
 
