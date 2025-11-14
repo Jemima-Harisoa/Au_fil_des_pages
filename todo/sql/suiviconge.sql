@@ -94,7 +94,7 @@ CREATE TABLE abscence_conge_suivi (
     id_demande INT,
     id_type INT,
     id_employe INT,
-    nombre_conge tinyint,
+    nombre_conge INt,
     annee INT,
     CONSTRAINT fk_conge_suivi_demande FOREIGN KEY (id_demande) REFERENCES conge_demande(id_demande),
     CONSTRAINT fk_conge_suivi_type FOREIGN KEY (id_type) REFERENCES conge_type(id_type),

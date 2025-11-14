@@ -403,7 +403,8 @@ window.addEventListener('beforeunload', () => clearInterval(messageNotificationI
 
 </script>
 
-
+<!-- Scripts supplémentaires -->
+<?= $extra_js ?? '' ?>
 
 </body>
 

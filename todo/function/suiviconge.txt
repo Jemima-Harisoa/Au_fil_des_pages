@@ -21,9 +21,6 @@
 - `departements`
 
 ---
-**Modification du TODO pour les fonctions 2 et 3 :**
-
----
 
 ### 2. **Fonction `getNombreAbsence(idEmploye)`**
 **Objectif** : Récupérer le nombre d'absences **autorisées** et **non autorisées** pour un employé.

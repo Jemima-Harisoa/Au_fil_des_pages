@@ -1,0 +1,9 @@
+#############
+##         ##
+##  fiche  ##   nombre 
+##employes ##   conge
+##         ##
+#############
+abscence
+Autorise        Non-Autorise 
+detail >        detail >

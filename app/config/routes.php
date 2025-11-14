@@ -13,8 +13,9 @@ use app\controllers\cvController;
 use app\controllers\PlanningEntretienController;
 use app\controllers\ApiPlanningEntretienController;
 
-
 use app\controllers\MessagerieController;
+use app\controllers\conge\CongeController;
+
 use flight\Engine;
 use flight\net\Router;
 //use Flight;
@@ -179,6 +180,17 @@ $router->group( "/migration" , function($router) use ($Migration_Controller){
 // Route pour SSE
 Flight::route('GET /messagerie/sse', [MessagerieController::class, 'sseNotifications']);
 
-?>
+$Conge_Controller = new CongeController();
 
-
+// Routes de gestion des congés et absences
+$router->group('/conge', function($router) use ($Conge_Controller) {
+    
+    // Route principale - fiche employé complète
+    $router->get('/fiche/@idEmploye', [$Conge_Controller, 'getFicheEmploye']);
+    
+    // Route API pour les statistiques
+    //$router->get('/statistiques/@idEmploye', [$Conge_Controller, 'getStatistiques']);
+    
+    // Route par défaut
+    $router->get('/', [$Conge_Controller, 'getListeEmployes']);
+});

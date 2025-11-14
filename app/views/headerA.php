@@ -21,7 +21,7 @@ if(!empty($_SESSION['messagerie'])) {
     <meta name="description" content="">
     <meta name="author" content="">
 
-    <title><?=  $_SESSION['departement']['nom'] ?></title>
+    <title><?=  $_SESSION['departement']['nom'] ?? 'Inconnu'?></title>
 
     <!-- Custom fonts for this template-->
     <link href="/vendor/fontawesome-free/css/all.min.css" rel="stylesheet" type="text/css">
@@ -36,6 +36,8 @@ if(!empty($_SESSION['messagerie'])) {
     <link href="/vendor/datatables/dataTables.bootstrap4.min.css" rel="stylesheet">
 
 
+    <!-- Styles supplémentaires -->
+    <?= $extra_css ?? '' ?>
     <style>
 .dropdown-header {
     display: flex !important;
@@ -94,7 +96,7 @@ if(!empty($_SESSION['messagerie'])) {
                 <div class="sidebar-brand-icon rotate-n-15">
                     <i class="fas fa-laugh-wink"></i>
                 </div>
-                <div class="sidebar-brand-text mx-3"><?=  $_SESSION['departement']['nom'] ?></div>
+                <div class="sidebar-brand-text mx-3"><?=  $_SESSION['departement']['nom'] ?? 'Inconnu' ?></div>
             </a>
 
             <!-- Divider -->
@@ -163,12 +165,17 @@ if(!empty($_SESSION['messagerie'])) {
                         <a class="collapse-item" href="/migration/contrat/create">Créer un contrat</a>
                         
                         <!-- Action -->
-                        <a class="collapse-item" href="/migration/contrat/edit">Éditer un contrat</a>
+                        <!-- <a class="collapse-item" href="/migration/contrat/edit">Éditer un contrat</a> -->
                     </div>
                 </div>
             </li>
 
-
+            <!-- Nav Item - Congés -->
+            <li class="nav-item active">
+                <a class="nav-link" href="/conge">
+                    <i class="fas fa-fw fa-calendar-alt"></i>
+                    <span>Suivi Congés</span></a>
+            </li>
 
             <!-- Divider -->
             <hr class="sidebar-divider d-none d-md-block">
@@ -265,7 +272,7 @@ if(!empty($_SESSION['messagerie'])) {
                         <li class="nav-item dropdown no-arrow">
                             <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button"
                                 data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                <span class="mr-2 d-none d-lg-inline text-gray-600 small"><?= $_SESSION['infoAdmin']['nom'] ?> <br> <?= $_SESSION['infoAdmin']['prenom'] ?></span>
+                                <span class="mr-2 d-none d-lg-inline text-gray-600 small"><?= $_SESSION['infoAdmin']['nom'] ?? 'Inconnu'?> <br> <?= $_SESSION['infoAdmin']['prenom'] ?? 'Inconnu' ?></span>
                                 <img class="img-profile rounded-circle"
 
                                     src="/img/undraw_profile_1.svg">

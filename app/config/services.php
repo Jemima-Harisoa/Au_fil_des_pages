@@ -26,7 +26,8 @@ use app\models\migration\HistoriqueValidationModel;
 use app\models\migration\HistoriqueContratModel;
 use app\models\EmployeModel;
 use app\models\DepartementModel;
-
+use app\models\conge\CongeModel;
+use app\models\conge\AbscenceModel;
 
 /** 
  * @var array $config This comes from the returned array at the bottom of the config.php file
@@ -136,4 +137,12 @@ Flight::map('Employe', function () {
 
 Flight::map('Departement', function () {
     return new DepartementModel(Flight::db());
+});
+
+Flight::map('Abscence', function () {
+    return new AbscenceModel(Flight::db());
+});
+
+Flight::map('Conge', function () {
+    return new CongeModel(Flight::db());
 });
