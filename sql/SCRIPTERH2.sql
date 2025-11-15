@@ -306,6 +306,10 @@ CREATE TABLE config_entretien (
 CREATE TABLE evenements (
     id_evenement SERIAL PRIMARY KEY,
     nom_evenement VARCHAR
+); 
+CREATE TABLE conge_type (
+    id_type SERIAL PRIMARY KEY,
+    libelle VARCHAR
 );
 
 CREATE TABLE historique_mobilite (
@@ -316,7 +320,7 @@ CREATE TABLE historique_mobilite (
     id_departement INT,
     date_evenement DATE,
     support TEXT,
-    CONSTRAINT fk_historique_mobilite_candidat FOREIGN KEY (id_candidat) REFERENCES candidats(id_candidat),
+    CONSTRAINT fk _historique_mobilite_candidat FOREIGN KEY (id_candidat) REFERENCES candidats(id_candidat),
     CONSTRAINT fk_historique_mobilite_evenement FOREIGN KEY (id_evenement) REFERENCES evenements(id_evenement),
     CONSTRAINT fk_historique_mobilite_profil FOREIGN KEY (id_profil) REFERENCES profils(id_profil),
     CONSTRAINT fk_historique_mobilite_departement FOREIGN KEY (id_departement) REFERENCES departements(id_departement)
@@ -326,8 +330,13 @@ CREATE TABLE conge_demande (
     id_demande SERIAL PRIMARY KEY,
     description TEXT,
     id_employe INT,
+    date_demande TIMESTAMP,
+    date_debut TIMESTAMP,
+    date_fin TIMESTAMP,
     niveau_validation INT DEFAULT 2,
-    CONSTRAINT fk_conge_demande_employe FOREIGN KEY (id_employe) REFERENCES employes(id_employe)
+    id_type_conge INT,
+    CONSTRAINT fk_conge_demande_employe FOREIGN KEY (id_employe) REFERENCES employes(id_employe),
+    CONSTRAINT fk_conge_demande_type_conge FOREIGN KEY (id_type_conge) REFERENCES conge_type(id_type)
 );
 
 CREATE TABLE conge_historique_validation (
@@ -346,6 +355,17 @@ CREATE TABLE conge_historique (
     CONSTRAINT fk_conge_historique_employe FOREIGN KEY (id_employe) REFERENCES employes(id_employe)
 );
 
+-- Solde de congés par employé et par type (nouvelle table pour gérer séparément congé normal/exc.)
+CREATE TABLE conge_solde (
+    id_solde SERIAL PRIMARY KEY,
+    id_employe INT,
+    id_type_conge INT,
+    solde DOUBLE PRECISION,
+    annee INT,
+    CONSTRAINT fk_conge_solde_employe FOREIGN KEY (id_employe) REFERENCES employes(id_employe),
+    CONSTRAINT fk_conge_solde_type FOREIGN KEY (id_type_conge) REFERENCES conge_type(id_type)
+);
+
 CREATE TABLE abscence (
     id_abscence SERIAL PRIMARY KEY,
     debut TIMESTAMP,
@@ -355,7 +375,7 @@ CREATE TABLE abscence (
 );
 
 CREATE TABLE pointage (
-    id_pointage SERIAL PRIMARY KEY,
+    id_pointage SERIAL PRIM ARY KEY,
     id_employe INT,
     connexion TIMESTAMP,
     deconnexion TIMESTAMP,
