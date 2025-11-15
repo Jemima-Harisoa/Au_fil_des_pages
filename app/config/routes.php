@@ -10,11 +10,11 @@ use app\controllers\migration\MigrationController;
 
 use app\controllers\cvController;
 
+use app\controllers\MessagerieController;
 use app\controllers\PlanningEntretienController;
 use app\controllers\ApiPlanningEntretienController;
 
 
-use app\controllers\MessagerieController;
 use flight\Engine;
 use flight\net\Router;
 //use Flight;
@@ -23,11 +23,22 @@ use flight\net\Router;
  * @var Router $router 
  * @var Engine $app
  */
+/*$router->get('/', function() use ($app) {
+	$Welcome_Controller = new WelcomeController($app);
+	$app->render('welcome', [ 'message' => 'It works!!' ]);
+});*/
+
+$welcomeController = new WelcomeController();
+$ConnexionController = new ConnexionController();
+
+
+
 
 $ConnexionController = new ConnexionController();
 $router->get('/', [ $ConnexionController, 'AppelLoginU' ]);
 $router->post('/inscriptionU', [ $ConnexionController, 'InscrireU' ]);
 $router->post('/loginU', [ $ConnexionController, 'VerificationConnectionU' ]);
+$router->post('/loginE', [ $ConnexionController, 'VerificationConnectionE' ]);
 $router->get('/deconnexion', [ $ConnexionController, 'deconnexion' ]);
 
 $router->get('/admin', [ $ConnexionController, 'AppelLoginA' ]);
@@ -71,6 +82,7 @@ $router->get('/listeCV',[ $cvController, 'listeCV']);
 
 $router->get('/exportCV',[ $cvController, 'exportExcel']);
 
+
 // $router->get('/CV', [ $cvController, 'redirectCV']);
 
 // $router->get('/CV/fillCV/@idUser/@idAnnonce', [ $cvController, 'fillCV']);
@@ -94,6 +106,8 @@ $WelcomeController = new WelcomeController();
 $router->get('/accueilG', [ $WelcomeController, 'AppelAccueilG' ]);
 $router->get('/accueilA', [ $WelcomeController, 'AppelAccueilA' ]);
 $router->get('/accueilU', [ $WelcomeController, 'AppelAccueilU' ]);
+$router->post('/deconnexionE', [ $ConnexionController, 'deconnexionE' ]);
+
 
 $AnnoncesController = new AnnoncesController();
     

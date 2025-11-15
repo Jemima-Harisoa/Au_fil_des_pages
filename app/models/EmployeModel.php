@@ -3,7 +3,7 @@
 namespace app\models;
 
 use Flight;
-
+use PDO;    
 class EmployeModel {
     private $id_employe;
     private $id_personne;
@@ -11,8 +11,11 @@ class EmployeModel {
     private $id_departement;
     private $poste;
     private $date_embauche;
+    private $nombre_conge;  // int
+    private $salaire_base;  // float
 
-    /** @var \PDO */
+
+
     private $db;
 
     public function __construct() {
@@ -21,6 +24,11 @@ class EmployeModel {
     }
 
     // --- Getters ---
+    public function getNombreConge(): ?int { return $this->nombre_conge; }
+public function setNombreConge(int $nb): void { $this->nombre_conge = $nb; }
+
+public function getSalaireBase(): ?float { return $this->salaire_base; }
+public function setSalaireBase(float $salaire): void { $this->salaire_base = $salaire; }
     public function getIdEmploye(): ?int {
         return $this->id_employe;
     }
@@ -69,6 +77,28 @@ class EmployeModel {
     public function setDateEmbauche(string $date): void {
         $this->date_embauche = $date;
     }
+    public function verifierEmploye($prenom, $mdp) {
+    $sql = "
+        SELECT e.id_employe, c.mdp
+        FROM employes e
+        JOIN connexEmployes c ON e.id_employe = c.idemploye
+        JOIN personnes p ON e.id_personne = p.id_personne
+        WHERE p.prenom = :prenom
+    ";
+
+    $stmt = $this->db->prepare($sql);
+    $stmt->execute(['prenom' => $prenom]);
+    $result = $stmt->fetch(\PDO::FETCH_ASSOC);
+
+    if ($result) {
+        // Comparaison du mot de passe (à remplacer par password_verify si hash)
+        if ($result['mdp'] === $mdp) {
+            return (int)$result['id_employe'];
+        }
+    }
+
+    return false;
+}
 
     // --- Méthodes BDD ---
     public function list(): array {
@@ -98,6 +128,35 @@ class EmployeModel {
         $stmt = $this->db->prepare($sql);
         return $stmt->execute($data);
     }
+// Récupérer l'id_employe via le poste (utile pour login ou pointage)
+public function getIdEmployeByPoste($poste): ?int {
+    $sql = "SELECT id_employe FROM employes WHERE poste = :poste LIMIT 1";
+    $stmt = $this->db->prepare($sql);
+    $stmt->execute(['poste' => $poste]);
+    return $stmt->fetchColumn() ?: null;
+}
+public function getInfosEmploye($idEmploye)
+{
+    $sql = "SELECT e.*, 
+                   d.nom AS nom_departement,
+                   p.nom AS nom_personne,
+                   p.prenom,
+                   p.date_naissance,
+                   p.contact,
+                   p.lien_image,
+                   c.mdp AS mdp_login
+            FROM employes e
+            JOIN departements d ON e.id_departement = d.id_departement
+            JOIN personnes p ON e.id_personne = p.id_personne
+            JOIN connexEmployes c ON e.id_employe = c.idemploye
+            WHERE e.id_employe = :id";
+
+    $stmt = $this->db->prepare($sql);
+    $stmt->execute(['id' => $idEmploye]);
+    return $stmt->fetch(PDO::FETCH_ASSOC);
+}
+
+
 
     // Mettre à jour un employé
     public function updateById($id, $data) {

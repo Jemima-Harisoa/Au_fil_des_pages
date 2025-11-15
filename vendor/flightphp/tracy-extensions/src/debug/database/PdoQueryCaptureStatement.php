@@ -25,7 +25,7 @@ class PdoQueryCaptureStatement extends PDOStatement {
 	/**
 	 * Executes a prepared statement
 	 *
-	 * @param array|null $input_parameters input parameters
+	 * @param array|null $params input parameters
 	 * @return bool
 	 */
 	public function execute(array|null $params = null): bool
@@ -34,10 +34,10 @@ class PdoQueryCaptureStatement extends PDOStatement {
 		$result = parent::execute($params);
 		$end_time = microtime(true);
 		$execution_time = $end_time - $start_time;
-		$input_parameters = $input_parameters ?? (PdoQueryCapture::$query_data[$this->unique_value]['params'] ?? []);
+		$params = $params ?? (PdoQueryCapture::$query_data[$this->unique_value]['params'] ?? []);
 		PdoQueryCapture::$query_data[$this->unique_value]['execution_time'] = $execution_time;
 		PdoQueryCapture::$query_data[$this->unique_value]['rows'] = $this->rowCount();
-		$this->transformQueryWithParams($input_parameters);
+		$this->transformQueryWithParams($params);
 		return $result;
 	}
 
@@ -50,9 +50,9 @@ class PdoQueryCaptureStatement extends PDOStatement {
 				$v = "'{$v}'";
 			}
             if($indexed) {
-				$query = preg_replace('/\?/', $v, $query, 1);
+				$query = preg_replace('/\?/', (string) $v, $query, 1);
 			} else {
-				$query = str_replace(":$k", $v, $query);
+				$query = str_replace(":$k", (string) $v, $query);
 			}
         }
 		PdoQueryCapture::$query_data[$this->unique_value]['query'] = $query;
