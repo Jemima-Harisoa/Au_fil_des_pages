@@ -47,7 +47,7 @@ INSERT INTO conge_demande (description, id_employe, niveau_validation) VALUES
 ('Maladie longue durée 2023', 5, 1),
 -- 2022
 ('Congé sabbatique 2022', 1, 2),
-('Formation management 2022', 6, 2),
+('Formation management 2022', 5, 2),
 ('Maternité 2022', 4, 3),
 -- 2021
 ('Congé sans solde projet personnel 2021', 2, 1),

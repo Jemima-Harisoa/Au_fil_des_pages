@@ -309,7 +309,8 @@ CREATE TABLE evenements (
 ); 
 CREATE TABLE conge_type (
     id_type SERIAL PRIMARY KEY,
-    libelle VARCHAR
+    nom VARCHAR,
+    description VARCHAR
 );
 
 CREATE TABLE historique_mobilite (
@@ -320,7 +321,7 @@ CREATE TABLE historique_mobilite (
     id_departement INT,
     date_evenement DATE,
     support TEXT,
-    CONSTRAINT fk _historique_mobilite_candidat FOREIGN KEY (id_candidat) REFERENCES candidats(id_candidat),
+    CONSTRAINT fk_historique_mobilite_candidat FOREIGN KEY (id_candidat) REFERENCES candidats(id_candidat),
     CONSTRAINT fk_historique_mobilite_evenement FOREIGN KEY (id_evenement) REFERENCES evenements(id_evenement),
     CONSTRAINT fk_historique_mobilite_profil FOREIGN KEY (id_profil) REFERENCES profils(id_profil),
     CONSTRAINT fk_historique_mobilite_departement FOREIGN KEY (id_departement) REFERENCES departements(id_departement)
@@ -375,7 +376,7 @@ CREATE TABLE abscence (
 );
 
 CREATE TABLE pointage (
-    id_pointage SERIAL PRIM ARY KEY,
+    id_pointage SERIAL PRIMARY KEY,
     id_employe INT,
     connexion TIMESTAMP,
     deconnexion TIMESTAMP,
