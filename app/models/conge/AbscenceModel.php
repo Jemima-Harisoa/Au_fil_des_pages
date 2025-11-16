@@ -13,6 +13,83 @@ class AbscenceModel
     }
 
     /**
+     * Récupère une absence spécifique par son ID pour un employé
+     */
+    public function getAbsenceById($idAbsence, $idEmploye) {
+        $sql = "
+            SELECT 
+                a.id_abscence,
+                a.debut,
+                a.fin,
+                a.est_autorise,
+                a.justificatif,
+                cd.description,
+                (EXTRACT(EPOCH FROM (a.fin - a.debut))/86400 + 1) as jours_pris,
+                acs.penalite_appliquee
+            FROM abscence_conge_suivi acs
+            LEFT JOIN abscence a ON acs.id_abscence = a.id_abscence
+            LEFT JOIN conge_demande cd ON acs.id_demande = cd.id_demande
+            WHERE a.id_abscence = :id_abscence 
+            AND acs.id_employe = :id_employe
+            AND a.est_autorise = false
+        ";
+        
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute([
+            'id_abscence' => $idAbsence,
+            'id_employe' => $idEmploye
+        ]);
+        
+        $result = $stmt->fetch(\PDO::FETCH_ASSOC);
+        
+        if ($result) {
+            $result['debut_formatted'] = date('d/m/Y', strtotime($result['debut']));
+            $result['fin_formatted'] = date('d/m/Y', strtotime($result['fin']));
+            $result['jours_pris'] = (int)$result['jours_pris'];
+            $result['periode'] = $result['debut_formatted'] . ' - ' . $result['fin_formatted'];
+        }
+        
+        return $result;
+    }
+
+    /**
+     * Met à jour une absence avec la justification
+     */
+    public function justifierAbsence($idAbsence, $justificatif, $commentaire = null) {
+        try {
+            $sql = "
+                UPDATE abscence 
+                SET justificatif = :justificatif,
+                    est_autorise = true
+                WHERE id_abscence = :id_abscence
+            ";
+            
+            $stmt = $this->db->prepare($sql);
+            $result = $stmt->execute([
+                'justificatif' => $justificatif,
+                'id_abscence' => $idAbsence
+            ]);
+
+            if ($result) {
+                return [
+                    'success' => true,
+                    'message' => 'Absence justifiée avec succès',
+                    'id_abscence' => $idAbsence
+                ];
+            } else {
+                return [
+                    'success' => false,
+                    'error' => 'Erreur lors de la mise à jour de l\'absence'
+                ];
+            }
+        } catch (\Exception $e) {
+            return [
+                'success' => false,
+                'error' => 'Erreur: ' . $e->getMessage()
+            ];
+        }
+    }
+    /**
      * Récupère le détail complet des absences (autorisées ou non) pour un employé
      * @param int $idEmploye ID de l'employé
      * @param bool|null $estAutorise true=autorisées, false=non autorisées, null=toutes
@@ -45,13 +122,16 @@ class AbscenceModel
         $sql .= " ORDER BY a.debut DESC";
         
         $stmt = $this->db->prepare($sql);
-        $params = ['id_employe' => $idEmploye];
+        
+        // Utiliser bindValue pour spécifier le type
+        $stmt->bindValue(':id_employe', $idEmploye, \PDO::PARAM_INT);
         
         if ($estAutorise !== null) {
-            $params['est_autorise'] = $estAutorise;
+            // Convertir explicitement en boolean pour PostgreSQL
+            $stmt->bindValue(':est_autorise', $estAutorise, \PDO::PARAM_BOOL);
         }
         
-        $stmt->execute($params);
+        $stmt->execute();
         $result = $stmt->fetchAll(\PDO::FETCH_ASSOC);
         
         // Formater les dates et calculer les pénalités

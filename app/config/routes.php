@@ -15,6 +15,7 @@ use app\controllers\ApiPlanningEntretienController;
 
 use app\controllers\MessagerieController;
 use app\controllers\conge\CongeController;
+use app\controllers\conge\AbscenceController;
 
 use flight\Engine;
 use flight\net\Router;
@@ -195,4 +196,17 @@ $router->group('/conge', function($router) use ($Conge_Controller) {
     $router->post('/demande', [$Conge_Controller, 'submitDemande']);
     // Route par défaut
     $router->get('/', [$Conge_Controller, 'getListeEmployes']);
+});
+
+// Routes de gestion des justifications d'absences
+$Abscence_Controller = new AbscenceController();
+$router->group('/abscence', function($router) use ($Abscence_Controller) {
+    // Afficher les absences à justifier
+    $router->get('/justifications', [$Abscence_Controller, 'getListeAbsencesAJustifier']);
+    
+    // Afficher le formulaire de justification pour une absence spécifique
+    $router->get('/justifier/@idAbsence', [$Abscence_Controller, 'getJustifierAbsence']);
+    
+    // Traiter la soumission du formulaire de justification
+    $router->post('/justifier', [$Abscence_Controller, 'submitJustification']);
 });
