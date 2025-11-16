@@ -34,7 +34,7 @@ $ConnexionController = new ConnexionController();
 $employeController = new EmployeController();
 
 $router-> get('/employeList', [ $employeController, 'redirectEmploye' ]);
-$router-> get('/employeDetails', [ $employeController, 'redirectEmployeDetails' ]);
+$router-> get('/employeDetails/@id', [ $employeController, 'redirectEmployeDetails' ]);
 
 $pointageController = new PointageController();
 $router->get('/pointage', [ $pointageController, 'getAllEmployes' ]);

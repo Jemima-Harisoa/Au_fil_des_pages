@@ -4,6 +4,7 @@ namespace app\models;
 
 use Flight;
 use PDO;
+use PDOException;
 
 class EmployeModel
 {
@@ -106,6 +107,30 @@ class EmployeModel
     }
 
 
+    public static function listeEmployerV2(){
+        $db = Flight::db();
+       $sql = "
+        SELECT
+            e.id_employe,
+            p.nom AS Nom,
+            p.prenom AS Prenoms,
+            d.nom AS Departement,
+            e.poste AS Poste,
+            tc.nom AS Type_Contrat,
+            e.date_embauche AS Date_embauche
+        FROM
+            employes e
+            LEFT JOIN personnes p ON e.id_personne = p.id_personne
+            LEFT JOIN contrats c ON e.id_contrat = c.id_contrat
+            LEFT JOIN type_contrats tc ON c.id_type_contrat = tc.id_type_contrat
+            LEFT JOIN departements d ON e.id_departement = d.id_departement
+        ORDER BY
+            e.date_embauche DESC
+        ";
+        $stmt = $db->query($sql);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
 
     public function verifierEmploye($prenom, $mdp)
     {
@@ -199,11 +224,11 @@ class EmployeModel
         $stmt->execute(['id' => $idEmploye]);
         return $stmt->fetch(PDO::FETCH_ASSOC);
     }
-    public static function getAllEmployesWithDetails(): array
-    {
-        $db = Flight::db();
-        $sql = "
-        
+    public static function getEmployesWithDetails(int $idEmploye): array
+{
+    $db = Flight::db();
+
+    $sql = "
         SELECT 
             e.id_employe,
             e.id_personne,
@@ -228,11 +253,24 @@ class EmployeModel
             LEFT JOIN personnes p ON e.id_personne = p.id_personne
             LEFT JOIN contrats c ON e.id_contrat = c.id_contrat
             LEFT JOIN type_contrats tc ON c.id_type_contrat = tc.id_type_contrat
-            LEFT JOIN departements d ON e.id_departement = d.id_departement";
+            LEFT JOIN departements d ON e.id_departement = d.id_departement
+        WHERE 
+            e.id_employe = :idEmploye
+        LIMIT 1
+    ";
 
-        $stmt = $db->query($sql);
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    try {
+        $stmt = $db->prepare($sql);
+        $stmt->execute([':idEmploye' => $idEmploye]);
+        $result = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        // Retourne un tableau vide si rien trouvé
+        return $result ?: [];
+    } catch (PDOException $e) {
+        error_log("Erreur dans getEmployesWithDetails($idEmploye) : " . $e->getMessage());
+        return [];
     }
+}
 
     // Mettre à jour un employé
     public function updateById($id, $data)

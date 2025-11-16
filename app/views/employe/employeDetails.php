@@ -1,143 +1,52 @@
 <?php
-// =============================================================
-// DONNÉES DE L'EMPLOYÉ
-// =============================================================
-$employee = [
-    'photo' => '',
-    'nom' => 'Dupont',
-    'prenoms' => 'Jean Marc',
-    'dateNaissance' => '1985-03-15',
-    'contact' => '+261 34 00 000 00',
-    'poste' => 'Développeur Full Stack',
-    'dateEmbauche' => '2018-06-01',
-    'departement' => 'Informatique'
-];
-
-// =============================================================
-// HISTORIQUE DES MOUVEMENTS (avec département)
-// =============================================================
-$historique = [
-    [
-        'id' => 1,
-        'date' => '2017-08-15',
-        'evenement' => 'Embauche',
-        'details' => 'Embauche en CDI après stage de 3 mois',
-        'support' => 'Contrat-CDI-2017-089.pdf',
-        'poste' => 'Stagiaire Développeur',
-        'departement' => 'Ressources Humaines'
-    ],
-    [
-        'id' => 2,
-        'date' => '2018-01-01',
-        'evenement' => 'Confirmation',
-        'details' => 'Fin de période d\'essai - Confirmation définitive',
-        'support' => 'Avenant-Confirmation-2018.pdf',
-        'poste' => 'Développeur Junior',
-        'departement' => 'Informatique'
-    ],
-    [
-        'id' => 3,
-        'date' => '2019-06-10',
-        'evenement' => 'Formation',
-        'details' => 'Formation Laravel avancé (40h) - Certificat obtenu',
-        'support' => 'Certificat-Laravel-2019.pdf',
-        'poste' => 'Développeur Junior',
-        'departement' => 'Informatique'
-    ],
-    [
-        'id' => 4,
-        'date' => '2020-03-01',
-        'evenement' => 'Promotion',
-        'details' => 'Passage au grade Développeur Confirmé suite à projet CRM',
-        'support' => 'Décision-Promotion-2020-015.pdf',
-        'poste' => 'Développeur Confirmé',
-        'departement' => 'Informatique'
-    ],
-    [
-        'id' => 5,
-        'date' => '2021-07-20',
-        'evenement' => 'Mutation',
-        'details' => 'Transfert vers le pôle Intelligence Artificielle',
-        'support' => 'Ordre-Mutation-2021-112.pdf',
-        'poste' => 'Développeur Full Stack',
-        'departement' => 'Intelligence Artificielle'
-    ],
-    [
-        'id' => 6,
-        'date' => '2022-11-05',
-        'evenement' => 'Augmentation',
-        'details' => 'Augmentation de 12% suite à évaluation annuelle',
-        'support' => 'Avenant-Salaire-2022.pdf',
-        'poste' => 'Développeur Full Stack',
-        'departement' => 'Intelligence Artificielle'
-    ],
-    [
-        'id' => 7,
-        'date' => '2023-04-18',
-        'evenement' => 'Congé formation',
-        'details' => 'Congé de 2 mois pour MBA en Gestion de Projet IT',
-        'support' => 'Demande-Conge-2023.pdf',
-        'poste' => 'Développeur Full Stack',
-        'departement' => 'Intelligence Artificielle'
-    ],
-    [
-        'id' => 8,
-        'date' => '2023-09-01',
-        'evenement' => 'Retour de congé',
-        'details' => 'Reprise après formation - Nouveau rôle de Lead Tech',
-        'support' => 'Retour-Conge-2023.pdf',
-        'poste' => 'Lead Developer',
-        'departement' => 'Informatique'
-    ],
-    [
-        'id' => 9,
-        'date' => '2024-02-14',
-        'evenement' => 'Certification',
-        'details' => 'Obtention de la certification AWS Solutions Architect',
-        'support' => 'Certificat-AWS-2024.pdf',
-        'poste' => 'Lead Developer',
-        'departement' => 'Informatique'
-    ],
-    [
-        'id' => 10,
-        'date' => '2025-01-10',
-        'evenement' => 'Évaluation',
-        'details' => 'Évaluation annuelle 2024 - Note A+',
-        'support' => 'Fiche-Evaluation-2024.pdf',
-        'poste' => 'Lead Developer',
-        'departement' => 'Informatique'
-    ]
-];
+// === ON UTILISE $data TEL QUEL (déjà défini ailleurs) ===
+// $data contient déjà toutes les données de l'employé
 
 // Fonction pour formater la date
-function formatDate($dateStr) {
-    return date('d/m/Y', strtotime($dateStr));
+// === DONNÉES STATIQUES : Historique des mouvements ===
+// === DONNÉES STATIQUES : Historique des mouvements (à garder avant le HTML) ===
+$historique_mouvements = [
+    [
+        'date'      => '2023-06-15',
+        'event'     => 'Promotion',
+        'detail'    => 'Passage de Junior à Senior',
+        'support'   => 'Décision RH n°2023-045',
+        'poste'     => 'Développeur Senior',
+    ],
+    [
+        'date'      => '2022-01-10',
+        'event'     => 'Embauche',
+        'detail'    => 'CDI après stage',
+        'support'   => 'Contrat n°EMP-2022-001',
+        'poste'     => 'Développeur Junior',
+    ],
+    [
+        'date'      => '2024-03-20',
+        'event'     => 'Changement de département',
+        'detail'    => 'Transfert vers Projets Spéciaux',
+        'support'   => 'Note interne RH',
+        'poste'     => 'Développeur Senior',
+    ],
+    [
+        'date'      => '2025-01-05',
+        'event'     => 'Augmentation',
+        'detail'    => 'Revalorisation annuelle',
+        'support'   => 'Avenant n°2025-003',
+        'poste'     => 'Développeur Senior',
+    ],
+];
+function formatDate($dateStr)
+{
+    return $dateStr ? date('d/m/Y', strtotime($dateStr)) : '—';
 }
 
-// Fonction pour la couleur de l'événement
-function getEventColor($event) {
-    $colors = [
-        'Embauche' => 'text-green-700',
-        'Promotion' => 'text-blue-700',
-        'Mutation' => 'text-purple-700',
-        'Formation' => 'text-orange-700',
-        'Confirmation' => 'text-teal-700',
-        'Augmentation' => 'text-yellow-700',
-        'Congé formation' => 'text-indigo-700',
-        'Retour de congé' => 'text-cyan-700',
-        'Certification' => 'text-pink-700',
-        'Évaluation' => 'text-gray-700'
-    ];
-    return $colors[$event] ?? 'text-gray-700';
-}
-
-// === Calcul de l'âge (années uniquement) ===
-$dateNaissance = new DateTime($employee['dateNaissance']);
+// === Calcul de l'âge ===
+$dateNaissance = new DateTime($data['date_naissance']);
 $aujourd = new DateTime();
 $age_annees = $dateNaissance->diff($aujourd)->y;
 
-// === Calcul de l'ancienneté (années + jours) ===
-$dateEmbauche = new DateTime($employee['dateEmbauche']);
+// === Calcul de l'ancienneté ===
+$dateEmbauche = new DateTime($data['date_embauche']);
 $interval = $dateEmbauche->diff($aujourd);
 $anciennete_annees = $interval->y;
 $anciennete_jours = $interval->days;
@@ -145,160 +54,313 @@ $anciennete_jours = $interval->days;
 
 <!DOCTYPE html>
 <html lang="fr">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fiche Employé</title>
+    <title>Fiche Employé - <?= htmlspecialchars($data['nom_personne'] . ' ' . $data['prenom']) ?></title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+    </style>
 </head>
-<body class="bg-gray-50 min-h-screen py-12 px-4">
+
+<body class="bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 min-h-screen py-10 px-4">
     <div class="max-w-6xl mx-auto">
         <!-- En-tête -->
-        <div class="bg-white rounded-t-xl shadow-lg p-6 mb-0">
-            <h1 class="text-3xl font-bold text-gray-800 text-center">Fiche Employé</h1>
+        <div class="bg-white rounded-t-2xl shadow-xl p-6 border-b-4 border-blue-500">
+            <div class="flex items-center justify-between">
+                <h1 class="text-3xl font-bold text-gray-800 flex items-center gap-3">
+                    <i class="fas fa-id-card text-blue-600"></i>
+                    Fiche Employé
+                </h1>
+                <span class="bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-4 py-1.5 rounded-full text-sm font-semibold shadow">
+                    ID: <?= $data['id_employe'] ?>
+                </span>
+            </div>
         </div>
 
         <!-- Corps principal -->
-        <div class="bg-white rounded-b-xl shadow-lg p-8 mb-8">
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-                <!-- Colonne Photo -->
-                <div class="flex flex-col items-center">
-                    <div class="w-48 h-48 bg-gray-200 border-2 border-dashed rounded-xl flex items-center justify-center mb-4 overflow-hidden">
-                        <?php if (!empty($employee['photo'])): ?>
-                            <img src="<?= htmlspecialchars($employee['photo']) ?>" alt="Photo de l'employé" class="w-full h-full object-cover">
+        <div class="bg-white rounded-b-2xl shadow-xl p-8 mb-8 -mt-1">
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-10">
+                <!-- Photo -->
+                <div class="flex flex-col items-center text-center">
+                    <div class="w-48 h-48 rounded-2xl overflow-hidden shadow-xl border-4 border-white mb-4 bg-gradient-to-br from-blue-100 to-indigo-200">
+                        <?php if (!empty($data['lien_image']) && file_exists($data['lien_image'])): ?>
+                            <img src="<?= htmlspecialchars($data['lien_image']) ?>" alt="Photo de <?= htmlspecialchars($data['prenom']) ?>" class="w-full h-full object-cover">
                         <?php else: ?>
-                            <i class="fas fa-user text-6xl text-gray-400"></i>
+                            <div class="w-full h-full flex items-center justify-center">
+                                <i class="fas fa-user text-7xl text-blue-400"></i>
+                            </div>
                         <?php endif; ?>
                     </div>
-                    <p class="text-sm font-medium text-gray-700">Photo</p>
-                </div>
-
-                <!-- Colonne Informations -->
-                <div class="md:col-span-2 space-y-6">
-                    <!-- Nom -->
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Nom</label>
-                        <p class="text-lg font-semibold text-gray-900"><?= htmlspecialchars($employee['nom']) ?></p>
-                    </div>
-
-                    <!-- Prénoms -->
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Prénoms</label>
-                        <p class="text-lg text-gray-800"><?= htmlspecialchars($employee['prenoms']) ?></p>
-                    </div>
-
-                    <!-- Âge (années uniquement) -->
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Âge</label>
-                        <p class="text-lg text-gray-800">
-                            <?= $age_annees ?> an<?= $age_annees > 1 ? 's' : '' ?>
-                        </p>
-                    </div>
-
-                    <!-- Contact -->
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Contact</label>
-                        <p class="text-lg text-gray-800"><?= htmlspecialchars($employee['contact']) ?></p>
-                    </div>
-
-                    <!-- Poste -->
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Poste</label>
-                        <p class="text-lg text-gray-800"><?= htmlspecialchars($employee['poste']) ?></p>
-                    </div>
-
-                    <!-- Ancienneté (années + jours) -->
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Ancienneté</label>
-                        <p class="text-lg text-blue-600 font-medium">
-                            <?= $anciennete_annees ?> an<?= $anciennete_annees > 1 ? 's' : '' ?>
-                            <span class="text-sm text-gray-500 ml-2">
-                                (soit <?= $anciennete_jours ?> jour<?= $anciennete_jours > 1 ? 's' : '' ?>)
-                            </span>
-                        </p>
-                    </div>
-
-                    <!-- Département actuel -->
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Département actuel</label>
-                        <p class="text-lg font-medium text-blue-600"><?= htmlspecialchars($employee['departement']) ?></p>
+                    <h2 class="text-2xl font-bold text-gray-800"><?= htmlspecialchars($data['nom_personne']) ?></h2>
+                    <p class="text-lg text-gray-600"><?= htmlspecialchars($data['prenom']) ?></p>
+                    <div class="mt-2 inline-flex items-center gap-2 bg-blue-100 text-blue-700 px-4 py-1.5 rounded-full text-sm font-semibold">
+                        <i class="fas fa-briefcase"></i>
+                        <?= htmlspecialchars($data['poste']) ?>
                     </div>
                 </div>
-            </div>
 
-            <!-- Bouton Modifier (fiche employé) -->
-            <div class="mt-10 flex justify-end">
-                <button class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-medium shadow-md flex items-center gap-2">
-                    <i class="fas fa-edit"></i>
-                    Modifier
-                </button>
+                <!-- Informations -->
+                <div class="lg:col-span-2 space-y-6">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <!-- Âge -->
+                        <div>
+                            <label class="flex items-center text-sm font-semibold text-gray-600 mb-1">
+                                <i class="fas fa-birthday-cake mr-2 text-pink-500"></i> Âge
+                            </label>
+                            <p class="text-lg font-medium text-gray-900">
+                                <?= $age_annees ?> an<?= $age_annees > 1 ? 's' : '' ?>
+                                <span class="text-sm text-gray-500 block">Né(e) le <?= formatDate($data['date_naissance']) ?></span>
+                            </p>
+                        </div>
+
+                        <!-- Contact -->
+                        <div>
+                            <label class="flex items-center text-sm font-semibold text-gray-600 mb-1">
+                                <i class="fas fa-phone mr-2 text-green-500"></i> Contact
+                            </label>
+                            <p class="text-lg font-medium text-gray-900">
+                                <a href="tel:<?= htmlspecialchars($data['contact']) ?>" class="hover:text-blue-600 transition">
+                                    <?= chunk_split($data['contact'], 3, ' ') ?>
+                                </a>
+                            </p>
+                        </div>
+
+                        <!-- Poste -->
+                        <div>
+                            <label class="flex items-center text-sm font-semibold text-gray-600 mb-1">
+                                <i class="fas fa-user-tie mr-2 text-indigo-500"></i> Poste
+                            </label>
+                            <p class="text-lg font-medium text-gray-900"><?= htmlspecialchars($data['poste']) ?></p>
+                        </div>
+
+                        <!-- Département -->
+                        <div>
+                            <label class="flex items-center text-sm font-semibold text-gray-600 mb-1">
+                                <i class="fas fa-building mr-2 text-purple-500"></i> Département
+                            </label>
+                            <p class="text-lg font-medium text-purple-700 bg-purple-50 px-4 py-1.5 rounded-lg inline-block">
+                                <?= htmlspecialchars($data['nom_departement']) ?>
+                            </p>
+                        </div>
+
+                        <!-- Embauche -->
+                        <div>
+                            <label class="flex items-center text-sm font-semibold text-gray-600 mb-1">
+                                <i class="fas fa-calendar-check mr-2 text-teal-500"></i> Embauche
+                            </label>
+                            <p class="text-lg font-medium text-gray-900"><?= formatDate($data['date_embauche']) ?></p>
+                        </div>
+
+                        <!-- Ancienneté -->
+                        <div>
+                            <label class="flex items-center text-sm font-semibold text-gray-600 mb-1">
+                                <i class="fas fa-clock mr-2 text-orange-500"></i> Ancienneté
+                            </label>
+                            <p class="text-lg font-bold text-orange-600">
+                                <?= $anciennete_annees ?> an<?= $anciennete_annees > 1 ? 's' : '' ?>
+                                <span class="text-sm font-normal text-gray-500 block">
+                                    (<?= $anciennete_jours ?> jour<?= $anciennete_jours > 1 ? 's' : '' ?>)
+                                </span>
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Bouton Modifier -->
+                    <div class="flex justify-end mt-8">
+                        <a href="modifier_employe.php?id=<?= $data['id_employe'] ?>"
+                            class="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transform hover:scale-105 transition duration-200">
+                            <i class="fas fa-edit"></i>
+                            Modifier la fiche
+                        </a>
+                    </div>
+                </div>
             </div>
         </div>
+        <!-- Historique des mouvements (Tableau avec filtres) -->
+        <div class="bg-white rounded-2xl shadow-xl p-8 overflow-hidden">
+            <div class="flex flex-col sm:flex-row items-center justify-between mb-6 gap-4">
+                <h2 class="text-2xl font-bold text-gray-800 flex items-center gap-3">
+                    <i class="fas fa-history text-blue-600"></i>
+                    Historique des mouvements
+                </h2>
+                <div class="flex items-center gap-2 text-sm text-gray-500">
+                    <span id="rowCount"><?= count($historique_mouvements) ?></span> mouvement<?= count($historique_mouvements) > 1 ? 's' : '' ?>
+                </div>
+            </div>
 
-        <!-- === SECTION : Historique des mouvements === -->
-        <div class="bg-white rounded-xl shadow-lg p-8">
-            <h2 class="text-2xl font-bold text-gray-800 mb-6">Historique de travail / Mouvements</h2>
+            <!-- FILTRES -->
+            <div class="mb-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
+                <div>
+                    <input type="text" id="filterDate" placeholder="Filtrer Date (jj/mm/aaaa)"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+                <div>
+                    <input type="text" id="filterEvent" placeholder="Filtrer Événement"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+                <div>
+                    <input type="text" id="filterDetail" placeholder="Filtrer Détail"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+                <div>
+                    <input type="text" id="filterSupport" placeholder="Filtrer Support"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+                <div>
+                    <input type="text" id="filterPoste" placeholder="Filtrer Poste"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+            </div>
 
+            <!-- TABLEAU -->
             <div class="overflow-x-auto">
-                <table class="min-w-full divide-y divide-gray-200">
-                    <thead class="bg-gray-50">
+                <table class="w-full text-sm text-left text-gray-700" id="mouvementsTable">
+                    <thead class="text-xs text-gray-600 uppercase bg-gradient-to-r from-blue-50 to-indigo-50 border-b-2 border-blue-200">
                         <tr>
-                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
-                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Événement</th>
-                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Détails</th>
-                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Support</th>
-                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Poste</th>
-                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Département</th>
-                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider text-center">Action</th>
+                            <th class="px-4 py-3 font-semibold">Date</th>
+                            <th class="px-4 py-3 font-semibold">Événement</th>
+                            <th class="px-4 py-3 font-semibold">Détail</th>
+                            <th class="px-4 py-3 font-semibold">Support</th>
+                            <th class="px-4 py-3 font-semibold">Poste</th>
+                            <th class="px-4 py-3 font-semibold text-center">Action</th>
                         </tr>
                     </thead>
-                    <tbody class="bg-white divide-y divide-gray-200">
-                        <?php foreach ($historique as $index => $item): ?>
-                            <tr class="<?= $index % 2 === 0 ? 'bg-white' : 'bg-gray-50' ?>">
-                                <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-900">
-                                    <?= formatDate($item['date']) ?>
+                    <tbody class="divide-y divide-gray-200">
+                        <?php foreach ($historique_mouvements as $i => $mvt): ?>
+                            <tr class="hover:bg-blue-50 transition data-row"
+                                data-date="<?= formatDate($mvt['date']) ?>"
+                                data-event="<?= htmlspecialchars($mvt['event']) ?>"
+                                data-detail="<?= htmlspecialchars($mvt['detail']) ?>"
+                                data-support="<?= htmlspecialchars($mvt['support']) ?>"
+                                data-poste="<?= htmlspecialchars($mvt['poste']) ?>">
+                                <!-- Date -->
+                                <td class="px-4 py-3 font-medium text-gray-900">
+                                    <?= formatDate($mvt['date']) ?>
                                 </td>
-                                <td class="px-4 py-3 whitespace-nowrap text-sm font-medium <?= getEventColor($item['evenement']) ?>">
-                                    <?= htmlspecialchars($item['evenement']) ?>
+                                <!-- Événement -->
+                                <td class="px-4 py-3">
+                                    <?php
+                                    $icon = match ($mvt['event']) {
+                                        'Embauche' => 'fa-user-plus text-green-500',
+                                        'Promotion' => 'fa-arrow-up text-blue-600',
+                                        'Augmentation' => 'fa-coins text-yellow-600',
+                                        'Changement de département' => 'fa-exchange-alt text-purple-600',
+                                        default => 'fa-info-circle text-gray-500'
+                                    };
+                                    ?>
+                                    <span class="flex items-center gap-2">
+                                        <i class="fas <?= $icon ?>"></i>
+                                        <?= htmlspecialchars($mvt['event']) ?>
+                                    </span>
                                 </td>
-                                <td class="px-4 py-3 text-sm text-gray-700 max-w-xs truncate" title="<?= htmlspecialchars($item['details']) ?>">
-                                    <?= htmlspecialchars($item['details']) ?>
+                                <!-- Détail -->
+                                <td class="px-4 py-3 text-gray-600">
+                                    <?= htmlspecialchars($mvt['detail']) ?>
                                 </td>
-                                <td class="px-4 py-3 text-sm">
-                                    <a href="uploads/supports/<?= htmlspecialchars($item['support']) ?>" 
-                                       target="_blank" 
-                                       class="text-blue-600 hover:underline">
-                                        <?= htmlspecialchars($item['support']) ?>
-                                    </a>
+                                <!-- Support -->
+                                <td class="px-4 py-3">
+                                    <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-700">
+                                        <?= htmlspecialchars($mvt['support']) ?>
+                                    </span>
                                 </td>
-                                <td class="px-4 py-3 text-sm text-gray-900">
-                                    <?= htmlspecialchars($item['poste']) ?>
+                                <!-- Poste -->
+                                <td class="px-4 py-3 font-medium text-indigo-700">
+                                    <?= htmlspecialchars($mvt['poste']) ?>
                                 </td>
-                                <!-- NOUVELLE COLONNE DÉPARTEMENT -->
-                                <td class="px-4 py-3 text-sm text-gray-900">
-                                    <?= htmlspecialchars($item['departement']) ?>
-                                </td>
-                                <td class="px-4 py-3 text-sm text-center space-x-3">
-                                    <!-- VOIR -->
-                                    <a href="voir_mouvement.php?id=<?= $item['id'] ?>" 
-                                       class="text-indigo-600 hover:text-indigo-800" 
-                                       title="Voir les détails">
-                                        <i class="fas fa-eye"></i>
-                                    </a>
-                                    <!-- ÉDITER -->
-                                    <a href="editer_mouvement.php?id=<?= $item['id'] ?>" 
-                                       class="text-green-600 hover:text-green-800" 
-                                       title="Éditer">
-                                        <i class="fas fa-edit"></i>
-                                    </a>
+                                <!-- Actions -->
+                                <td class="px-4 py-3 text-center">
+                                    <div class="flex items-center justify-center gap-2">
+                                        <!-- Voir -->
+                                        <button onclick="alert('Voir le mouvement #<?= $i + 1 ?> : <?= addslashes($mvt['event']) ?>')"
+                                            class="text-blue-600 hover:text-blue-800 transition">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                        <!-- Éditer -->
+                                        <a href="modifier_mouvement.php?id=<?= $i + 1 ?>&emp=<?= $data['id_employe'] ?>"
+                                            class="text-amber-600 hover:text-amber-800 transition">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                    </div>
                                 </td>
                             </tr>
                         <?php endforeach; ?>
                     </tbody>
                 </table>
+
+                <!-- Message vide -->
+                <div id="noResults" class="hidden text-center py-12 text-gray-400">
+                    <i class="fas fa-search text-5xl mb-3"></i>
+                    <p class="text-lg">Aucun mouvement ne correspond à votre recherche.</p>
+                </div>
             </div>
         </div>
+
+        <!-- SCRIPT DE FILTRE (à mettre avant </body>) -->
+        <script>
+            const filters = {
+                date: document.getElementById('filterDate'),
+                event: document.getElementById('filterEvent'),
+                detail: document.getElementById('filterDetail'),
+                support: document.getElementById('filterSupport'),
+                poste: document.getElementById('filterPoste')
+            };
+
+            const rows = document.querySelectorAll('#mouvementsTable .data-row');
+            const noResults = document.getElementById('noResults');
+            const rowCount = document.getElementById('rowCount');
+
+            function applyFilters() {
+                let visible = 0;
+                const values = {
+                    date: filters.date.value.trim().toLowerCase(),
+                    event: filters.event.value.trim().toLowerCase(),
+                    detail: filters.detail.value.trim().toLowerCase(),
+                    support: filters.support.value.trim().toLowerCase(),
+                    poste: filters.poste.value.trim().toLowerCase()
+                };
+
+                rows.forEach(row => {
+                    const data = {
+                        date: row.dataset.date.toLowerCase(),
+                        event: row.dataset.event.toLowerCase(),
+                        detail: row.dataset.detail.toLowerCase(),
+                        support: row.dataset.support.toLowerCase(),
+                        poste: row.dataset.poste.toLowerCase()
+                    };
+
+                    const match =
+                        (!values.date || data.date.includes(values.date)) &&
+                        (!values.event || data.event.includes(values.event)) &&
+                        (!values.detail || data.detail.includes(values.detail)) &&
+                        (!values.support || data.support.includes(values.support)) &&
+                        (!values.poste || data.poste.includes(values.poste));
+
+                    row.style.display = match ? '' : 'none';
+                    if (match) visible++;
+                });
+
+                // Afficher/masquer message vide
+                noResults.classList.toggle('hidden', visible > 0);
+                rowCount.textContent = visible;
+            }
+
+            // Écouteurs sur tous les filtres
+            Object.values(filters).forEach(input => {
+                input.addEventListener('input', applyFilters);
+                input.addEventListener('keyup', applyFilters);
+            });
+
+            // Initialiser
+            applyFilters();
+        </script>
     </div>
 </body>
+
 </html>
