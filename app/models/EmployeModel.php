@@ -179,26 +179,26 @@ class EmployeModel
         $stmt->execute(['poste' => $poste]);
         return $stmt->fetchColumn() ?: null;
     }
-    // public function getInfosEmploye($idEmploye)
-    // {
-    //     $sql = "SELECT e.*, 
-    //                d.nom AS nom_departement,
-    //                p.nom AS nom_personne,
-    //                p.prenom,
-    //                p.date_naissance,
-    //                p.contact,
-    //                p.lien_image,
-    //                c.mdp AS mdp_login
-    //         FROM employes e
-    //         JOIN departements d ON e.id_departement = d.id_departement
-    //         JOIN personnes p ON e.id_personne = p.id_personne
-    //         JOIN connexEmployes c ON e.id_employe = c.idemploye
-    //         WHERE e.id_employe = :id";
+    public function getInfosEmploye($idEmploye)
+    {
+        $sql = "SELECT e.*, 
+                   d.nom AS nom_departement,
+                   p.nom AS nom_personne,
+                   p.prenom,
+                   p.date_naissance,
+                   p.contact,
+                   p.lien_image,
+                   c.mdp AS mdp_login
+            FROM employes e
+            JOIN departements d ON e.id_departement = d.id_departement
+            JOIN personnes p ON e.id_personne = p.id_personne
+            JOIN connexEmployes c ON e.id_employe = c.idemploye
+            WHERE e.id_employe = :id";
 
-    //     $stmt = $this->db->prepare($sql);
-    //     $stmt->execute(['id' => $idEmploye]);
-    //     return $stmt->fetch(PDO::FETCH_ASSOC);
-    // }
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute(['id' => $idEmploye]);
+        return $stmt->fetch(PDO::FETCH_ASSOC);
+    }
     public static function getAllEmployesWithDetails(): array
     {
         $db = Flight::db();
