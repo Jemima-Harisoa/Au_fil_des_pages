@@ -13,7 +13,7 @@ use app\controllers\cvController;
 use app\controllers\MessagerieController;
 use app\controllers\PlanningEntretienController;
 use app\controllers\ApiPlanningEntretienController;
-
+use app\controllers\PointageController;
 
 use flight\Engine;
 use flight\net\Router;
@@ -32,7 +32,17 @@ $welcomeController = new WelcomeController();
 $ConnexionController = new ConnexionController();
 
 
+$pointageController = new PointageController();
+$router->get('/pointage', [ $pointageController, 'getAllEmployes' ]);
+// fichier routes.php ou bootstrap
 
+
+// Relève individuelle
+Flight::route('POST /presence/individuelle/@idEmploye', [$pointageController, 'releverPresenceIndividuelle']);
+
+// Relève par groupe
+Flight::route('POST /presence/groupe/@dept', [$pointageController, 'releverPresenceGroupe']);
+$router->get('/employe', [ $ConnexionController, 'AppelLoginE' ]);
 
 $ConnexionController = new ConnexionController();
 $router->get('/', [ $ConnexionController, 'AppelLoginU' ]);
@@ -81,6 +91,11 @@ $router->get('/retourFill',[ $cvController, 'retourAccueilU']);
 $router->get('/listeCV',[ $cvController, 'listeCV']);
 
 $router->get('/exportCV',[ $cvController, 'exportExcel']);
+$router->post('/exportRelevePost',[ $pointageController, 'exportExcelPost']);
+$router->get('/relevePresenceE/@idEmploye', [$pointageController, 'releverPresenceE']);
+$router->get('/presence/export/pdf/@idEmploye', [$pointageController, 'exporterPDF']);
+$router->get('/presence/export/csv/@idEmploye', [$pointageController, 'exporterCSV']);
+
 
 
 // $router->get('/CV', [ $cvController, 'redirectCV']);
