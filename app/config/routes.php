@@ -2,6 +2,7 @@
 use app\controllers\WelcomeController;
 use app\controllers\ConnexionController;
 use app\controllers\AnnoncesController;
+use app\controllers\EmployeController;
 
 
 use app\controllers\TestController;
@@ -30,7 +31,10 @@ use flight\net\Router;
 
 $welcomeController = new WelcomeController();
 $ConnexionController = new ConnexionController();
+$employeController = new EmployeController();
 
+$router-> get('/employeList', [ $employeController, 'redirectEmploye' ]);
+$router-> get('/employeDetails', [ $employeController, 'redirectEmployeDetails' ]);
 
 
 
