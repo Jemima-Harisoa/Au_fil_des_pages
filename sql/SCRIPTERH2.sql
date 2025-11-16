@@ -322,12 +322,38 @@ CREATE TABLE historique_mobilite (
     CONSTRAINT fk_historique_mobilite_departement FOREIGN KEY (id_departement) REFERENCES departements(id_departement)
 );
 
+CREATE TABLE conge_type (
+    id_type SERIAL PRIMARY KEY,
+    nom VARCHAR,
+    description TEXT
+);
+
+CREATE TABLE abscence_type_penalite ( 
+    id_type_penalite SERIAL PRIMARY KEY,
+    nom VARCHAR,
+    description TEXT,
+    montant DOUBLE PRECISION
+);
+
+CREATE TABLE abscence (
+    id_abscence SERIAL PRIMARY KEY,
+    debut TIMESTAMP,
+    fin TIMESTAMP,
+    est_autorise BOOLEAN,
+    justificatif TEXT
+);
+
 CREATE TABLE conge_demande (
     id_demande SERIAL PRIMARY KEY,
     description TEXT,
     id_employe INT,
+    date_demande TIMESTAMP,
+    date_debut TIMESTAMP,
+    date_fin TIMESTAMP,
     niveau_validation INT DEFAULT 2,
-    CONSTRAINT fk_conge_demande_employe FOREIGN KEY (id_employe) REFERENCES employes(id_employe)
+    id_type_conge INT,
+    CONSTRAINT fk_conge_demande_employe FOREIGN KEY (id_employe) REFERENCES employes(id_employe),
+    CONSTRAINT fk_conge_demande_type_conge FOREIGN KEY (id_type_conge) REFERENCES conge_type(id_type)
 );
 
 CREATE TABLE conge_historique_validation (
@@ -346,62 +372,19 @@ CREATE TABLE conge_historique (
     CONSTRAINT fk_conge_historique_employe FOREIGN KEY (id_employe) REFERENCES employes(id_employe)
 );
 
-CREATE TABLE abscence (
-    id_abscence SERIAL PRIMARY KEY,
-    debut TIMESTAMP,
-    fin TIMESTAMP,
-    est_autorise BOOLEAN,
-    justificatif TEXT
-);
-
-CREATE TABLE pointage (
-    id_pointage SERIAL PRIMARY KEY,
+CREATE TABLE abscence_conge_suivi (
+    id_suivi SERIAL PRIMARY KEY,
+    id_demande INT,
+    id_abscence INT,
+    id_type INT,
     id_employe INT,
-    connexion TIMESTAMP,
-    deconnexion TIMESTAMP,
-    duree_session INTERVAL,
-    CONSTRAINT fk_pointage_employe FOREIGN KEY (id_employe) REFERENCES employes(id_employe)
-);
-
-CREATE TABLE seuil_tolerance (
-    id_seuil SERIAL PRIMARY KEY,
-    valeur NUMERIC(5,2) DEFAULT 5,
-    date_creation TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-
-CREATE TABLE salaire_historique (
-    id_salaire_historique SERIAL PRIMARY KEY,
-    salaire DOUBLE PRECISION,
-    date_creation TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    id_employe INT,
-    CONSTRAINT fk_salaire_historique_employe FOREIGN KEY (id_employe) REFERENCES employes(id_employe)
-);
-
-CREATE TABLE parametre (
-    id SERIAL PRIMARY KEY,
-    libelle VARCHAR,
-    pourcentage NUMERIC(5,2)
-);
-
-CREATE TABLE irsa (
-    id SERIAL PRIMARY KEY,
-    min DOUBLE PRECISION,
-    max DOUBLE PRECISION,
-    pourcentage NUMERIC(5,2),
-    date_creation TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-
-CREATE TABLE type_prime (
-    id SERIAL PRIMARY KEY,
-    libelle VARCHAR
-);
-
-CREATE TABLE prime (
-    id SERIAL PRIMARY KEY,
-    id_type_prime INT,
-    pourcentage NUMERIC(5,2),
-    id_employe INT,
-    date_creation TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT fk_prime_type FOREIGN KEY (id_type_prime) REFERENCES type_prime(id),
-    CONSTRAINT fk_prime_employe FOREIGN KEY (id_employe) REFERENCES employes(id_employe)
+    nombre_conge INT,
+    annee INT,
+    penalite_appliquee BOOLEAN DEFAULT FALSE,
+    id_type_penalite INT,
+    CONSTRAINT fk_conge_suivi_demande FOREIGN KEY (id_demande) REFERENCES conge_demande(id_demande),
+    CONSTRAINT fk_conge_suivi_type FOREIGN KEY (id_type) REFERENCES conge_type(id_type),
+    CONSTRAINT fk_conge_suivi_employe FOREIGN KEY (id_employe) REFERENCES employes(id_employe),
+    CONSTRAINT fk_conge_suivi_abscence FOREIGN KEY (id_abscence) REFERENCES abscence(id_abscence),
+    CONSTRAINT fk_conge_suivi_type_penalite FOREIGN KEY (id_type_penalite) REFERENCES abscence_type_penalite(id_type_penalite)
 );

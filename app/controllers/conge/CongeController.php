@@ -6,13 +6,55 @@ use app\models;
 use Flight;
 
 class CongeController {
-    
+    /**
+     * Récupère les détails complets des congés pour un employé
+     * @param int $idEmploye ID de l'employé
+     * @param int|null $idType Type de congé (optionnel)
+     */
+    public function getDetailConges($idEmploye, $idType = null) {
+        $ficheDetail = $this->parametreInfoEmploye($idEmploye);
+        $congeModel = Flight::Conge();
+        
+        // Récupération des détails de congés
+        if ($idType !== null) {
+            $ficheDetail['detailConge'] = $congeModel->getTableauDetailCongeParType($idEmploye, $idType);
+        } else {
+            $ficheDetail['detailConge'] = $congeModel->getTableauDetailConge($idEmploye);
+        }
+        
+        // Passage des données à la vue
+        Flight::render('conge/fiche_employe', $ficheDetail);
+    }
+
+    /**
+     * Récupère les détails complets des absences pour un employé
+     * @param int $idEmploye ID de l'employé
+     * @param bool|null $estAutorise Type d'absence (true=autorisé, false=non autorisé, null=tous)
+     */
+    public function getDetailAbsences($idEmploye, $estAutorise = null) {
+        $ficheDetail = $this->parametreInfoEmploye($idEmploye);
+        $abscenceModel = Flight::Abscence();
+        // Récupération des détails d'absences
+        $ficheDetail['detailAbsence']  = $abscenceModel->getTableauDetailAbsence($idEmploye, $estAutorise);
+        
+        // Passage des données à la vue
+        Flight::render('conge/fiche_employe', $ficheDetail);
+    }
+
     /**
      * Affiche la fiche complète d'un employé avec ses congés et absences
      * @param int $idEmploye ID de l'employé
      */
     public function getFicheEmploye($idEmploye) {
-        // Récupération des modèles
+        // Passage des données à la vue
+        Flight::render('conge/fiche_employe', $this->parametreInfoEmploye($idEmploye));
+    }
+    /**
+     * Parametre les info de la personne et les options (abscence, conge, etc)
+     * @param int $idEmploye ID de l'employé
+     */
+    
+    private function parametreInfoEmploye($idEmploye) {
             $employeModel = Flight::Employe();
             $abscenceModel = Flight::Abscence();
             $congeModel = Flight::Conge();
@@ -22,16 +64,14 @@ class CongeController {
             $absences = $abscenceModel->getSectionAbsences($idEmploye);
             $listeconge = $congeModel->getNombreConge($idEmploye);
             $employe = $employeModel->findByIdWithDetails($idEmploye);
- 
-            // Passage des données à la vue
-            Flight::render('conge/fiche_employe', [
-                'fiche' => $fiche,
-                'absences' => $absences,
-                'listeconge' => $listeconge, 
-                'nombre_conge' => $employe['nombre_conge']
-            ]);
+        
+        return [
+           'fiche' => $fiche,
+            'absences' => $absences,
+            'listeconge' => $listeconge, 
+            'nombre_conge' => $employe['nombre_conge']
+        ];
     }
-    
     /**
      * Affiche la liste des employés avec leurs informations de congés et absences
      */

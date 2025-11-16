@@ -276,8 +276,14 @@ Flight::render("headerA", ['extra_css' => $extra_css]);
     <!-- Section Absences -->
     <?= $absences ?>
 
+    <!-- Section Detail Absence -->
+    <?= $detailAbsence ?? '' ?>
+
     <!-- Section Détail Congés -->
     <?= $listeconge ?>
+
+    <!-- Section Détail Congés -->
+    <?= $detailConge ?? '' ?>
 
 </div>
 <!-- /.container-fluid -->

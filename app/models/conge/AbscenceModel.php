@@ -95,64 +95,124 @@ class AbscenceModel
      * @return string HTML formaté du tableau
      */
     public function getTableauDetailAbsence($idEmploye, $estAutorise = null) {
-        $absences = $this->getDetailAbsence($idEmploye, $estAutorise);
-        
-        $titre = "Détail des Absences ";
-        if ($estAutorise === true) {
-            $titre .= "Autorisées";
-        } elseif ($estAutorise === false) {
-            $titre .= "Non Autorisées";
-        } else {
-            $titre .= "Toutes";
-        }
+    $absences = $this->getDetailAbsence($idEmploye, $estAutorise);
+    
+    $titre = "Détail des Absences ";
+    if ($estAutorise === true) {
+        $titre .= "Autorisées";
+    } elseif ($estAutorise === false) {
+        $titre .= "Non Autorisées";
+    } else {
+        $titre .= "Toutes";
+    }
 
-        $html = '
-        <div class="card shadow mb-4">
-            <div class="card-header py-3">
-                <h6 class="m-0 font-weight-bold text-primary">' . $titre . '</h6>
-            </div>
-            <div class="card-body">
-                <div class="table-responsive">
-                    <table class="table table-bordered" id="dataTableAbsences" width="100%" cellspacing="0">
-                        <thead>
-                            <tr>
-                                <th>Période</th>
-                                <th>Jours pris</th>
-                                <th>Description</th>
-                                <th>Justification</th>
-                                <th>Pénalité</th>
-                            </tr>
-                        </thead>
-                        <tbody>';
+    // Construction du HTML complet
+    $html = '
+        <!-- Content Row - Détail Absences -->
+        <div class="row" id="detailAbscence">
+
+            <!-- Détail des Absences -->
+            <div class="col-xl-12 col-lg-12">
+                <div class="card shadow mb-4">
+                    <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                        <h6 class="m-0 font-weight-bold text-primary">' . $titre . '</h6>
+                        <!-- Bouton pour réinitialiser les filtres -->
+                        <button class="btn btn-sm btn-outline-secondary" id="resetFilters">
+                            <i class="fas fa-sync-alt"></i> Réinitialiser
+                        </button>
+                    </div>
+                    <div class="card-body">
+                        <!-- Filtres par colonne -->
+                        <div class="row mb-3">
+                            <div class="col-md-3">
+                                <label for="periodeFilter" class="small font-weight-bold">Période</label>
+                                <input type="text" class="form-control form-control-sm" id="periodeFilter" placeholder="Filtrer par période">
+                            </div>
+                            <div class="col-md-2">
+                                <label for="joursPrisFilter" class="small font-weight-bold">Jours pris</label>
+                                <select class="form-control form-control-sm" id="joursPrisFilter">
+                                    <option value="">Tous</option>
+                                    <option value="1">1 jour</option>
+                                    <option value="2-4">2-4 jours</option>
+                                    <option value="5+">5+ jours</option>
+                                </select>
+                            </div>
+                            <div class="col-md-2">
+                                <label for="descriptionFilter" class="small font-weight-bold">Description</label>
+                                <input type="text" class="form-control form-control-sm" id="descriptionFilter" placeholder="Filtrer description">
+                            </div>
+                            <div class="col-md-2">
+                                <label for="justificatifFilter" class="small font-weight-bold">Justification</label>
+                                <select class="form-control form-control-sm" id="justificatifFilter">
+                                    <option value="">Tous</option>
+                                    <option value="Aucune">Aucune</option>
+                                    <option value="Médical">Médical</option>
+                                    <option value="Familial">Familial</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label for="penaliteFilter" class="small font-weight-bold">Pénalité</label>
+                                <select class="form-control form-control-sm" id="penaliteFilter">
+                                    <option value="">Toutes</option>
+                                    <option value="Aucune">Aucune</option>
+                                    <option value="Avertissement écrit">Avertissement écrit</option>
+                                    <option value="Retenue sur salaire">Retenue sur salaire</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="table-responsive">
+                            <table class="table table-bordered" id="detailAbsencesTable" width="100%" cellspacing="0">
+                                <thead>
+                                    <tr>
+                                        <th>Période</th>
+                                        <th>Jours pris</th>
+                                        <th>Description</th>
+                                        <th>Justification</th>
+                                        <th>Pénalité</th>
+                                    </tr>
+                                </thead>
+                                <tfoot>
+                                    <tr>
+                                        <th>Période</th>
+                                        <th>Jours pris</th>
+                                        <th>Description</th>
+                                        <th>Justification</th>
+                                        <th>Pénalité</th>
+                                    </tr>
+                                </tfoot>
+                                <tbody>';
 
         if (empty($absences)) {
             $html .= '
-                            <tr>
-                                <td colspan="5" class="text-center">Aucune absence trouvée</td>
-                            </tr>';
+                                    <tr>
+                                        <td colspan="5" class="text-center">Aucune absence trouvée</td>
+                                    </tr>';
         } else {
             foreach ($absences as $absence) {
                 $html .= '
-                            <tr>
-                                <td>' . htmlspecialchars($absence['periode']) . '</td>
-                                <td>' . htmlspecialchars($absence['jours_pris']) . '</td>
-                                <td>' . htmlspecialchars($absence['description'] ?? 'Non spécifié') . '</td>
-                                <td>' . htmlspecialchars($absence['justificatif'] ?? 'Aucune') . '</td>
-                                <td>' . htmlspecialchars($absence['penalite']) . '</td>
-                            </tr>';
+                                    <tr>
+                                        <td>' . htmlspecialchars($absence['periode']) . '</td>
+                                        <td>' . htmlspecialchars($absence['jours_pris']) . '</td>
+                                        <td>' . htmlspecialchars($absence['description'] ?? 'Non spécifié') . '</td>
+                                        <td>' . htmlspecialchars($absence['justificatif'] ?? 'Aucune') . '</td>
+                                        <td>' . htmlspecialchars($absence['penalite']) . '</td>
+                                    </tr>';
             }
         }
 
         $html .= '
-                        </tbody>
-                    </table>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
                 </div>
             </div>
-        </div>';
 
+        </div>';
+        
         return $html;
     }
-
     public function getAbsencesCumulees($idEmploye) {
         $absences = $this->getNombreAbsence($idEmploye);
         return $absences['autorisees'] + $absences['non_autorisees'];
@@ -238,7 +298,7 @@ class AbscenceModel
                             </div>
                         </div>
                         <div class="mt-2">
-                            <a href="/conge/fiche/' . $idEmploye . '?type_absence=' . ($type['est_autorise'] ? '1' : '0') . '#detail-absences" class="btn btn-sm btn-primary">
+                            <a href="/conge/fiche/' . $idEmploye . '/' . ($type['est_autorise'] ? '1' : '0') . '#detailAbscence" class="btn btn-sm btn-primary">
                                 <i class="fas fa-eye fa-sm"></i> Détails
                             </a>
                         </div>

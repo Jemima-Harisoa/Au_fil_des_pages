@@ -188,9 +188,10 @@ $router->group('/conge', function($router) use ($Conge_Controller) {
     // Route principale - fiche employé complète
     $router->get('/fiche/@idEmploye', [$Conge_Controller, 'getFicheEmploye']);
     
-    // Route API pour les statistiques
-    //$router->get('/statistiques/@idEmploye', [$Conge_Controller, 'getStatistiques']);
-    
+    // Route API pour voir les détails des absences (tous types)
+    $router->get('/fiche/@idEmploye(/@estAutorise)', [$Conge_Controller, 'getDetailAbsences']);
+    $router->get('/fiche/@idEmploye/type/@idType', [$Conge_Controller, 'getDetailConges']);
+
     // Route par défaut
     $router->get('/', [$Conge_Controller, 'getListeEmployes']);
 });
