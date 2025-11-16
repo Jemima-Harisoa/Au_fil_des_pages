@@ -336,4 +336,99 @@ class MessagerieModel {
         
         return $messageAvecLiens;
     }
+
+    // Envoi/lecture entre employés : fichier unique par paire (ordre croissant des ids)
+    public function repondreE($id_employe_envoyeur, $id_employe_envoye, $message) {
+        $dir = __DIR__ . '/../../public/conversations_employe';
+        if (!is_dir($dir)) {
+            mkdir($dir, 0777, true);
+        }
+
+        // Fichier commun pour la paire d'employés (ordre stable)
+        $a = (int)$id_employe_envoyeur;
+        $b = (int)$id_employe_envoye;
+        if ($a === $b) $b = $a; // autoriser conversation avec soi-même si besoin
+        $min = min($a, $b);
+        $max = max($a, $b);
+
+        $file = $dir . '/conversation_emp_' . $min . '_' . $max . '.txt';
+        $date = date('Y-m-d H:i:s');
+
+        // Auteur marqué avec l'id pour pouvoir distinguer
+        $authorTag = 'Employe' . $id_employe_envoyeur;
+
+        if (empty(trim($message))) {
+            // message vide = indicateur de lecture
+            $log = "[$date] $authorTag: [LU]\n";
+        } else {
+            // vrai message
+            $log = "[$date] $authorTag: $message\n";
+        }
+
+        file_put_contents($file, $log, FILE_APPEND | LOCK_EX);
+        return true;
+    }
+
+    /**
+     * Retourne toutes les conversations (par partenaire) pour un employé.
+     * Format renvoyé : [
+     *   ['partenaire_id' => X, 'file' => '...', 'messages' => [ ['date','auteur','message'], ... ] ],
+     *   ...
+     * ]
+     */
+    public function getMessagesEmploye($id_employe) {
+        $dir = __DIR__ . '/../../public/conversations_employe';
+        $conversations = [];
+
+        if (!is_dir($dir)) return $conversations;
+
+        $files = glob($dir . '/conversation_emp_*.txt');
+        foreach ($files as $file) {
+            // extraire les deux ids depuis le nom : conversation_emp_{a}_{b}.txt
+            if (preg_match('/conversation_emp_(\d+)_(\d+)\.txt$/', $file, $m)) {
+                $a = (int)$m[1];
+                $b = (int)$m[2];
+
+                if ($a !== (int)$id_employe && $b !== (int)$id_employe) {
+                    continue; // fichier ne concerne pas cet employé
+                }
+
+                $partenaire = ($a === (int)$id_employe) ? $b : $a;
+                $lines = array_filter(file($file, FILE_IGNORE_NEW_LINES));
+                $messages = [];
+
+                foreach ($lines as $line) {
+                    if (preg_match('/^\[(.*?)\]\s+([^:]+):\s*(.*)$/', $line, $parts)) {
+                        $dateMsg = $parts[1];
+                        $auteurMsg = trim($parts[2]); // ex: Employe12
+                        $contenu = trim($parts[3]);
+
+                        // N'afficher que les vrais messages (pas [LU]) ; laisser HTML tel quel
+                        if ($contenu !== '[LU]' && $contenu !== '') {
+                            $messages[] = [
+                                'date' => $dateMsg,
+                                'auteur' => $auteurMsg,
+                                'message' => $contenu
+                            ];
+                        }
+                    }
+                }
+
+                $conversations[] = [
+                    'partenaire_id' => $partenaire,
+                    'file' => $file,
+                    'messages' => $messages
+                ];
+            }
+        }
+
+        // trier par date dernière modification du fichier (décroissant)
+        usort($conversations, function($x, $y) {
+            $tx = file_exists($x['file']) ? filemtime($x['file']) : 0;
+            $ty = file_exists($y['file']) ? filemtime($y['file']) : 0;
+            return $ty - $tx;
+        });
+
+        return $conversations;
+    }
 }

@@ -294,7 +294,18 @@ class MessagerieController {
         exit;
     }
 
-    // Dans MessagerieModel.php - Modifier la méthode getMessagerie()
+    public function show_messagerie_E($id_employe) {
+        $model = new MessagerieModel();
+
+        // Marque de session (optionnel) : liste des conversations
+        $_SESSION['messagerie_employe'] = $model->getMessagesEmploye($id_employe);
+
+        // Render : créer la vue 'messagerieE' si elle n'existe pas encore
+        Flight::render('messagerieE', [
+            'id_employe' => $id_employe,
+            'conversations' => $_SESSION['messagerie_employe']
+        ]);
+    }
 
 public function getMessagerie($id_candidat, $id_annonce) {
     $file = __DIR__ . '/../../public/conversations/conversation_' . $id_candidat . '_' . $id_annonce . '.txt';
