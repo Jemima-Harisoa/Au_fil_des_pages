@@ -136,6 +136,11 @@ if(!empty($_SESSION['messagerie'])) {
                     <span>Tests</span>
                 </a>
             </li>
+            <li class="nav-item">
+                <a class="nav-link" href="/pointage">
+                <i class="fas fa-clock"></i> <!-- Icône horloge -->
+                    <span>Pointage</span></a>
+            </li>
 
             <!-- Nav Item - Dashboard -->
             <li class="nav-item">
