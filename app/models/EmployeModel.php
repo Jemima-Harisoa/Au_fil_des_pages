@@ -140,20 +140,29 @@ class EmployeModel
     }
 
     // Méthode pour récupérer les employés avec les informations liées
-    public function listWithDetails(): array
-    {
-        $sql = "SELECT 
-                    e.*, 
-                    p.nom, 
-                    p.prenom, 
-                    p.contact, 
-                    d.nom AS departement_nom
-                FROM employes e
-                LEFT JOIN personnes p ON e.id_personne = p.id_personne
-                LEFT JOIN departements d ON e.id_departement = d.id_departement";
-        $stmt = $this->db->query($sql);
-        return $stmt->fetchAll(\PDO::FETCH_ASSOC);
-    }
+   public function listWithDetails(): array {
+    $sql = "SELECT e.id_employe,
+                   e.id_personne,
+                   e.id_contrat,
+                   e.id_departement,
+                   e.poste,
+                   e.date_embauche,
+                   e.nombre_conge,
+                   e.salaire_base,
+                   d.nom AS nom_departement,
+                   p.nom AS nom_personne,
+                   p.prenom,
+                   p.date_naissance,
+                   p.contact,
+                   p.lien_image
+            FROM employes e
+            JOIN departements d ON e.id_departement = d.id_departement
+            JOIN personnes p ON e.id_personne = p.id_personne
+            JOIN connexEmployes c ON e.id_employe = c.idemploye";
+
+    $stmt = $this->db->query($sql);
+    return $stmt->fetchAll(\PDO::FETCH_ASSOC);
+}
 
     public function save($data)
     {

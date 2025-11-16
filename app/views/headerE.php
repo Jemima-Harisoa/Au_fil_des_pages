@@ -94,24 +94,19 @@
 
             <!-- Nav Item - Dashboard -->
             <li class="nav-item">
-                <a class="nav-link" href="/accueilU">
+                <a class="nav-link" href="/accueilE">
                     <i class="fas fa-fw fa-tachometer-alt"></i>
                     <span>Accueil</span></a>
             </li>
+            <li class="nav-item">
+    <a class="nav-link" href="/relevePresenceE/<?= $_SESSION['employe']['id_employe'] ?>">
+        <i class="fas fa-fw fa-tachometer-alt"></i>
+        <span>Relevé de présence actuel</span>
+    </a>
+</li>
 
             <!-- Divider -->
-            <hr class="sidebar-divider">
-
-
-            <li class="nav-item">
-                <a class="nav-link" href="/annonces/readU">
-                    <i class="fas fa-fw fa-tachometer-alt"></i>
-                    <span>Annonces</span></a>
-            </li>
-
-          
-
-
+        
             <!-- Divider -->
             <hr class="sidebar-divider d-none d-md-block">
 
