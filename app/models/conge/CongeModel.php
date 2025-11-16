@@ -13,6 +13,139 @@ class CongeModel {
         $this->db = $db;
     }
 
+    public function getSoldeConge($id_employe) {
+        $sql = "SELECT nombre_conge FROM employes WHERE id_employe = ?";
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute([$id_employe]);
+        $result = $stmt->fetch(\PDO::FETCH_ASSOC);
+        return $result ? $result['nombre_conge'] : 0;
+    }
+    /**
+     * Récupère le nombre de demandes de congé pour l'année en cours
+     */
+    public function getNombreDemandesAnnee($idEmploye) {
+        $sql = "
+            SELECT COUNT(*) as nombre_demandes 
+            FROM conge_demande 
+            WHERE id_employe = :id_employe 
+            AND EXTRACT(YEAR FROM date_demande) = EXTRACT(YEAR FROM CURRENT_DATE)
+        ";
+        
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute(['id_employe' => $idEmploye]);
+        $result = $stmt->fetch(\PDO::FETCH_ASSOC);
+        
+        return $result['nombre_demandes'] ?? 0;
+    }
+
+    /**
+     * Calcule le taux d'approbation des demandes de congé basé sur l'historique de validation
+     */
+    public function getTauxApprobation($idEmploye) {
+        $sql = "
+            SELECT 
+                cd.id_demande,
+                cd.niveau_validation,
+                COUNT(chv.id_historique_validation) as validations_obtenues
+            FROM conge_demande cd
+            LEFT JOIN conge_historique_validation chv ON cd.id_demande = chv.id_demande
+            WHERE cd.id_employe = :id_employe
+            GROUP BY cd.id_demande, cd.niveau_validation
+        ";
+        
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute(['id_employe' => $idEmploye]);
+        $demandes = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+        
+        $total_demandes = count($demandes);
+        $demandes_approuvees = 0;
+        
+        foreach ($demandes as $demande) {
+            // Une demande est approuvée si le nombre de validations obtenues >= niveau de validation requis
+            if ($demande['validations_obtenues'] >= $demande['niveau_validation']) {
+                $demandes_approuvees++;
+            }
+        }
+        
+        if ($total_demandes > 0) {
+            return round(($demandes_approuvees / $total_demandes) * 100);
+        }
+        
+        return 0;
+    }
+    /**
+     * Vérifie si un employé existe et est actif
+     */
+    public function verifierEmploye($idEmploye) {
+        $sql = "
+            SELECT e.id_employe, p.nom, p.prenom, e.poste
+            FROM employes e
+            JOIN personnes p ON e.id_personne = p.id_personne
+            WHERE e.id_employe = :id_employe
+        ";
+        
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute(['id_employe' => $idEmploye]);
+        return $stmt->fetch(\PDO::FETCH_ASSOC);
+    }
+    /**
+     * Récupère tous les types de congé disponibles
+     */
+    public function getTypesConge() {
+        $sql = "SELECT id_type, nom, description FROM conge_type ORDER BY nom";
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute();
+        return $stmt->fetchAll(\PDO::FETCH_ASSOC);
+    }
+
+
+    /**
+     * Crée une nouvelle demande de congé
+     */
+    public function creerDemandeConge($data, $justificatif = null) {
+        try {
+            $sqlDemande = "
+                INSERT INTO conge_demande 
+                (description, id_employe, date_demande, date_debut, date_fin, id_type_conge) 
+                VALUES (:description, :id_employe, NOW(), :date_debut, :date_fin, :id_type_conge)
+            ";
+            
+            $stmtDemande = $this->db->prepare($sqlDemande);
+            $result = $stmtDemande->execute([
+                'description' => $data['description'],
+                'id_employe' => $data['id_employe'],
+                'date_debut' => $data['date_debut'],
+                'date_fin' => $data['date_fin'],
+                'id_type_conge' => $data['id_type_conge']
+            ]);
+
+            if ($result) {
+                $id_demande = $this->db->lastInsertId();
+                
+                return [
+                    'success' => true,
+                    'id_demande' => $id_demande,
+                    'message' => 'Demande de congé créée avec succès',
+                    'data' => $data
+                ];
+            } else {
+                $errorInfo = $stmtDemande->errorInfo();
+                
+                return [
+                    'success' => false,
+                    'error' => 'Échec de l\'insertion dans la base de données',
+                    'pdo_error' => $errorInfo,
+                    'data' => $data
+                ];
+            }
+        } catch (Exception $e) {
+            return [
+                'success' => false,
+                'error' => 'Erreur lors de la création de la demande: ' . $e->getMessage(),
+                'data' => $data
+            ];
+        }
+    }
     /**
      * Génère le HTML pour le tableau des détails des congés pour un type spécifique
      * @param int $idEmploye ID de l'employé

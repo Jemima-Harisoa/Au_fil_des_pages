@@ -39,47 +39,47 @@ if(!empty($_SESSION['messagerie'])) {
     <!-- Styles supplémentaires -->
     <?= $extra_css ?? '' ?>
     <style>
-.dropdown-header {
-    display: flex !important;
-    align-items: center !important;
-    padding: 0.5rem 1rem !important;
-}
+        .dropdown-header {
+            display: flex !important;
+            align-items: center !important;
+            padding: 0.5rem 1rem !important;
+        }
 
-#messageCenterSearch {
-    background: rgba(255,255,255,0.2);
-    border: none;
-    color: white;
-    font-size: 0.85rem;
-    padding: 0.25rem 0.5rem;
-}
+        #messageCenterSearch {
+            background: rgba(255,255,255,0.2);
+            border: none;
+            color: white;
+            font-size: 0.85rem;
+            padding: 0.25rem 0.5rem;
+        }
 
-#messageCenterSearch::placeholder {
-    color: rgba(255,255,255,0.7);
-}
+        #messageCenterSearch::placeholder {
+            color: rgba(255,255,255,0.7);
+        }
 
-#messageCenterSearch:focus {
-    outline: none;
-    background: rgba(255,255,255,0.3);
-}
+        #messageCenterSearch:focus {
+            outline: none;
+            background: rgba(255,255,255,0.3);
+        }
 
-.message-item {
-    transition: all 0.2s;
-}
+        .message-item {
+            transition: all 0.2s;
+        }
 
-.no-results-message {
-    font-style: italic;
-    color: #6c757d !important;
-}
+        .no-results-message {
+            font-style: italic;
+            color: #6c757d !important;
+        }
 
-.hidden-by-search {
-    display: none !important;
-    visibility: hidden !important;
-    opacity: 0 !important;
-    height: 0 !important;
-    padding: 0 !important;
-    margin: 0 !important;
-}
-</style>
+        .hidden-by-search {
+            display: none !important;
+            visibility: hidden !important;
+            opacity: 0 !important;
+            height: 0 !important;
+            padding: 0 !important;
+            margin: 0 !important;
+        }
+    </style>    
 
 </head>
 
@@ -176,6 +176,12 @@ if(!empty($_SESSION['messagerie'])) {
                     <i class="fas fa-fw fa-calendar-alt"></i>
                     <span>Suivi Congés</span></a>
             </li>
+            <li class="nav-item active">
+                <a class="nav-link" href="/conge/demande">
+                    <i class="fas fa-fw fa-calendar-alt"></i>
+                    <span>Demande de congé</span></a>
+            </li>
+
 
             <!-- Divider -->
             <hr class="sidebar-divider d-none d-md-block">
