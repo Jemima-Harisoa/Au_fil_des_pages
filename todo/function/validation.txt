@@ -1,0 +1,17 @@
+Logic de la validation de conge: 
+
+Chaque demande de conge doit avoir un nombre d'entrer = niveau_validation 
+dans conge_historique_validation pour etre valide.
+Si c'est valide on deduit le nombre de jour pour le conge
+ce nombre est definit par type de conge dans conge_type ex conge maternite 3 mois 
+voir si c'est deductible sur salaire : par default oui sauf cas exceptionnel
+Une foit valide le conge est enregistrer dans conge_historique
+Apres on met l'entrer correspondantes dans abscence_conge_suivi
+et on update le nombre de conge anuelle paye lie a table employes 
+si le type de conge est deductible sur conge
+
+liste_validation
+L'idee est que l'admin est acces a la liste des conge en attente de validation 
+a partir de la il va pouvoir voir le formulaire de validation je t'envoi la vu 
+de justification absecnce et son controller aisi que ces route pour que tu t'en
+inspire. pour le format de la page 

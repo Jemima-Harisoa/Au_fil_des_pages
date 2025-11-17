@@ -8,6 +8,181 @@ use Flight;
 class CongeController {
 
     /**
+     * Calcule le taux de validation global pour les statistiques
+     * @param array $demandesEnAttente Liste des demandes en attente
+     * @return float Taux de validation en pourcentage
+     */
+    private function calculerTauxValidation($demandesEnAttente) {
+        if (empty($demandesEnAttente)) {
+            return 100;
+        }
+        
+        $totalValidationsRequises = 0;
+        $totalValidationsObtenues = 0;
+        
+        foreach ($demandesEnAttente as $demande) {
+            $totalValidationsRequises += $demande['niveau_validation'];
+            $totalValidationsObtenues += $demande['validations_obtenues'];
+        }
+        
+        if ($totalValidationsRequises > 0) {
+            return round(($totalValidationsObtenues / $totalValidationsRequises) * 100);
+        }
+        
+        return 0;
+    }
+    /**
+     * Affiche l'interface de validation des congés
+     */
+    public function getInterfaceValidation() {
+        $congeModel = Flight::Conge();
+        
+        // Récupérer l'ID de l'employé connecté
+        $idEmployeConnecte = $this->getIdEmployeConnecte();
+        
+        // Récupérer les demandes en attente de validation
+        $demandesEnAttente = $congeModel->getDemandesEnAttente();
+        
+        // Calculer le taux de validation global UNE SEULE FOIS
+        $tauxValidationGlobal = $this->calculerTauxValidation($demandesEnAttente);
+        
+        // Calculer les jours ouvrables et le pourcentage pour chaque demande
+        foreach ($demandesEnAttente as &$demande) {
+            $demande['jours_ouvrables'] = $congeModel->calculerJoursOuvrables($demande['id_demande']);
+            
+            // Calculer le pourcentage de validation pour cette demande
+            $demande['pourcentage_validation'] = $demande['niveau_validation'] > 0 
+                ? round(($demande['validations_obtenues'] / $demande['niveau_validation']) * 100, 2)
+                : 0;
+            
+            // ✅ NOUVEAU : Vérifier si l'employé connecté a déjà validé cette demande
+            $demande['deja_valide'] = $congeModel->aDejaValide($demande['id_demande'], $idEmployeConnecte);
+        }
+        
+        Flight::render('conge/liste_validation', [
+            'demandes_en_attente' => $demandesEnAttente,
+            'taux_validation_global' => $tauxValidationGlobal
+        ]);
+    }
+
+    /**
+     * Valide une demande de congé
+     * @param int $idDemande ID de la demande de congé
+     */
+    public function postValidation($idDemande) {
+        try {
+            $congeModel = Flight::Conge();
+            
+            // Récupérer l'ID de l'employé validateur depuis la session
+            $idValidateur = $this->getIdEmployeConnecte();
+            
+            if (!$idValidateur) {
+                throw new \Exception("Employé non connecté");
+            }
+            
+            // ✅ NOUVEAU : Vérifier si l'employé a déjà validé cette demande
+            if ($congeModel->aDejaValide($idDemande, $idValidateur)) {
+                Flight::json([
+                    'success' => false,
+                    'error' => 'Vous avez déjà validé cette demande'
+                ], 403);
+                return;
+            }
+            
+            // Ajouter la validation
+            $validationAjoutee = $congeModel->ajouterValidation($idDemande, $idValidateur);
+            
+            if (!$validationAjoutee) {
+                throw new \Exception("Erreur lors de l'ajout de la validation");
+            }
+            
+            // Vérifier si la demande est maintenant complètement validée
+            if ($congeModel->estDemandeValidee($idDemande)) {
+                // Traiter la validation complète
+                $traitementReussi = $congeModel->traiterValidationComplete($idDemande);
+                
+                if ($traitementReussi) {
+                    Flight::json([
+                        'success' => true,
+                        'message' => 'Demande validée et traitement appliqué avec succès',
+                        'validation_complete' => true
+                    ]);
+                } else {
+                    Flight::json([
+                        'success' => false,
+                        'error' => 'Erreur lors du traitement de la validation complète'
+                    ], 500);
+                }
+            } else {
+                Flight::json([
+                    'success' => true,
+                    'message' => 'Validation ajoutée avec succès',
+                    'validation_complete' => false
+                ]);
+            }
+            
+        } catch (\Exception $e) {
+            error_log("Erreur validation congé: " . $e->getMessage());
+            Flight::json([
+                'success' => false,
+                'error' => $e->getMessage()
+            ], 500);
+        }
+}
+    /**
+     * Calcule une estimation de déduction salariale
+     */
+    public function getEstimationDeduction() {
+        try {
+            $data = Flight::request()->query->getData();
+            
+            $salaireBase = $data['salaire_base'] ?? 0;
+            $nombreJours = $data['nombre_jours'] ?? 0;
+            $idTypeConge = $data['id_type_conge'] ?? null;
+            
+            $congeModel = Flight::Conge();
+            
+            // Vérifier si le type de congé est deductible sur salaire
+            $deductibleSalaire = true; // Par défaut
+            if ($idTypeConge) {
+                $deductibleSalaire = $congeModel->estDeductibleSalaire($idTypeConge);
+            }
+            
+            $deduction = 0;
+            if ($deductibleSalaire && $salaireBase > 0 && $nombreJours > 0) {
+                $deduction = $congeModel->calculerDeductionSalaire($salaireBase, $nombreJours);
+            }
+            
+            Flight::json([
+                'success' => true,
+                'deductible_salaire' => $deductibleSalaire,
+                'deduction_estimee' => $deduction,
+                'nombre_jours' => $nombreJours
+            ]);
+            
+        } catch (\Exception $e) {
+            Flight::json([
+                'success' => false,
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Récupère l'ID de l'employé connecté
+     * @return int|null ID de l'employé ou null si non connecté
+     */
+    private function getIdEmployeConnecte() {
+        if (isset($_SESSION['infoAdmin']['id_employe'])) {
+            return $_SESSION['infoAdmin']['id_employe'];
+        } elseif (isset($_SESSION['utilisateur']['id_utilisateur'])) {
+            // Adapter selon votre structure de lien utilisateur/employé
+            return $_SESSION['utilisateur']['id_utilisateur'];
+        }
+        
+        return null;
+    }
+    /**
      * Affiche le formulaire de demande de congé
      */
     public function getDemandeConge() {

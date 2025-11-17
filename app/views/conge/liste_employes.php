@@ -175,9 +175,9 @@ Flight::render("headerA", ['extra_css' => $extra_css]);
     <!-- Page Heading -->
     <div class="d-sm-flex align-items-center justify-content-between mb-4">
         <h1 class="h3 mb-0 text-gray-800">Liste des Employés</h1>
-        <a href="/conge/fiche/1" class="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm">
+        <a href="/conge/validation" class="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm">
             <i class="fas fa-user fa-sm text-white-50 mr-2"></i>
-            Voir exemple fiche employé
+            Voir les demandes de congé en attente de validation 
         </a>
     </div>
 

@@ -194,6 +194,12 @@ $router->group('/conge', function($router) use ($Conge_Controller) {
     $router->get('/fiche/@idEmploye/type/@idType', [$Conge_Controller, 'getDetailConges']);
     $router->get('/demande', [$Conge_Controller, 'getDemandeConge']);
     $router->post('/demande', [$Conge_Controller, 'submitDemande']);
+
+    // Routes pour la validation des congés
+    $router->get('/validation', [$Conge_Controller, 'getInterfaceValidation']);
+    $router->post('/validation/@id_demande', [$Conge_Controller, 'postValidation']);
+    $router->get('/estimation-deduction', [$Conge_Controller, 'getEstimationDeduction']);
+    
     // Route par défaut
     $router->get('/', [$Conge_Controller, 'getListeEmployes']);
 });

@@ -325,7 +325,10 @@ CREATE TABLE historique_mobilite (
 CREATE TABLE conge_type (
     id_type SERIAL PRIMARY KEY,
     nom VARCHAR,
-    description TEXT
+    description TEXT, 
+    nombre_jour INT, 
+    deductible_sur_salaire BOOLEAN DEFAULT TRUE, 
+    deductible_sur_conge BOOLEAN DEFAULT TRUE
 );
 
 CREATE TABLE abscence_type_penalite ( 

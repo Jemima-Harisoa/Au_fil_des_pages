@@ -12,6 +12,299 @@ class CongeModel {
     {
         $this->db = $db;
     }
+    
+    /**
+     * Vérifie si un employé a déjà validé une demande
+     * @param int $idDemande ID de la demande de congé
+     * @param int $idEmploye ID de l'employé validateur
+     * @return bool True si l'employé a déjà validé
+     */
+    public function aDejaValide($idDemande, $idEmploye) {
+        $sql = "
+            SELECT COUNT(*) as nombre_validations
+            FROM conge_historique_validation
+            WHERE id_demande = :id_demande 
+            AND id_employe = :id_employe
+        ";
+        
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute([
+            'id_demande' => $idDemande,
+            'id_employe' => $idEmploye
+        ]);
+        
+        $result = $stmt->fetch(\PDO::FETCH_ASSOC);
+        
+        return $result && $result['nombre_validations'] > 0;
+    }
+    /**
+     * Vérifie si une demande de congé a atteint le nombre de validations requis
+     * @param int $idDemande ID de la demande de congé
+     * @return bool True si la demande est validée
+     */
+    public function estDemandeValidee($idDemande) {
+        $sql = "
+            SELECT 
+                cd.niveau_validation,
+                COUNT(chv.id_historique_validation) as validations_obtenues
+            FROM conge_demande cd
+            LEFT JOIN conge_historique_validation chv ON cd.id_demande = chv.id_demande
+            WHERE cd.id_demande = :id_demande
+            GROUP BY cd.id_demande, cd.niveau_validation
+        ";
+        
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute(['id_demande' => $idDemande]);
+        $result = $stmt->fetch(\PDO::FETCH_ASSOC);
+        
+        return $result && $result['validations_obtenues'] >= $result['niveau_validation'];
+    }
+
+    /**
+     * Ajoute une validation à une demande de congé
+     * @param int $idDemande ID de la demande de congé
+     * @param int $idEmployeValidateur ID de l'employé validateur
+     * @return bool Succès de l'opération
+     */
+    public function ajouterValidation($idDemande, $idEmployeValidateur) {
+        try {
+            $sql = "INSERT INTO conge_historique_validation (id_demande, id_employe, date_validation) 
+                    VALUES (:id_demande, :id_employe, NOW())";
+            
+            $stmt = $this->db->prepare($sql);
+            return $stmt->execute([
+                'id_demande' => $idDemande,
+                'id_employe' => $idEmployeValidateur
+            ]);
+        } catch (\Exception $e) {
+            error_log("Erreur lors de l'ajout de validation: " . $e->getMessage());
+            return false;
+        }
+    }
+
+    /**
+     * Récupère les informations d'un type de congé
+     * @param int $idType ID du type de congé
+     * @return array Informations du type de congé
+     */
+    public function getTypeConge($idType) {
+        $sql = "SELECT * FROM conge_type WHERE id_type = :id_type";
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute(['id_type' => $idType]);
+        return $stmt->fetch(\PDO::FETCH_ASSOC);
+    }
+
+    /**
+     * Calcule le nombre de jours de congé entre deux dates (hors weekends)
+     * @param int $idDemande ID de la demande de congé
+     * @return int Nombre de jours ouvrés
+     */
+    public function calculerJoursOuvrables($idDemande) {
+        // Récupérer les dates de la demande
+        $sql = "SELECT date_debut, date_fin FROM conge_demande WHERE id_demande = :id_demande";
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute(['id_demande' => $idDemande]);
+        $demande = $stmt->fetch(\PDO::FETCH_ASSOC);
+        
+        if (!$demande) {
+            return 0; // Demande non trouvée
+        }
+        
+        $debut = new \DateTime($demande['date_debut']);
+        $fin = new \DateTime($demande['date_fin']);
+        $jours = 0;
+        
+        // Parcourir chaque jour entre les deux dates
+        $interval = new \DateInterval('P1D');
+        $period = new \DatePeriod($debut, $interval, $fin->modify('+1 day'));
+        
+        foreach ($period as $date) {
+            $jourSemaine = $date->format('N'); // 1 (lundi) à 7 (dimanche)
+            // Compter seulement les jours de semaine (lundi à vendredi)
+            if ($jourSemaine >= 1 && $jourSemaine <= 5) {
+                $jours++;
+            }
+        }
+        
+        return $jours;
+    }
+    /**
+     * Traite la validation complète d'un congé et applique les déductions
+     * @param int $idDemande ID de la demande de congé
+     * @return bool Succès de l'opération
+     */
+    public function traiterValidationComplete($idDemande) {
+        $this->db->beginTransaction();
+        
+        try {
+            // Récupérer les informations de la demande
+            $sqlDemande = "
+                SELECT cd.*, e.id_employe, e.salaire_base, ct.* 
+                FROM conge_demande cd
+                JOIN employes e ON cd.id_employe = e.id_employe
+                JOIN conge_type ct ON cd.id_type_conge = ct.id_type
+                WHERE cd.id_demande = :id_demande
+            ";
+            
+            $stmt = $this->db->prepare($sqlDemande);
+            $stmt->execute(['id_demande' => $idDemande]);
+            $demande = $stmt->fetch(\PDO::FETCH_ASSOC);
+            
+            if (!$demande) {
+                throw new \Exception("Demande de congé non trouvée");
+            }
+            
+            // Calculer le nombre de jours de congé
+            $nombreJours = $this->calculerJoursOuvrables($demande['date_debut'], $demande['date_fin']);
+            
+            // Enregistrer dans l'historique des congés
+            $sqlHistorique = "
+                INSERT INTO conge_historique (nombres_abscence_attribue, id_employe) 
+                VALUES (:nombres_abscence_attribue, :id_employe)
+            ";
+            
+            $stmtHistorique = $this->db->prepare($sqlHistorique);
+            $stmtHistorique->execute([
+                'nombres_abscence_attribue' => $nombreJours,
+                'id_employe' => $demande['id_employe']
+            ]);
+            
+            $idHistorique = $this->db->lastInsertId();
+            
+            // Enregistrer dans le suivi congés/absences
+            $sqlSuivi = "
+                INSERT INTO abscence_conge_suivi 
+                (id_demande, id_type, id_employe, nombre_conge, annee) 
+                VALUES (:id_demande, :id_type, :id_employe, :nombre_conge, :annee)
+            ";
+            
+            $stmtSuivi = $this->db->prepare($sqlSuivi);
+            $stmtSuivi->execute([
+                'id_demande' => $idDemande,
+                'id_type' => $demande['id_type_conge'],
+                'id_employe' => $demande['id_employe'],
+                'nombre_conge' => $nombreJours,
+                'annee' => date('Y')
+            ]);
+            
+            // Mettre à jour le solde de congé de l'employé si deductible
+            if ($demande['deductible_sur_conge']) {
+                $this->deduireCongesEmploye($demande['id_employe'], $nombreJours);
+            }
+            
+            $this->db->commit();
+            return true;
+            
+        } catch (\Exception $e) {
+            $this->db->rollBack();
+            error_log("Erreur traitement validation congé: " . $e->getMessage());
+            return false;
+        }
+    }
+
+    /**
+     * Déduit les jours de congé du solde de l'employé
+     * @param int $idEmploye ID de l'employé
+     * @param int $nombreJours Nombre de jours à déduire
+     * @return bool Succès de l'opération
+     */
+    private function deduireCongesEmploye($idEmploye, $nombreJours) {
+        $sql = "UPDATE employes SET nombre_conge = nombre_conge - :jours WHERE id_employe = :id_employe";
+        $stmt = $this->db->prepare($sql);
+        return $stmt->execute([
+            'jours' => $nombreJours,
+            'id_employe' => $idEmploye
+        ]);
+    }
+
+    /**
+     * Calcule la déduction salariale pour un congé
+     * @param float $salaireBase Salaire de base de l'employé
+     * @param int $nombreJours Nombre de jours de congé
+     * @param array $parametresCumul Paramètres de cumul horaire
+     * @return float Montant de la déduction
+     */
+    public function calculerDeductionSalaire($salaireBase, $nombreJours, $parametresCumul = null) {
+        // Paramètres par défaut si non fournis
+        if ($parametresCumul === null) {
+            $parametresCumul = [
+                'heures_par_jour' => 8,
+                'jours_par_semaine' => 5,
+                'semanes_par_mois' => 4.33
+            ];
+        }
+        
+        // Calcul du salaire journalier
+        $heuresMensuelles = $parametresCumul['heures_par_jour'] * 
+                           $parametresCumul['jours_par_semaine'] * 
+                           $parametresCumul['semanes_par_mois'];
+        
+        $tauxHoraire = $salaireBase / $heuresMensuelles;
+        $deduction = $tauxHoraire * $parametresCumul['heures_par_jour'] * $nombreJours;
+        
+        return round($deduction, 2);
+    }
+
+    /**
+     * Vérifie si un type de congé est deductible sur le salaire
+     * @param int $idType ID du type de congé
+     * @return bool True si deductible sur salaire
+     */
+    public function estDeductibleSalaire($idType) {
+        $typeConge = $this->getTypeConge($idType);
+        return $typeConge && $typeConge['deductible_sur_salaire'];
+    }
+
+    /**
+     * Vérifie si un type de congé est deductible sur les congés
+     * @param int $idType ID du type de congé
+     * @return bool True si deductible sur congés
+     */
+    public function estDeductibleConge($idType) {
+        $typeConge = $this->getTypeConge($idType);
+        return $typeConge && $typeConge['deductible_sur_conge'];
+    }
+
+    /**
+     * Récupère les demandes de congé en attente de validation
+     * @param int $idEmploye ID de l'employé (optionnel)
+     * @return array Liste des demandes en attente
+     */
+    public function getDemandesEnAttente($idEmploye = null) {
+        $sql = "
+            SELECT 
+                cd.*,
+                e.poste,
+                p.nom,
+                p.prenom,
+                ct.nom as type_conge,
+                COUNT(chv.id_historique_validation) as validations_obtenues,
+                cd.niveau_validation - COUNT(chv.id_historique_validation) as validations_manquantes
+            FROM conge_demande cd
+            JOIN employes e ON cd.id_employe = e.id_employe
+            JOIN personnes p ON e.id_personne = p.id_personne
+            JOIN conge_type ct ON cd.id_type_conge = ct.id_type
+            LEFT JOIN conge_historique_validation chv ON cd.id_demande = chv.id_demande
+            GROUP BY cd.id_demande, e.id_employe, p.id_personne, ct.id_type
+            HAVING COUNT(chv.id_historique_validation) < cd.niveau_validation
+        ";
+        
+        if ($idEmploye) {
+            $sql .= " AND cd.id_employe = :id_employe";
+        }
+        
+        $sql .= " ORDER BY cd.date_demande DESC";
+        
+        $stmt = $this->db->prepare($sql);
+        
+        if ($idEmploye) {
+            $stmt->execute(['id_employe' => $idEmploye]);
+        } else {
+            $stmt->execute();
+        }
+        
+        return $stmt->fetchAll(\PDO::FETCH_ASSOC);
+    }
 
     public function getSoldeConge($id_employe) {
         $sql = "SELECT nombre_conge FROM employes WHERE id_employe = ?";
@@ -138,7 +431,7 @@ class CongeModel {
                     'data' => $data
                 ];
             }
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             return [
                 'success' => false,
                 'error' => 'Erreur lors de la création de la demande: ' . $e->getMessage(),
