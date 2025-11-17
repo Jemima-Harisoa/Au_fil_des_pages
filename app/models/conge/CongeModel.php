@@ -12,7 +12,7 @@ class CongeModel {
     {
         $this->db = $db;
     }
-    
+
     /**
      * Vérifie si un employé a déjà validé une demande
      * @param int $idDemande ID de la demande de congé
@@ -154,8 +154,8 @@ class CongeModel {
                 throw new \Exception("Demande de congé non trouvée");
             }
             
-            // Calculer le nombre de jours de congé
-            $nombreJours = $this->calculerJoursOuvrables($demande['date_debut'], $demande['date_fin']);
+            // ✅ CORRECTION : Utiliser l'ID au lieu des dates
+            $nombreJours = $this->calculerJoursOuvrables($idDemande);
             
             // Enregistrer dans l'historique des congés
             $sqlHistorique = "
@@ -201,7 +201,6 @@ class CongeModel {
             return false;
         }
     }
-
     /**
      * Déduit les jours de congé du solde de l'employé
      * @param int $idEmploye ID de l'employé

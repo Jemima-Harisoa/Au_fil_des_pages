@@ -265,13 +265,27 @@ function validerDemande(idDemande) {
             }
         },
         error: function(xhr) {
+            console.error('Erreur AJAX:', {
+                status: xhr.status,
+                statusText: xhr.statusText,
+                response: xhr.responseText
+            });
+            
+            let errorMessage = 'Erreur de connexion lors de la validation';
+            
+            // Si on a une réponse JSON du serveur
+            if (xhr.responseJSON && xhr.responseJSON.error) {
+                errorMessage = xhr.responseJSON.error;
+            }
+            
             Swal.fire({
                 icon: 'error',
                 title: 'Erreur',
-                text: 'Erreur de connexion lors de la validation',
+                text: errorMessage,
                 confirmButtonText: 'OK',
                 confirmButtonColor: '#e74a3b'
             });
+            
             bouton.prop('disabled', false).html('<i class="fas fa-check mr-2"></i>Valider cette demande');
         }
     });
