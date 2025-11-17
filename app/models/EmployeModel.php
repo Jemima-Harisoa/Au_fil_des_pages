@@ -106,7 +106,30 @@ class EmployeModel
         $this->date_embauche = $date;
     }
 
-
+    public static function getEmployerHistoriqueMouvement($idEmploye){
+        $db = Flight::db();
+        $sql = "
+            SELECT 
+                hm.date_evenement                                      AS Date,
+                ev.nom_evenement                                       AS Event,
+                CONCAT('Mobilité vers ', COALESCE(p.titre, ''), ' au département ', COALESCE(d.nom, '')) AS Details,
+                hm.support                                             AS Support,
+                COALESCE(p.titre, 'Non renseigné')                     AS Post
+            FROM employes e
+                JOIN personnes per      ON e.id_personne = per.id_personne
+                JOIN candidats c        ON c.id_personne = per.id_personne
+                JOIN historique_mobilite hm ON hm.id_candidat = c.id_candidat
+                LEFT JOIN evenements ev ON hm.id_evenement = ev.id_evenement
+                LEFT JOIN profils p     ON hm.id_profil = p.id_profil
+                LEFT JOIN departements d ON hm.id_departement = d.id_departement
+            WHERE e.id_employe = :idEmploye
+            ORDER BY hm.date_evenement DESC
+        ";
+        $stmt = $db->prepare($sql);
+        $stmt->execute(['idEmploye' => $idEmploye]);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+    
     public static function listeEmployerV2(){
         $db = Flight::db();
        $sql = "
