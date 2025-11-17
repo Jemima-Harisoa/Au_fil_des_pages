@@ -36,12 +36,12 @@ $pointageController = new PointageController();
 $router->get('/pointage', [ $pointageController, 'getAllEmployes' ]);
 // fichier routes.php ou bootstrap
 
+// Relève individuelle AVEC période
+Flight::route('GET /presence/individuelle/@idEmploye', [$pointageController, 'releverPresenceIndividuelle']);
 
-// Relève individuelle
-Flight::route('POST /presence/individuelle/@idEmploye', [$pointageController, 'releverPresenceIndividuelle']);
+// Relève groupe AVEC période
+Flight::route('GET /presence/groupe/@dept', [$pointageController, 'releverPresenceGroupe']);
 
-// Relève par groupe
-Flight::route('POST /presence/groupe/@dept', [$pointageController, 'releverPresenceGroupe']);
 $router->get('/employe', [ $ConnexionController, 'AppelLoginE' ]);
 
 $ConnexionController = new ConnexionController();

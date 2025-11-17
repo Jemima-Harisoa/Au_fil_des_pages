@@ -401,3 +401,7 @@ INSERT INTO horaires_employe (id_employe, jour_semaine, debut_travail, fin_trava
 VALUES 
 (1, 1, '08:00:00', '12:00:00', '00:05:00'),
 (1, 1, '13:00:00', '17:00:00', '00:05:00');
+
+INSERT INTO pointage ( id_employe, connexion, deconnexion)
+VALUES
+(1, '2025-11-21 08:10:00', '2025-11-21 12:45:00');
