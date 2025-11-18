@@ -15,6 +15,7 @@ use app\controllers\ApiPlanningEntretienController;
 
 
 use app\controllers\MessagerieController;
+use app\controllers\FichePaieController;
 use flight\Engine;
 use flight\net\Router;
 //use Flight;
@@ -179,6 +180,9 @@ $router->group( "/migration" , function($router) use ($Migration_Controller){
 // Route pour SSE
 Flight::route('GET /messagerie/sse', [MessagerieController::class, 'sseNotifications']);
 
+
+$fiche_paie_controller = new FichePaieController();
+$router->get("/fiche_paie",[$fiche_paie_controller,'renderFichePaie'])
 ?>
 
 
