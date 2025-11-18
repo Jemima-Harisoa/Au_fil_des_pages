@@ -138,7 +138,7 @@ class EmployeModel {
 
     // Trouver un employé avec tous les détails
     public function findByIdWithDetails(int $id): ?array {
-        $sql = "SELECT e.*, p.nom, p.prenom, p.email, p.telephone, d.nom as departement_nom 
+        $sql = "SELECT e.*, p.nom, p.prenom, p.contact, d.nom as departement_nom 
                 FROM employes e 
                 LEFT JOIN personnes p ON e.id_personne = p.id_personne 
                 LEFT JOIN departements d ON e.id_departement = d.id_departement 

@@ -404,6 +404,13 @@ CREATE TABLE parametre (
     pourcentage NUMERIC(5,2)
 );
 
+CREATE TABLE smig (
+    id SERIAL PRIMARY KEY,
+    montant NUMERIC(10,2) NOT NULL,
+    date_application DATE NOT NULL
+);
+
+
 CREATE TABLE irsa (
     id SERIAL PRIMARY KEY,
     min DOUBLE PRECISION,
@@ -427,10 +434,6 @@ CREATE TABLE prime (
     CONSTRAINT fk_prime_employe FOREIGN KEY (id_employe) REFERENCES employes(id_employe)
 );
 
--- CREATE TABLE droits_preavis(
---     initiateur int 
--- );
-
 CREATE TABLE preavis (
     id SERIAL PRIMARY KEY,
     id_employe INT NOT NULL REFERENCES employes(id_employe) ON DELETE CASCADE,
@@ -448,17 +451,17 @@ CREATE TABLE heure_supplementaire_config (
 
 CREATE TABLE heures_supplementaire (
     id SERIAL PRIMARY KEY,
-    id_employe INT NOT NULL REFERENCES employes(id) ON DELETE CASCADE,
+    id_employe INT NOT NULL REFERENCES employes(id_employe) ON DELETE CASCADE,
     nombre_heure_effectue NUMERIC(5,2) NOT NULL,
     mois INT NOT NULL CHECK (mois >= 1 AND mois <= 12),
     annee INT NOT NULL,
-    numero_semaine INT NOT NULL CHECK (numero_semaine >= 1 AND numero_semaine <= 53),
+    numero_semaine INT NOT NULL CHECK (numero_semaine >= 1 AND numero_semaine <= 52),
     date_enregistrement TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE TABLE heures_supplementaire_historique (
     id SERIAL PRIMARY KEY,
-    id_heure_supp INT NOT NULL REFERENCES heures_supplementaire(id) ON DELETE CASCADE,
+    id_heure_supp INT NOT NULL REFERENCES heure_supplementaire(id) ON DELETE CASCADE,
     nombre_heure_effectue NUMERIC(5,2) NOT NULL,
     mois INT NOT NULL CHECK (mois >= 1 AND mois <= 12),
     annee INT NOT NULL,
@@ -467,3 +470,14 @@ CREATE TABLE heures_supplementaire_historique (
 );
 
 
+CREATE TABLE abscence_conge_suivi (
+    id_suivi SERIAL PRIMARY KEY,
+    id_demande INT,
+    id_type INT,
+    id_employe INT,
+    nombre_conge INt,
+    annee INT,
+    CONSTRAINT fk_conge_suivi_demande FOREIGN KEY (id_demande) REFERENCES conge_demande(id_demande),
+    CONSTRAINT fk_conge_suivi_type FOREIGN KEY (id_type) REFERENCES conge_type(id_type),
+    CONSTRAINT fk_conge_suivi_employe FOREIGN KEY (id_employe) REFERENCES employes(id_employe)
+);

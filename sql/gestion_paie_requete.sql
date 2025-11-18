@@ -15,3 +15,9 @@ select
 	(current_date - COALESCE(date_debut::date, date_embauche::date))::int AS anciennete_total_jours
 FROM v_employes_essais
 );
+
+
+SELECT * FROM heure_supplementaire 
+                    WHERE id_employe = 4
+                      AND EXTRACT(MONTH FROM date_enregistrement) = 11
+                      AND EXTRACT(YEAR FROM date_enregistrement) = 2025;

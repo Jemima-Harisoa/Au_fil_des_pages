@@ -106,5 +106,8 @@ class DateModel{
         (int)$time->format("s")
         );
     }
+    public static function convertirMinuteEnHeure($minutes){
+        return $minutes/60;
+    }
 }  
 
