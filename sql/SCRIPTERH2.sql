@@ -19,7 +19,26 @@ CREATE TABLE diplomes (
     nom VARCHAR,
     niveau INT
 );
-
+CREATE TABLE connexEmployes (
+    idEmploye INT PRIMARY KEY REFERENCES employes(id_employe),
+    mdp VARCHAR(255) NOT NULL
+);
+CREATE TABLE pointage_journalier (
+    id_pointage_journalier SERIAL PRIMARY KEY,
+    id_employe INT NOT NULL REFERENCES employes(id_employe),
+    date_pointage DATE NOT NULL,
+    retard interval,
+    heures_supp interval,
+    pause interval,
+    heures_travaillees interval
+);
+CREATE TABLE horaires_employe (
+    id_employe INT NOT NULL REFERENCES employes(id_employe),
+    jour_semaine INT NOT NULL,           -- 1 = lundi ... 7 = dimanche
+    debut_travail TIME NOT NULL,
+    fin_travail TIME NOT NULL,
+    seuil_retard INTERVAL DEFAULT '00:05:00'
+);
 CREATE TABLE treshold (
     id_treshold SERIAL PRIMARY KEY,
     valeur NUMERIC(5,2),

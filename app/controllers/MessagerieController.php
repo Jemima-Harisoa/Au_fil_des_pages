@@ -209,8 +209,10 @@ class MessagerieController {
         $model = new MessagerieModel();
         
         try {
-            if (isset($_SESSION['utilisateur'])) {
-                $count = $model->countNouveauxMessagesU($_SESSION['utilisateur']['id_utilisateur']);
+           // if (isset($_SESSION['utilisateur'])) {
+              //  $count = $model->countNouveauxMessagesU($_SESSION['utilisateur']['id_utilisateur']);
+            if (isset($_SESSION['employe'])) {
+                $count = $model->countNouveauxMessagesU($_SESSION['employe']['id_employe']);
                 echo json_encode([
                     'success' => true, 
                     'count' => $count, 

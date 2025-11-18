@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace flight\net;
 
 use Exception;
+use flight\core\EventDispatcher;
 
 /**
  * The Response class represents an HTTP response. The object
@@ -323,10 +324,11 @@ class Response
             );
             // @codeCoverageIgnoreEnd
         } else {
+            $serverProtocol = Request::getVar('SERVER_PROTOCOL') ?: 'HTTP/1.1';
             $this->setRealHeader(
                 sprintf(
                     '%s %d %s',
-                    $_SERVER['SERVER_PROTOCOL'] ?? 'HTTP/1.1',
+                    $serverProtocol,
                     $this->status,
                     self::$codes[$this->status]
                 ),
@@ -426,23 +428,20 @@ class Response
             }
         }
 
+        $start = microtime(true);
         // Only for the v3 output buffering.
         if ($this->v2_output_buffering === false) {
             $this->processResponseCallbacks();
         }
 
         if ($this->headersSent() === false) {
-            // If you haven't set a Cache-Control header, we'll assume you don't want caching
-            if ($this->getHeader('Cache-Control') === null) {
-                $this->cache(false);
-            }
-
             $this->sendHeaders();
         }
 
         echo $this->body;
-
         $this->sent = true;
+
+        EventDispatcher::getInstance()->trigger('flight.response.sent', $this, microtime(true) - $start);
     }
 
     /**
@@ -485,10 +484,13 @@ class Response
      * Downloads a file.
      *
      * @param string $filePath The path to the file to be downloaded.
+     * @param string $fileName The name the downloaded file should have. If not provided or is an empty string, the name of the file on disk will be used.
+     *
+     * @throws Exception If the file cannot be found.
      *
      * @return void
      */
-    public function downloadFile(string $filePath): void
+    public function downloadFile(string $filePath, string $fileName = ''): void
     {
         if (file_exists($filePath) === false) {
             throw new Exception("$filePath cannot be found.");
@@ -499,10 +501,16 @@ class Response
         $mimeType = mime_content_type($filePath);
         $mimeType = $mimeType !== false ? $mimeType : 'application/octet-stream';
 
+        // Sanitize filename to prevent header injection
+        $fileName = str_replace(["\r", "\n", '"'], '', $fileName);
+        if ($fileName === '') {
+            $fileName = basename($filePath);
+        }
+
         $this->send();
         $this->setRealHeader('Content-Description: File Transfer');
         $this->setRealHeader('Content-Type: ' . $mimeType);
-        $this->setRealHeader('Content-Disposition: attachment; filename="' . basename($filePath) . '"');
+        $this->setRealHeader('Content-Disposition: attachment; filename="' . $fileName . '"');
         $this->setRealHeader('Expires: 0');
         $this->setRealHeader('Cache-Control: must-revalidate');
         $this->setRealHeader('Pragma: public');
