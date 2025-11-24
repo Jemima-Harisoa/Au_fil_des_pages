@@ -75,6 +75,7 @@
 
 <!-- Formulaire de Justification d'Absence -->
 <div class="form-container-justification">
+    
     <div class="form-header-justification">
         <h4><i class="fas fa-file-upload mr-2"></i>Justifier une Absence</h4>
         <p class="mb-0">Veuillez fournir un justificatif pour l'absence sélectionnée</p>

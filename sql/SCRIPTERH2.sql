@@ -4,6 +4,7 @@
 
 -- ================== TABLES ==================
 
+
 CREATE TABLE annonces (
     id_annonce SERIAL PRIMARY KEY,
     id_profil INT,
@@ -78,13 +79,20 @@ CREATE TABLE admins (
     date_fin_affiliation TIMESTAMP
 );
 
+CREATE TABLE sexe (
+    id_sexe SERIAL PRIMARY KEY,
+    type_sexe VARCHAR
+);
+
 CREATE TABLE personnes (
     id_personne SERIAL PRIMARY KEY,
     nom VARCHAR,
     prenom VARCHAR,
     date_naissance DATE,
     contact VARCHAR,
-    lien_image VARCHAR
+    lien_image VARCHAR, 
+    id_sexe INT,
+    CONSTRAINT fk_personnes_sexe FOREIGN KEY (id_sexe) REFERENCES sexe(id_sexe)
 );
 
 CREATE TABLE api (
@@ -340,10 +348,12 @@ CREATE TABLE abscence_type_penalite (
 
 CREATE TABLE abscence (
     id_abscence SERIAL PRIMARY KEY,
+    id_employe INT,
     debut TIMESTAMP,
     fin TIMESTAMP,
     est_autorise BOOLEAN,
-    justificatif TEXT
+    justificatif TEXT,
+    CONSTRAINT fk_abscence_employe FOREIGN KEY (id_employe) REFERENCES employes(id_employe)
 );
 
 CREATE TABLE conge_demande (

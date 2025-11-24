@@ -12,7 +12,63 @@ class CongeModel {
     {
         $this->db = $db;
     }
-
+    /**
+     * Récupère les informations complètes d'une demande de congé
+     * @param int $idDemande ID de la demande de congé
+     * @return array|null Informations de la demande ou null si non trouvée
+     */
+    public function getDemandeConge($idDemande) {
+        $sql = "
+            SELECT 
+                cd.*,
+                e.id_employe,
+                e.poste,
+                e.salaire_base,
+                p.nom,
+                p.prenom,
+                ct.nom as type_conge,
+                ct.description as type_description,
+                ct.deductible_sur_salaire,
+                ct.deductible_sur_conge,
+                COUNT(chv.id_historique_validation) as validations_obtenues,
+                CASE 
+                    WHEN COUNT(chv.id_historique_validation) >= cd.niveau_validation THEN 'Approuvé'
+                    ELSE 'En attente'
+                END as statut_validation,
+                acs.nombre_conge as jours_approuves
+            FROM conge_demande cd
+            JOIN employes e ON cd.id_employe = e.id_employe
+            JOIN personnes p ON e.id_personne = p.id_personne
+            JOIN conge_type ct ON cd.id_type_conge = ct.id_type
+            LEFT JOIN conge_historique_validation chv ON cd.id_demande = chv.id_demande
+            LEFT JOIN abscence_conge_suivi acs ON cd.id_demande = acs.id_demande
+            WHERE cd.id_demande = :id_demande
+            GROUP BY cd.id_demande, e.id_employe, p.id_personne, ct.id_type, acs.nombre_conge
+        ";
+        
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute(['id_demande' => $idDemande]);
+        $demande = $stmt->fetch(\PDO::FETCH_ASSOC);
+        
+        if ($demande) {
+            // Formater les dates pour un affichage plus lisible
+            $demande['date_demande_formatted'] = date('d/m/Y H:i', strtotime($demande['date_demande']));
+            $demande['date_debut_formatted'] = date('d/m/Y', strtotime($demande['date_debut']));
+            $demande['date_fin_formatted'] = date('d/m/Y', strtotime($demande['date_fin']));
+            
+            // Calculer le nombre de jours demandés
+            $debut = new \DateTime($demande['date_debut']);
+            $fin = new \DateTime($demande['date_fin']);
+            $demande['jours_demandes'] = $this->calculerJoursOuvrables($idDemande);
+            
+            // Calculer le pourcentage de validation
+            $demande['pourcentage_validation'] = $demande['niveau_validation'] > 0 
+                ? round(($demande['validations_obtenues'] / $demande['niveau_validation']) * 100, 2)
+                : 0;
+        }
+        
+        return $demande ?: null;
+    }
     /**
      * Vérifie si un employé a déjà validé une demande
      * @param int $idDemande ID de la demande de congé
@@ -284,7 +340,8 @@ class CongeModel {
             JOIN personnes p ON e.id_personne = p.id_personne
             JOIN conge_type ct ON cd.id_type_conge = ct.id_type
             LEFT JOIN conge_historique_validation chv ON cd.id_demande = chv.id_demande
-            GROUP BY cd.id_demande, e.id_employe, p.id_personne, ct.id_type
+            WHERE cd.niveau_validation > 0  
+            GROUP BY cd.id_demande, e.poste, p.nom, p.prenom, ct.nom, cd.niveau_validation
             HAVING COUNT(chv.id_historique_validation) < cd.niveau_validation
         ";
         
@@ -590,16 +647,18 @@ class CongeModel {
                 ct.nom as type_conge,
                 (EXTRACT(EPOCH FROM (cd.date_fin - cd.date_debut))/86400 + 1) as jours_demandes,
                 acs.nombre_conge as jours_approuves,
+                COUNT(chv.id_historique_validation) as validations_obtenues,
                 CASE 
-                    WHEN cd.niveau_validation = 0 THEN 'En attente'
-                    WHEN cd.niveau_validation = 1 THEN 'Approuvé'
-                    WHEN cd.niveau_validation = 2 THEN 'Refusé'
-                    ELSE 'Statut inconnu'
+                    WHEN COUNT(chv.id_historique_validation) >= cd.niveau_validation AND cd.niveau_validation > 0 THEN 'Approuvé'
+                    WHEN COUNT(chv.id_historique_validation) < cd.niveau_validation AND cd.date_demande < NOW() - INTERVAL '30 days' THEN 'Refusé'
+                    ELSE 'En attente'
                 END as statut_validation
             FROM conge_demande cd
             LEFT JOIN conge_type ct ON cd.id_type_conge = ct.id_type
             LEFT JOIN abscence_conge_suivi acs ON cd.id_demande = acs.id_demande
+            LEFT JOIN conge_historique_validation chv ON cd.id_demande = chv.id_demande
             WHERE cd.id_employe = :id_employe AND cd.id_type_conge = :id_type
+            GROUP BY cd.id_demande, cd.date_demande, cd.date_fin, cd.date_debut, cd.niveau_validation, ct.nom, acs.nombre_conge
             ORDER BY cd.date_demande DESC
         ";
         
@@ -641,16 +700,19 @@ class CongeModel {
                 ct.description as type_description,
                 (EXTRACT(EPOCH FROM (cd.date_fin - cd.date_debut))/86400 + 1) as jours_demandes,
                 acs.nombre_conge as jours_approuves,
+                COUNT(chv.id_historique_validation) as validations_obtenues,
                 CASE 
-                    WHEN cd.niveau_validation = 0 THEN 'En attente'
-                    WHEN cd.niveau_validation = 1 THEN 'Approuvé'
-                    WHEN cd.niveau_validation = 2 THEN 'Refusé'
-                    ELSE 'Statut inconnu'
+                    WHEN cd.niveau_validation = 0 THEN 'Refusé'
+                    WHEN COUNT(chv.id_historique_validation) >= cd.niveau_validation THEN 'Approuvé'
+                    ELSE 'En attente'
                 END as statut_validation
             FROM conge_demande cd
             LEFT JOIN conge_type ct ON cd.id_type_conge = ct.id_type
             LEFT JOIN abscence_conge_suivi acs ON cd.id_demande = acs.id_demande
+            LEFT JOIN conge_historique_validation chv ON cd.id_demande = chv.id_demande
             WHERE cd.id_employe = :id_employe
+            GROUP BY cd.id_demande, cd.date_demande, cd.date_fin, cd.date_debut, cd.niveau_validation, 
+                    ct.nom, ct.description, acs.nombre_conge
             ORDER BY cd.date_demande DESC
         ";
         
@@ -846,18 +908,17 @@ class CongeModel {
      * @return array Données des congés par type
      */
     public function getDonneesCongesParType($idEmploye) {
-        // Requête pour récupérer les congés par type
+        // CORRECTION : Utiliser nombre_jour depuis conge_type au lieu de employes.nombre_conge
         $sql = "
             SELECT 
                 ct.id_type,
                 ct.nom as type_conge,
                 ct.description,
-                COALESCE(SUM(acs.nombre_conge), 0) as jours_pris,
-                COALESCE(MAX(e.nombre_conge), 0) as jours_totaux
+                ct.nombre_jour as jours_totaux,
+                COALESCE(SUM(acs.nombre_conge), 0) as jours_pris
             FROM conge_type ct
             LEFT JOIN abscence_conge_suivi acs ON ct.id_type = acs.id_type AND acs.id_employe = :id_employe
-            LEFT JOIN employes e ON acs.id_employe = e.id_employe
-            GROUP BY ct.id_type, ct.nom, ct.description
+            GROUP BY ct.id_type, ct.nom, ct.description, ct.nombre_jour
             ORDER BY ct.nom
         ";
         
@@ -905,7 +966,7 @@ class CongeModel {
             ];
         }
         
-        // Construction du HTML complet
+        // Construction du HTML complet (le reste du code reste identique)
         $html = '
         <div class="col-xl-12 col-lg-12">
             <div class="card shadow mb-4">
@@ -973,5 +1034,4 @@ class CongeModel {
         
         return $html;
     }
-
 }

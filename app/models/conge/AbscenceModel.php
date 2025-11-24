@@ -11,7 +11,341 @@ class AbscenceModel
     {
         $this->db = $db;
     }
+    /**
+     * Récupère la liste complète des absences avec informations employés
+     * @param bool|null $estAutorise true=autorisées, false=non autorisées, null=toutes
+     * @return array Tableau avec les détails des absences et infos employés
+     */
+    public function getListeAbsence($estAutorise = null) {
+        $sql = "
+                SELECT 
+                a.id_abscence,
+                a.id_employe,
+                a.debut,
+                a.fin,
+                a.est_autorise,
+                a.justificatif,
+                p.nom,
+                p.prenom,
+                e.poste,
+                d.nom as departement,
+                (EXTRACT(EPOCH FROM (a.fin - a.debut))/86400 + 1) as jours_pris
+            FROM abscence a
+            LEFT JOIN employes e ON a.id_employe = e.id_employe
+            LEFT JOIN personnes p ON e.id_personne = p.id_personne
+            LEFT JOIN departements d ON e.id_departement = d.id_departement
+        ";
+        
+        // Ajouter le filtre sur est_autorise si spécifié
+        if ($estAutorise !== null) {
+            $sql .= " WHERE a.est_autorise = :est_autorise";
+        }
+        
+        $sql .= " ORDER BY a.debut DESC";
+        
+        $stmt = $this->db->prepare($sql);
+        
+        if ($estAutorise !== null) {
+            $stmt->bindValue(':est_autorise', $estAutorise, \PDO::PARAM_BOOL);
+        }
+        
+        $stmt->execute();
+        $result = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+        
+        // Formater les dates avec gestion des valeurs NULL
+        foreach ($result as &$absence) {
+            // Formater la date de début (gérer les NULL)
+            if (!empty($absence['debut'])) {
+                $absence['debut_formatted'] = date('d/m/Y', strtotime($absence['debut']));
+            } else {
+                $absence['debut_formatted'] = 'Non définie';
+            }
+            
+            // Formater la date de fin (gérer les NULL)
+            if (!empty($absence['fin'])) {
+                $absence['fin_formatted'] = date('d/m/Y', strtotime($absence['fin']));
+            } else {
+                $absence['fin_formatted'] = 'Non définie';
+            }
+            
+            $absence['jours_pris'] = (int)$absence['jours_pris'];
+            $absence['periode'] = $absence['debut_formatted'] . ' - ' . $absence['fin_formatted'];
+            $absence['employe'] = $absence['prenom'] . ' ' . $absence['nom'];
+            $absence['poste_complet'] = $absence['poste'] . ' - ' . $absence['departement'];
+            
+            // Calculer la pénalité si absence non autorisée
+            if (!$absence['est_autorise']) {
+                $absence['penalite'] = $this->calculerPenalite($absence['jours_pris']);
+            } else {
+                $absence['penalite'] = 'Aucune';
+            }
+        }
+        
+        return $result;
+    }
 
+    /**
+     * Génère le HTML pour le tableau de la liste des absences (tous les employés)
+     * @param bool|null $estAutorise Type d'absence (true=autorisé, false=non autorisé, null=tous)
+     * @return string HTML formaté du tableau
+     */
+    public function getTableauListeAbsence($estAutorise = null) {
+        $absences = $this->getListeAbsence($estAutorise);
+        
+        $titre = "Liste des Absences : ";
+        if ($estAutorise === true) {
+            $titre .= "Autorisées";
+        } elseif ($estAutorise === false) {
+            $titre .= "Non Autorisées";
+        } else {
+            $titre .= "Toutes";
+        }
+
+        // Construction du HTML complet
+        $html = '
+            <!-- Content Row - Liste Absences -->
+            <div class="row" id="listeAbscence">
+
+                <!-- Liste des Absences -->
+                <div class="col-xl-12 col-lg-12">
+                    <div class="card shadow mb-4">
+                        <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                            <h6 class="m-0 font-weight-bold text-primary">' . $titre . '</h6>
+                            <div class="btn-group">
+                                <a href="/absence/liste" class="btn btn-sm ' . ($estAutorise === null ? 'btn-primary' : 'btn-outline-primary') . '">
+                                    <i class="fas fa-list"></i> Toutes
+                                </a>
+                                <a href="/absence/liste/1" class="btn btn-sm ' . ($estAutorise === true ? 'btn-success' : 'btn-outline-success') . '">
+                                    <i class="fas fa-check-circle"></i> Autorisées
+                                </a>
+                                <a href="/absence/liste/0" class="btn btn-sm ' . ($estAutorise === false ? 'btn-danger' : 'btn-outline-danger') . '">
+                                    <i class="fas fa-times-circle"></i> Non Autorisées
+                                </a>
+                                <!-- Bouton pour réinitialiser les filtres -->
+                                <button class="btn btn-sm btn-outline-secondary" id="resetFilters">
+                                    <i class="fas fa-sync-alt"></i> Réinitialiser
+                                </button>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <!-- Statistiques rapides -->
+                            <div class="row mb-4">
+                                <div class="col-md-3">
+                                    <div class="card border-left-primary shadow h-100 py-2">
+                                        <div class="card-body">
+                                            <div class="row no-gutters align-items-center">
+                                                <div class="col mr-2">
+                                                    <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                                        Total Absences</div>
+                                                    <div class="h5 mb-0 font-weight-bold text-gray-800">' . count($absences) . '</div>
+                                                </div>
+                                                <div class="col-auto">
+                                                    <i class="fas fa-clipboard-list fa-2x text-gray-300"></i>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="card border-left-success shadow h-100 py-2">
+                                        <div class="card-body">
+                                            <div class="row no-gutters align-items-center">
+                                                <div class="col mr-2">
+                                                    <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                                        Autorisées</div>
+                                                    <div class="h5 mb-0 font-weight-bold text-gray-800">' . count(array_filter($absences, function($a) { return $a['est_autorise']; })) . '</div>
+                                                </div>
+                                                <div class="col-auto">
+                                                    <i class="fas fa-check-circle fa-2x text-gray-300"></i>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="card border-left-warning shadow h-100 py-2">
+                                        <div class="card-body">
+                                            <div class="row no-gutters align-items-center">
+                                                <div class="col mr-2">
+                                                    <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                                                        À justifier</div>
+                                                    <div class="h5 mb-0 font-weight-bold text-gray-800">' . count(array_filter($absences, function($a) { return !$a['est_autorise']; })) . '</div>
+                                                </div>
+                                                <div class="col-auto">
+                                                    <i class="fas fa-exclamation-circle fa-2x text-gray-300"></i>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="card border-left-info shadow h-100 py-2">
+                                        <div class="card-body">
+                                            <div class="row no-gutters align-items-center">
+                                                <div class="col mr-2">
+                                                    <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                                                        Jours cumulés</div>
+                                                    <div class="h5 mb-0 font-weight-bold text-gray-800">' . array_sum(array_column($absences, 'jours_pris')) . '</div>
+                                                </div>
+                                                <div class="col-auto">
+                                                    <i class="fas fa-calendar-day fa-2x text-gray-300"></i>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Filtres par colonne -->
+                            <div class="row mb-3">
+                                <div class="col-md-2">
+                                    <label for="employeFilter" class="small font-weight-bold">Employé</label>
+                                    <input type="text" class="form-control form-control-sm" id="employeFilter" placeholder="Filtrer par employé">
+                                </div>
+                                <div class="col-md-2">
+                                    <label for="posteFilter" class="small font-weight-bold">Poste</label>
+                                    <input type="text" class="form-control form-control-sm" id="posteFilter" placeholder="Filtrer par poste">
+                                </div>
+                                <div class="col-md-2">
+                                    <label for="periodeFilter" class="small font-weight-bold">Période</label>
+                                    <input type="text" class="form-control form-control-sm" id="periodeFilter" placeholder="Filtrer par période">
+                                </div>
+                                <div class="col-md-1">
+                                    <label for="joursPrisFilter" class="small font-weight-bold">Jours pris</label>
+                                    <select class="form-control form-control-sm" id="joursPrisFilter">
+                                        <option value="">Tous</option>
+                                        <option value="1">1 jour</option>
+                                        <option value="2-4">2-4 jours</option>
+                                        <option value="5+">5+ jours</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-2">
+                                    <label for="descriptionFilter" class="small font-weight-bold">Description</label>
+                                    <input type="text" class="form-control form-control-sm" id="descriptionFilter" placeholder="Filtrer description">
+                                </div>
+                                <div class="col-md-1">
+                                    <label for="justificatifFilter" class="small font-weight-bold">Justification</label>
+                                    <select class="form-control form-control-sm" id="justificatifFilter">
+                                        <option value="">Tous</option>
+                                        <option value="Aucune">Aucune</option>
+                                        <option value="Médical">Médical</option>
+                                        <option value="Familial">Familial</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-2">
+                                    <label for="penaliteFilter" class="small font-weight-bold">Pénalité</label>
+                                    <select class="form-control form-control-sm" id="penaliteFilter">
+                                        <option value="">Toutes</option>
+                                        <option value="Aucune">Aucune</option>
+                                        <option value="Avertissement écrit">Avertissement écrit</option>
+                                        <option value="Retenue sur salaire">Retenue sur salaire</option>
+                                    </select>
+                                </div>
+                            </div>
+                            
+                            <div class="table-responsive">
+                                <table class="table table-bordered" id="listeAbsencesTable" width="100%" cellspacing="0">
+                                    <thead>
+                                        <tr>
+                                            <th>Employé</th>
+                                            <th>Poste</th>
+                                            <th>Période</th>
+                                            <th>Jours pris</th>
+                                            <th>Description</th>
+                                            <th>Justification</th>
+                                            <th>Pénalité</th>
+                                            <th>Statut</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tfoot>
+                                        <tr>
+                                            <th>Employé</th>
+                                            <th>Poste</th>
+                                            <th>Période</th>
+                                            <th>Jours pris</th>
+                                            <th>Description</th>
+                                            <th>Justification</th>
+                                            <th>Pénalité</th>
+                                            <th>Statut</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </tfoot>
+                                    <tbody>';
+
+            if (empty($absences)) {
+                $html .= '
+                                        <tr>
+                                            <td colspan="9" class="text-center">Aucune absence trouvée</td>
+                                        </tr>';
+            } else {
+                foreach ($absences as $absence) {
+                    // Déterminer le badge de statut
+                    $statutBadge = $absence['est_autorise'] 
+                        ? '<span class="badge badge-success"><i class="fas fa-check"></i> Autorisée</span>'
+                        : '<span class="badge badge-danger"><i class="fas fa-times"></i> Non Autorisée</span>';
+                    
+                    $html .= '
+                                        <tr>
+                                            <td>' . htmlspecialchars($absence['employe']) . '</td>
+                                            <td>' . htmlspecialchars($absence['poste_complet']) . '</td>
+                                            <td>' . htmlspecialchars($absence['periode']) . '</td>
+                                            <td>' . htmlspecialchars($absence['jours_pris']) . '</td>
+                                            <td>' . htmlspecialchars($absence['description'] ?? 'Non spécifié') . '</td>
+                                            <td>' . htmlspecialchars($absence['justificatif'] ?? 'Aucune') . '</td>
+                                            <td>' . htmlspecialchars($absence['penalite']) . '</td>
+                                            <td class="text-center">' . $statutBadge . '</td>
+                                            <td class="text-center">';
+                    
+                    // Actions selon si l'absence est autorisée ou non
+                    if ($absence['est_autorise']) {
+                        // Si autorisée, on affiche un lien pour voir le justificatif
+                        if (!empty($absence['justificatif'])) {
+                            $html .= '<a href="/absence/justificatif/' . $absence['id_abscence'] . '" class="btn btn-sm btn-primary" target="_blank" title="Voir le justificatif">
+                                        <i class="fas fa-eye"></i>
+                                    </a>';
+                        } else {
+                            $html .= '<span class="text-muted small">Aucun justificatif</span>';
+                        }
+                    } else {
+                        // Si non autorisée, on affiche un bouton pour notifier l'employé
+                        $html .= '<button class="btn btn-sm btn-warning" onclick="notifierEmploye(' . $absence['id_employe'] . ', ' . $absence['id_abscence'] . ')" title="Demander une justification">
+                                    <i class="fas fa-bell"></i> Notifier
+                                </button>';
+                    }
+                    
+                    $html .= '
+                                            </td>
+                                        </tr>';
+                }
+            }
+
+            $html .= '
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>';
+        
+        return $html;
+    }
+
+    /**
+     * Récupère le chemin du justificatif d'une absence
+     * @param int $idAbsence ID de l'absence
+     * @return string|null Chemin du justificatif ou null
+     */
+    public function getJustificatifPath($idAbsence) {
+        $sql = "SELECT justificatif FROM abscence WHERE id_abscence = :id_abscence";
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute(['id_abscence' => $idAbsence]);
+        $result = $stmt->fetch(\PDO::FETCH_ASSOC);
+        
+        return $result['justificatif'] ?? null;
+    }
     /**
      * Récupère une absence spécifique par son ID pour un employé
      */
@@ -175,121 +509,121 @@ class AbscenceModel
      * @return string HTML formaté du tableau
      */
     public function getTableauDetailAbsence($idEmploye, $estAutorise = null) {
-    $absences = $this->getDetailAbsence($idEmploye, $estAutorise);
-    
-    $titre = "Détail des Absences ";
-    if ($estAutorise === true) {
-        $titre .= "Autorisées";
-    } elseif ($estAutorise === false) {
-        $titre .= "Non Autorisées";
-    } else {
-        $titre .= "Toutes";
-    }
-
-    // Construction du HTML complet
-    $html = '
-        <!-- Content Row - Détail Absences -->
-        <div class="row" id="detailAbscence">
-
-            <!-- Détail des Absences -->
-            <div class="col-xl-12 col-lg-12">
-                <div class="card shadow mb-4">
-                    <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
-                        <h6 class="m-0 font-weight-bold text-primary">' . $titre . '</h6>
-                        <!-- Bouton pour réinitialiser les filtres -->
-                        <button class="btn btn-sm btn-outline-secondary" id="resetFilters">
-                            <i class="fas fa-sync-alt"></i> Réinitialiser
-                        </button>
-                    </div>
-                    <div class="card-body">
-                        <!-- Filtres par colonne -->
-                        <div class="row mb-3">
-                            <div class="col-md-3">
-                                <label for="periodeFilter" class="small font-weight-bold">Période</label>
-                                <input type="text" class="form-control form-control-sm" id="periodeFilter" placeholder="Filtrer par période">
-                            </div>
-                            <div class="col-md-2">
-                                <label for="joursPrisFilter" class="small font-weight-bold">Jours pris</label>
-                                <select class="form-control form-control-sm" id="joursPrisFilter">
-                                    <option value="">Tous</option>
-                                    <option value="1">1 jour</option>
-                                    <option value="2-4">2-4 jours</option>
-                                    <option value="5+">5+ jours</option>
-                                </select>
-                            </div>
-                            <div class="col-md-2">
-                                <label for="descriptionFilter" class="small font-weight-bold">Description</label>
-                                <input type="text" class="form-control form-control-sm" id="descriptionFilter" placeholder="Filtrer description">
-                            </div>
-                            <div class="col-md-2">
-                                <label for="justificatifFilter" class="small font-weight-bold">Justification</label>
-                                <select class="form-control form-control-sm" id="justificatifFilter">
-                                    <option value="">Tous</option>
-                                    <option value="Aucune">Aucune</option>
-                                    <option value="Médical">Médical</option>
-                                    <option value="Familial">Familial</option>
-                                </select>
-                            </div>
-                            <div class="col-md-3">
-                                <label for="penaliteFilter" class="small font-weight-bold">Pénalité</label>
-                                <select class="form-control form-control-sm" id="penaliteFilter">
-                                    <option value="">Toutes</option>
-                                    <option value="Aucune">Aucune</option>
-                                    <option value="Avertissement écrit">Avertissement écrit</option>
-                                    <option value="Retenue sur salaire">Retenue sur salaire</option>
-                                </select>
-                            </div>
-                        </div>
-                        
-                        <div class="table-responsive">
-                            <table class="table table-bordered" id="detailAbsencesTable" width="100%" cellspacing="0">
-                                <thead>
-                                    <tr>
-                                        <th>Période</th>
-                                        <th>Jours pris</th>
-                                        <th>Description</th>
-                                        <th>Justification</th>
-                                        <th>Pénalité</th>
-                                    </tr>
-                                </thead>
-                                <tfoot>
-                                    <tr>
-                                        <th>Période</th>
-                                        <th>Jours pris</th>
-                                        <th>Description</th>
-                                        <th>Justification</th>
-                                        <th>Pénalité</th>
-                                    </tr>
-                                </tfoot>
-                                <tbody>';
-
-        if (empty($absences)) {
-            $html .= '
-                                    <tr>
-                                        <td colspan="5" class="text-center">Aucune absence trouvée</td>
-                                    </tr>';
+        $absences = $this->getDetailAbsence($idEmploye, $estAutorise);
+        
+        $titre = "Détail des Absences ";
+        if ($estAutorise === true) {
+            $titre .= "Autorisées";
+        } elseif ($estAutorise === false) {
+            $titre .= "Non Autorisées";
         } else {
-            foreach ($absences as $absence) {
-                $html .= '
-                                    <tr>
-                                        <td>' . htmlspecialchars($absence['periode']) . '</td>
-                                        <td>' . htmlspecialchars($absence['jours_pris']) . '</td>
-                                        <td>' . htmlspecialchars($absence['description'] ?? 'Non spécifié') . '</td>
-                                        <td>' . htmlspecialchars($absence['justificatif'] ?? 'Aucune') . '</td>
-                                        <td>' . htmlspecialchars($absence['penalite']) . '</td>
-                                    </tr>';
-            }
+            $titre .= "Toutes";
         }
 
-        $html .= '
-                                </tbody>
-                            </table>
+        // Construction du HTML complet
+        $html = '
+            <!-- Content Row - Détail Absences -->
+            <div class="row" id="detailAbscence">
+
+                <!-- Détail des Absences -->
+                <div class="col-xl-12 col-lg-12">
+                    <div class="card shadow mb-4">
+                        <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                            <h6 class="m-0 font-weight-bold text-primary">' . $titre . '</h6>
+                            <!-- Bouton pour réinitialiser les filtres -->
+                            <button class="btn btn-sm btn-outline-secondary" id="resetFilters">
+                                <i class="fas fa-sync-alt"></i> Réinitialiser
+                            </button>
+                        </div>
+                        <div class="card-body">
+                            <!-- Filtres par colonne -->
+                            <div class="row mb-3">
+                                <div class="col-md-3">
+                                    <label for="periodeFilter" class="small font-weight-bold">Période</label>
+                                    <input type="text" class="form-control form-control-sm" id="periodeFilter" placeholder="Filtrer par période">
+                                </div>
+                                <div class="col-md-2">
+                                    <label for="joursPrisFilter" class="small font-weight-bold">Jours pris</label>
+                                    <select class="form-control form-control-sm" id="joursPrisFilter">
+                                        <option value="">Tous</option>
+                                        <option value="1">1 jour</option>
+                                        <option value="2-4">2-4 jours</option>
+                                        <option value="5+">5+ jours</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-2">
+                                    <label for="descriptionFilter" class="small font-weight-bold">Description</label>
+                                    <input type="text" class="form-control form-control-sm" id="descriptionFilter" placeholder="Filtrer description">
+                                </div>
+                                <div class="col-md-2">
+                                    <label for="justificatifFilter" class="small font-weight-bold">Justification</label>
+                                    <select class="form-control form-control-sm" id="justificatifFilter">
+                                        <option value="">Tous</option>
+                                        <option value="Aucune">Aucune</option>
+                                        <option value="Médical">Médical</option>
+                                        <option value="Familial">Familial</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-3">
+                                    <label for="penaliteFilter" class="small font-weight-bold">Pénalité</label>
+                                    <select class="form-control form-control-sm" id="penaliteFilter">
+                                        <option value="">Toutes</option>
+                                        <option value="Aucune">Aucune</option>
+                                        <option value="Avertissement écrit">Avertissement écrit</option>
+                                        <option value="Retenue sur salaire">Retenue sur salaire</option>
+                                    </select>
+                                </div>
+                            </div>
+                            
+                            <div class="table-responsive">
+                                <table class="table table-bordered" id="detailAbsencesTable" width="100%" cellspacing="0">
+                                    <thead>
+                                        <tr>
+                                            <th>Période</th>
+                                            <th>Jours pris</th>
+                                            <th>Description</th>
+                                            <th>Justification</th>
+                                            <th>Pénalité</th>
+                                        </tr>
+                                    </thead>
+                                    <tfoot>
+                                        <tr>
+                                            <th>Période</th>
+                                            <th>Jours pris</th>
+                                            <th>Description</th>
+                                            <th>Justification</th>
+                                            <th>Pénalité</th>
+                                        </tr>
+                                    </tfoot>
+                                    <tbody>';
+
+            if (empty($absences)) {
+                $html .= '
+                                        <tr>
+                                            <td colspan="5" class="text-center">Aucune absence trouvée</td>
+                                        </tr>';
+            } else {
+                foreach ($absences as $absence) {
+                    $html .= '
+                                        <tr>
+                                            <td>' . htmlspecialchars($absence['periode']) . '</td>
+                                            <td>' . htmlspecialchars($absence['jours_pris']) . '</td>
+                                            <td>' . htmlspecialchars($absence['description'] ?? 'Non spécifié') . '</td>
+                                            <td>' . htmlspecialchars($absence['justificatif'] ?? 'Aucune') . '</td>
+                                            <td>' . htmlspecialchars($absence['penalite']) . '</td>
+                                        </tr>';
+                }
+            }
+
+            $html .= '
+                                    </tbody>
+                                </table>
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
 
-        </div>';
+            </div>';
         
         return $html;
     }

@@ -172,6 +172,7 @@ Flight::render("headerA", ['extra_css' => $extra_css]);
 <!-- Begin Page Content -->
 <div class="container-fluid">
 
+
     <!-- Page Heading -->
     <div class="d-sm-flex align-items-center justify-content-between mb-4">
         <h1 class="h3 mb-0 text-gray-800">Liste des Employés</h1>
@@ -180,7 +181,7 @@ Flight::render("headerA", ['extra_css' => $extra_css]);
             Voir les demandes de congé en attente de validation 
         </a>
     </div>
-
+    
     <!-- Statistiques Résumé -->
     <div class="row mb-4">
         <div class="col-12">
@@ -190,12 +191,12 @@ Flight::render("headerA", ['extra_css' => $extra_css]);
                         <div class="stat-number"><?= count($employes) ?></div>
                         <div class="stat-label">Employés total</div>
                     </div>
-                    <div class="col-md-3 stat-item">
+                    <!-- <div class="col-md-3 stat-item">
                         <div class="stat-number">
                             <?= array_sum(array_column($employes, 'conges_restants')) ?>
                         </div>
                         <div class="stat-label">Congés restants totaux</div>
-                    </div>
+                    </div> -->
                     <div class="col-md-3 stat-item">
                         <div class="stat-number">
                             <?= array_sum(array_column($employes, 'absences_autorisees')) ?>

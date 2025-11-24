@@ -177,6 +177,11 @@ if(!empty($_SESSION['messagerie'])) {
                     <span>Suivi Congés</span></a>
             </li>
             <li class="nav-item active">
+                <a class="nav-link" href="/absence/liste">
+                    <i class="fas fa-fw fa-calendar-alt"></i>
+                    <span>Suivi absences</span></a>
+            </li>
+            <li class="nav-item active">
                 <a class="nav-link" href="/conge/demande">
                     <i class="fas fa-fw fa-calendar-alt"></i>
                     <span>Demande de congé</span></a>

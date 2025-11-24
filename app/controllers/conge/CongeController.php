@@ -76,6 +76,16 @@ class CongeController {
             // Récupérer l'ID de l'employé validateur depuis la session
             $idValidateur = $this->getIdEmployeConnecte();
             
+            $demande = $congeModel->getDemandeConge($idDemande);
+            
+            if($demande['id_employe'] == $idValidateur){
+                Flight::json([
+                    'success' => false,
+                    'error' => 'Vous ne pouvez pas valider votre propre demande'
+                ]);
+                return;
+            }
+
             if (!$idValidateur) {
                 throw new \Exception("Employé non connecté");
             }
@@ -128,7 +138,7 @@ class CongeController {
                 'error' => $e->getMessage()
             ], 500);
         }
-}
+    }
     /**
      * Calcule une estimation de déduction salariale
      */
@@ -173,15 +183,19 @@ class CongeController {
      * @return int|null ID de l'employé ou null si non connecté
      */
     private function getIdEmployeConnecte() {
-        if (isset($_SESSION['infoAdmin']['id_employe'])) {
-            return $_SESSION['infoAdmin']['id_employe'];
-        } elseif (isset($_SESSION['utilisateur']['id_utilisateur'])) {
-            // Adapter selon votre structure de lien utilisateur/employé
-            return $_SESSION['utilisateur']['id_utilisateur'];
+        // ✅ ADAPTATION aux tables admins et employes du schéma
+        if (isset($_SESSION['admin']['id_employe'])) {
+            return $_SESSION['admin']['id_employe'];
+        } elseif (isset($_SESSION['admin']['id_admin'])) {
+            // Si seul l'ID admin est disponible, récupérer l'ID employé associé
+            $adminModel = Flight::adminModel(); // À créer selon votre structure
+            $admin = $adminModel->getAdminById($_SESSION['admin']['id_admin']);
+            return $admin['id_employe'] ?? null;
         }
         
         return null;
     }
+
     /**
      * Affiche le formulaire de demande de congé
      */
@@ -209,12 +223,12 @@ class CongeController {
         $employe = $employeModel->findByIdWithDetails($idEmploye);
         
         // Récupérer les statistiques de congés
-        $statistiquesConges = $congeModel->getDonneesConges($idEmploye);
+        $statistiquesConges = $congeModel->getDonneesCongesParType($idEmploye);
         
-        // Calculer le nombre total de congés restants
+        // CORRECTION : Calculer le nombre total de congés restants basé sur conge_type
         $nombre_conge_restant = 0;
         foreach ($statistiquesConges as $stat) {
-            $nombre_conge_restant += $stat['jours_restants'];
+            $nombre_conge_restant += max(0, $stat['jours_totaux'] - $stat['jours_pris']);
         }
         
         // Récupérer le nombre de demandes cette année
@@ -226,13 +240,12 @@ class CongeController {
         Flight::render('conge/demande_conge', [
             'types_conge' => $types_conge,
             'employe' => $employe,
-            'nombre_conge' => $employe['nombre_conge'],
+            'nombre_conge' => $nombre_conge_restant, // CORRECTION : Utiliser le calcul basé sur conge_type
             'demandes_annee' => $demandes_annee,
             'taux_approbation' => $taux_approbation,
             'statistiques' => $statistiquesConges
         ]);
     }
-
     /**
      * Traite la soumission du formulaire de demande de congé
      */

@@ -206,7 +206,7 @@ $router->group('/conge', function($router) use ($Conge_Controller) {
 
 // Routes de gestion des justifications d'absences
 $Abscence_Controller = new AbscenceController();
-$router->group('/abscence', function($router) use ($Abscence_Controller) {
+$router->group('/absence', function($router) use ($Abscence_Controller) {
     // Afficher les absences à justifier
     $router->get('/justifications', [$Abscence_Controller, 'getListeAbsencesAJustifier']);
     
@@ -215,4 +215,11 @@ $router->group('/abscence', function($router) use ($Abscence_Controller) {
     
     // Traiter la soumission du formulaire de justification
     $router->post('/justifier', [$Abscence_Controller, 'submitJustification']);
+
+    // Liste des abscences
+    $router->get('/liste(/@estAutorise)', [$Abscence_Controller, 'getListeAbsence']);
+
+    $router->get('/', function(){
+        Flight::redirect('/absence/justifications');
+    });
 });

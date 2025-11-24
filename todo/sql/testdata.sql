@@ -23,6 +23,11 @@ INSERT INTO type_contrats (nom) VALUES
 ('Stage'),
 ('Freelance');
 
+-- Sexe
+INSERT INTO sexe (type_sexe) VALUES
+('Masculin'),
+('Féminin');
+
 -- Types de congés avec configuration cohérente
 INSERT INTO conge_type (nom, description, nombre_jour, deductible_sur_salaire, deductible_sur_conge) VALUES
 ('Congé annuel', 'Congé payé annuel réglementaire', 30, FALSE, TRUE),
@@ -56,40 +61,79 @@ INSERT INTO filieres (nom) VALUES
 ('Logistique'),
 ('Informatique');
 
+-- États
+INSERT INTO etat (nom) VALUES
+('En attente'),
+('Validé'),
+('Refusé'),
+('En cours'),
+('Terminé');
+
+-- Appréciations
+INSERT INTO appreciation (type_appreciation, code) VALUES
+('Excellent', 5),
+('Très bon', 4),
+('Bon', 3),
+('Moyen', 2),
+('Insuffisant', 1);
+
 -- =========================
 -- 2. PERSONNES
 -- =========================
 
-INSERT INTO personnes (nom, prenom, date_naissance, contact, lien_image) VALUES
-('Razafindrakoto', 'Andry', '1985-04-12', '+261341234567', '/images/andry.jpg'),
-('Rasoamanana', 'Mialy', '1992-07-01', '+261332345678', '/images/mialy.jpg'),
-('Rakoto', 'Hery', '1990-11-20', '+261339876543', '/images/hery.jpg'),
-('Randriatsara', 'Fanja', '2003-05-10', '+261344556677', '/images/fanja.jpg'),
-('Razanamparany', 'Lova', '1991-02-28', '+261329998877', '/images/lova.jpg'),
-('Rajaonarivelo', 'Thierry', '1988-09-09', '+261334443322', '/images/thierry.jpg'),
-('Andriamasy', 'Nirina', '1995-01-18', '+261330112233', '/images/nirina.jpg'),
-('Rakotomanga', 'Tiana', '1993-06-25', '+261339992211', '/images/tiana.jpg'),
-('Randriamanantsoa', 'Faly', '1989-12-05', '+261334455667', '/images/faly.jpg'),
-('Ravalomanana', 'Miora', '1996-08-14', '+261331122334', '/images/miora.jpg');
+INSERT INTO personnes (nom, prenom, date_naissance, contact, lien_image, id_sexe) VALUES
+('Razafindrakoto', 'Andry', '1985-04-12', '+261341234567', '/images/andry.jpg', 1),
+('Rasoamanana', 'Mialy', '1992-07-01', '+261332345678', '/images/mialy.jpg', 2),
+('Rakoto', 'Hery', '1990-11-20', '+261339876543', '/images/hery.jpg', 1),
+('Randriatsara', 'Fanja', '2003-05-10', '+261344556677', '/images/fanja.jpg', 2),
+('Razanamparany', 'Lova', '1991-02-28', '+261329998877', '/images/lova.jpg', 2),
+('Rajaonarivelo', 'Thierry', '1988-09-09', '+261334443322', '/images/thierry.jpg', 1),
+('Andriamasy', 'Nirina', '1995-01-18', '+261330112233', '/images/nirina.jpg', 2),
+('Rakotomanga', 'Tiana', '1993-06-25', '+261339992211', '/images/tiana.jpg', 2),
+('Randriamanantsoa', 'Faly', '1989-12-05', '+261334455667', '/images/faly.jpg', 1),
+('Ravalomanana', 'Miora', '1996-08-14', '+261331122334', '/images/miora.jpg', 2);
 
 -- =========================
--- 3. CONTRATS
+-- 3. UTILISATEURS ET ADMINS
 -- =========================
 
-INSERT INTO contrats (id_candidat, id_type_contrat, url_contrat) VALUES
-(NULL, 1, '/contracts/contrat_001.pdf'),
-(NULL, 1, '/contracts/contrat_002.pdf'),
-(NULL, 1, '/contracts/contrat_003.pdf'),
-(NULL, 3, '/contracts/contrat_004_stage.pdf'),
-(NULL, 1, '/contracts/contrat_005.pdf'),
-(NULL, 1, '/contracts/contrat_006.pdf'),
-(NULL, 2, '/contracts/contrat_007_cdd.pdf'),
-(NULL, 1, '/contracts/contrat_008.pdf'),
-(NULL, 1, '/contracts/contrat_009.pdf'),
-(NULL, 2, '/contracts/contrat_010_cdd.pdf');
+-- Utilisateurs simples
+INSERT INTO utilisateurs (nom, mdp, date_inscription) VALUES
+('user_hery', '123', '2019-01-05 08:00:00'),
+('user_fanja', '123', '2025-09-01 08:00:00'),
+('user_lova', '123', '2022-02-01 08:00:00'),
+('user_nirina', '123', '2019-05-20 08:00:00'),
+('user_tiana', '123', '2021-07-11 08:00:00');
 
 -- =========================
--- 4. EMPLOYÉS
+-- 4. PROFILS
+-- =========================
+
+INSERT INTO profils (titre, competences, skills, loisirs, id_diplome, id_filiere, experience_pro, certifications, langues, id_type_contrat, id_departement, est_minimum) VALUES
+('Développeur Full Stack', 
+ 'Développement web frontend et backend; Gestion de bases de données; DevOps et CI/CD; Tests unitaires et d''intégration',
+ 'JavaScript, React, Node.js; Python, Django; PostgreSQL, MongoDB; Git, Docker',
+ 'Coding challenges; Contribution open source; Veille technologique',
+ 3, 5, '2-3 ans d''expérience en développement web', 'AWS Certified Developer', 'Français, Anglais technique', 1, 2, TRUE);
+
+-- =========================
+-- 5. CONTRATS
+-- =========================
+
+INSERT INTO contrats (id_type_contrat, url_contrat) VALUES
+(1, '/contracts/contrat_001.pdf'),
+(1, '/contracts/contrat_002.pdf'),
+(1, '/contracts/contrat_003.pdf'),
+(3, '/contracts/contrat_004_stage.pdf'),
+(1, '/contracts/contrat_005.pdf'),
+(1, '/contracts/contrat_006.pdf'),
+(2, '/contracts/contrat_007_cdd.pdf'),
+(1, '/contracts/contrat_008.pdf'),
+(1, '/contracts/contrat_009.pdf'),
+(2, '/contracts/contrat_010_cdd.pdf');
+
+-- =========================
+-- 6. EMPLOYÉS
 -- =========================
 
 INSERT INTO employes (id_personne, id_contrat, id_departement, poste, date_embauche, nombre_conge, salaire_base) VALUES
@@ -115,25 +159,16 @@ INSERT INTO employes (id_personne, id_contrat, id_departement, poste, date_embau
 (10, 10, 2, 'Développeuse Junior', '2023-01-05', 15, 650000.00);
 
 -- =========================
--- 5. UTILISATEURS ET ADMINS
+-- 7. ADMINS
 -- =========================
 
--- Utilisateurs simples
-INSERT INTO utilisateurs (nom, mdp, date_inscription) VALUES
-('user_hery', '123', '2019-01-05 08:00:00'),
-('user_fanja', '123', '2025-09-01 08:00:00'),
-('user_lova', '123', '2022-02-01 08:00:00'),
-('user_nirina', '123', '2019-05-20 08:00:00'),
-('user_tiana', '123', '2021-07-11 08:00:00');
-
--- Admins (Validateurs de congés)
 INSERT INTO admins (id_employe, nom, mdp, date_affiliation) VALUES
 (1, 'admin_andry', '123', '2018-03-01 08:00:00'),  -- HR Manager
 (2, 'admin_mialy', '123', '2020-06-15 08:00:00'),  -- Dev Senior
 (9, 'admin_faly', '123', '2018-09-30 08:00:00');   -- Commercial Senior
 
 -- =========================
--- 6. DEMANDES DE CONGÉS
+-- 8. DEMANDES DE CONGÉS
 -- =========================
 
 -- Scénario 1: Congé annuel classique - EN ATTENTE (0 validation sur 2 requises)
@@ -169,7 +204,7 @@ INSERT INTO conge_demande (description, id_employe, date_demande, date_debut, da
 ('Congé long - Voyage à l''étranger', 6, '2025-10-01 10:00:00', '2025-11-01 00:00:00', '2025-11-30 23:59:59', 0, 1);
 
 -- =========================
--- 7. HISTORIQUE VALIDATIONS
+-- 9. HISTORIQUE VALIDATIONS
 -- =========================
 
 -- Validation 1 pour congé maladie (id_demande=2)
@@ -191,27 +226,27 @@ INSERT INTO conge_historique_validation (id_demande, id_employe, date_validation
 (6, 1, '2025-11-01 14:00:00');
 
 -- =========================
--- 8. ABSENCES ENREGISTRÉES
+-- 10. ABSENCES ENREGISTRÉES
 -- =========================
 
 -- Absence maternité (validée et appliquée)
-INSERT INTO abscence (debut, fin, est_autorise, justificatif) VALUES
-('2025-03-01 00:00:00', '2025-06-06 23:59:59', TRUE, 'Certificat médical de grossesse + Acte de naissance');
+INSERT INTO abscence (id_employe, debut, fin, est_autorise, justificatif) VALUES
+(5, '2025-03-01 00:00:00', '2025-06-06 23:59:59', TRUE, 'Certificat médical de grossesse + Acte de naissance');
 
 -- Absence paternité (validée et appliquée)
-INSERT INTO abscence (debut, fin, est_autorise, justificatif) VALUES
-('2025-10-15 00:00:00', '2025-10-25 23:59:59', TRUE, 'Acte de naissance de l''enfant');
+INSERT INTO abscence (id_employe, debut, fin, est_autorise, justificatif) VALUES
+(9, '2025-10-15 00:00:00', '2025-10-25 23:59:59', TRUE, 'Acte de naissance de l''enfant');
 
 -- Absence maladie récente (en cours de validation)
-INSERT INTO abscence (debut, fin, est_autorise, justificatif) VALUES
-('2025-11-25 08:00:00', '2025-11-29 17:00:00', TRUE, 'Certificat médical - Grippe sévère');
+INSERT INTO abscence (id_employe, debut, fin, est_autorise, justificatif) VALUES
+(3, '2025-11-25 08:00:00', '2025-11-29 17:00:00', TRUE, 'Certificat médical - Grippe sévère');
 
 -- Absence non justifiée passée
-INSERT INTO abscence (debut, fin, est_autorise, justificatif) VALUES
-('2025-08-05 08:00:00', '2025-08-06 17:00:00', FALSE, NULL);
+INSERT INTO abscence (id_employe, debut, fin, est_autorise, justificatif) VALUES
+(6, '2025-08-05 08:00:00', '2025-08-06 17:00:00', FALSE, NULL);
 
 -- =========================
--- 9. SUIVI CONGÉS/ABSENCES
+-- 11. SUIVI CONGÉS/ABSENCES
 -- =========================
 
 -- Suivi congé maternité (déduit 0 jours car non deductible_sur_conge)
@@ -227,7 +262,7 @@ INSERT INTO abscence_conge_suivi (id_demande, id_abscence, id_type, id_employe, 
 (NULL, 4, 2, 6, 2, 2025, TRUE, 2);
 
 -- =========================
--- 10. HISTORIQUE CONGÉS
+-- 12. HISTORIQUE CONGÉS
 -- =========================
 
 INSERT INTO conge_historique (nombres_abscence_attribue, id_employe) VALUES
@@ -236,15 +271,8 @@ INSERT INTO conge_historique (nombres_abscence_attribue, id_employe) VALUES
 (2, 6);   -- Absence non justifiée enregistrée
 
 -- =========================
--- 11. PROFILS ET QUESTIONS (Pour recrutement)
+-- 13. PROFILS ET QUESTIONS (Pour recrutement)
 -- =========================
-
-INSERT INTO profils (titre, competences, skills, loisirs, id_diplome, id_filiere, experience_pro, certifications, langues, id_type_contrat, id_departement, est_minimum) VALUES
-('Développeur Full Stack', 
- 'Développement web frontend et backend; Gestion de bases de données; DevOps et CI/CD; Tests unitaires et d''intégration',
- 'JavaScript, React, Node.js; Python, Django; PostgreSQL, MongoDB; Git, Docker',
- 'Coding challenges; Contribution open source; Veille technologique',
- 3, 5, '2-3 ans d''expérience en développement web', 'AWS Certified Developer', 'Français, Anglais technique', 1, 2, TRUE);
 
 INSERT INTO questions (question, id_profil, note) VALUES
 ('Quelle est la différence entre let et var en JavaScript ?', 1, 5.00),
@@ -258,7 +286,7 @@ INSERT INTO reponses_question (id_question, reponse, est_correct) VALUES
 (2, 'API qui utilise uniquement GET et POST', FALSE);
 
 -- =========================
--- 12. CONFIGURATION SYSTÈME
+-- 14. CONFIGURATION SYSTÈME
 -- =========================
 
 -- Configuration durée entretiens

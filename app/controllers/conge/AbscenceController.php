@@ -6,6 +6,150 @@ use app\models;
 use Flight;
 
 class AbscenceController {
+    
+    /**
+     * Affiche la liste complète des absences (tous les employés)
+     */
+    public function getListeAbsence($estAutorise = null) {
+        // Vérifier les droits d'administration
+        if (!$this->estAdministrateur()) {
+            Flight::redirect('/admin');
+            return;
+        }
+
+        if ($estAutorise !== null) {
+            $estAutorise = filter_var($estAutorise, FILTER_VALIDATE_BOOLEAN);
+        }
+
+        $abscenceModel = Flight::Abscence();
+        $tableau = $abscenceModel->getTableauListeAbsence($estAutorise);
+        
+        Flight::render('conge/absences_admin', [
+            'tableau' => $tableau
+        ]);
+    }
+
+    /**
+     * Affiche le justificatif d'une absence
+     */
+    public function getJustificatif($idAbsence) {
+        $abscenceModel = Flight::Abscence();
+        $justificatif = $abscenceModel->getJustificatifPath($idAbsence);
+        
+        if (!$justificatif) {
+            Flight::halt(404, 'Justificatif non trouvé');
+            return;
+        }
+
+        $cheminFichier = __DIR__ . '/../../uploads/justificatifs_absence/' . $justificatif;
+        
+        if (!file_exists($cheminFichier)) {
+            Flight::halt(404, 'Fichier justificatif introuvable');
+            return;
+        }
+
+        // Déterminer le type MIME
+        $typeMime = mime_content_type($cheminFichier);
+        header('Content-Type: ' . $typeMime);
+        
+        // Pour les images et PDF, afficher dans le navigateur
+        if (in_array($typeMime, ['image/jpeg', 'image/png', 'image/gif', 'application/pdf'])) {
+            header('Content-Disposition: inline; filename="' . $justificatif . '"');
+        } else {
+            // Pour les autres types, forcer le téléchargement
+            header('Content-Disposition: attachment; filename="' . $justificatif . '"');
+        }
+        
+        readfile($cheminFichier);
+        exit;
+    }
+
+    /**
+     * Envoie une notification à un employé pour justifier son absence
+     */
+    public function notifierEmploye() {
+        // Vérifier les droits d'administration
+        if (!$this->estAdministrateur()) {
+
+            Flight::json([
+                'success' => false,
+                'error' => 'Accès non autorisé'
+            ], 403);
+            return;
+        }
+
+        $data = [
+            'id_employe' => $_POST['id_employe'] ?? null,
+            'id_abscence' => $_POST['id_abscence'] ?? null,
+            'message' => $_POST['message'] ?? 'Veuillez justifier votre absence dans les plus brefs délais.'
+        ];
+
+        // Validation
+        if (empty($data['id_employe']) || empty($data['id_abscence'])) {
+            Flight::json([
+                'success' => false,
+                'error' => 'Données manquantes'
+            ], 400);
+            return;
+        }
+
+        try {
+            // Récupérer les informations de l'employé
+            $employeModel = Flight::Employe();
+            $employe = $employeModel->findByIdWithDetails($data['id_employe']);
+            
+            if (!$employe) {
+                Flight::json([
+                    'success' => false,
+                    'error' => 'Employé non trouvé'
+                ], 404);
+                return;
+            }
+
+            // Ici, vous pouvez implémenter l'envoi d'email
+            // Exemple avec un système de notification simple
+            $this->envoyerNotification($employe['email'], 'Justification d\'absence requise', $data['message']);
+
+            // Loguer l'action
+            error_log("Notification envoyée à l'employé " . $employe['nom'] . " pour l'absence " . $data['id_abscence']);
+
+            Flight::json([
+                'success' => true,
+                'message' => 'Notification envoyée avec succès à ' . $employe['prenom'] . ' ' . $employe['nom']
+            ]);
+
+        } catch (\Exception $e) {
+            Flight::json([
+                'success' => false,
+                'error' => 'Erreur lors de l\'envoi de la notification: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Vérifie si l'utilisateur est administrateur
+     */
+    private function estAdministrateur() {
+        return isset($_SESSION['infoAdmin']['id_employe']) ;
+    }
+
+    /**
+     * Envoie une notification (à adapter selon votre système)
+     */
+    private function envoyerNotification($email, $sujet, $message) {
+        // Implémentez ici l'envoi d'email ou de notification
+        // Exemple basique avec mail() - à adapter
+        /*
+        $headers = "From: noreply@votreentreprise.com\r\n";
+        $headers .= "Content-Type: text/html; charset=UTF-8\r\n";
+        
+        return mail($email, $sujet, $message, $headers);
+        */
+        
+        // Pour l'instant, on log juste l'action
+        error_log("Notification à envoyer: $email - $sujet - $message");
+        return true;
+    }
 
     /**
      * Affiche la liste des absences non autorisées pour justifier

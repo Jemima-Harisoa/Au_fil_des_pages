@@ -45,7 +45,7 @@ Flight::render("headerA", ['extra_css' => $extra_css]);
 
 <!-- Begin Page Content -->
 <div class="container-fluid">
-
+    
     <!-- Page Heading -->
     <div class="d-sm-flex align-items-center justify-content-between mb-4">
         <h1 class="h3 mb-0 text-gray-800">Justification d'Absences</h1>
@@ -116,7 +116,7 @@ Flight::render("headerA", ['extra_css' => $extra_css]);
 function afficherFormulaireJustification(idAbsence) {
     // Charger le formulaire via AJAX
     $.ajax({
-        url: '/abscence/justifier/' + idAbsence,
+        url: '/absence/justifier/' + idAbsence,
         type: 'GET',
         success: function(response) {
             $('#formulaireJustificationContainer').html(response);
