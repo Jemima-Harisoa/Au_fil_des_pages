@@ -1,21 +1,73 @@
 <?php
-
+// liste_absence.php
 $extra_css = '
 <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" rel="stylesheet">
 <style>
-    .table-actions {
-        white-space: nowrap;
+    .absence-card {
+        border-radius: 10px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        transition: all 0.3s ease;
+        border-left: 4px solid #e74a3b;
     }
-    .btn-notifier {
-        background: linear-gradient(135deg, #f6c23e 0%, #dda20a 100%);
+    
+    .absence-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+    }
+    
+    .btn-justifier {
+        background: linear-gradient(135deg, #4e73df 0%, #224abe 100%);
         border: none;
+        border-radius: 8px;
+        padding: 10px 20px;
         color: white;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+    
+    .btn-justifier:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 15px rgba(78, 115, 223, 0.4);
+    }
+    
+    .penalite-badge {
+        background-color: #e74a3b;
+        color: white;
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-size: 0.8rem;
+    }
+    
+    .filter-section {
+        background-color: #f8f9fc;
+        border-radius: 8px;
+        padding: 15px;
+        margin-bottom: 20px;
+        border-left: 4px solid #4e73df;
+    }
+    
+    .filter-row {
+        margin-bottom: 10px;
+    }
+    
+    .table-responsive {
+        max-height: 600px;
+        overflow-y: auto;
+    }
+    
+    .stat-card {
+        transition: all 0.3s ease;
+    }
+    
+    .stat-card:hover {
+        transform: translateY(-2px);
     }
 </style>
 ';
 
 Flight::render("headerA", ['extra_css' => $extra_css]);
 ?>
+
 
 <!-- Begin Page Content -->
 <div class="container-fluid">
