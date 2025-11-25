@@ -47,4 +47,7 @@ class FichePaieController{
         ];
         return Flight::render("paie/fiche_paie",["data"=>$data]);
     }
+    public function renderListeFichePaie(){
+        return Flight::render("paie/liste_fiche_paie");
+    }
 }

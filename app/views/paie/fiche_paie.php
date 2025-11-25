@@ -118,8 +118,8 @@
         <tr>
             <td><?= $prime["designation"] ?></td>
             <td>1</td>
-            <td><?= $prime["montant"] ?></td>
-            <td><?= $prime["montant"] ?></td>
+            <td class="td-style-commun-nombre"><?= $prime["montant"] ?></td>
+            <td class="td-style-commun-nombre"><?= $prime["montant"] ?></td>
         </tr>
         <?php endforeach; ?>
         
@@ -127,7 +127,7 @@
             <td colspan="3" class="td-style-commun-libelle">
                 <strong>Salaire brute  </strong>
             </td>
-            <td>
+            <td class="td-style-commun-nombre">
             <p> <?=$data["salaire_brute"]?></p>
             </td>
         </tr>
@@ -136,8 +136,8 @@
                 <strong>Retenu Cnaps</strong>
             </td>
             
-            <td><?=$data["cnaps"]["taux"];?></td>
-            <td>
+            <td class="td-style-commun-nombre"><?=$data["cnaps"]["taux"];?></td>
+            <td class="td-style-commun-nombre">
                 <p> <?=$data["cnaps"]["montant"];?></p>
             </td>                
         </tr>
@@ -145,8 +145,8 @@
             <td colspan="2" class="td-style-commun-libelle">
                 <strong>Retenu OSTIE </strong>
             </td>   
-            <td><?=$data["ostie"]["taux"];?></td>
-            <td>
+            <td class="td-style-commun-nombre"><?=$data["ostie"]["taux"];?></td>
+            <td class="td-style-commun-nombre">
                 <p> <?=$data["ostie"]["montant"];?></p>
             </td>                
         </tr>
@@ -154,25 +154,25 @@
         <?php  foreach($data["details_irsa"] as $irsa): ?>
         <tr>
             <td colspan="2" class="td-style-commun-libelle"><?= $irsa["designation"] ?></td>
-            <td><?= $irsa["pourcentage"] ?></td>
-            <td><?= $irsa["montant"] ?></td>
+            <td class="td-style-commun-nombre"><?= $irsa["pourcentage"] ?></td>
+            <td class="td-style-commun-nombre"><?= $irsa["montant"] ?></td>
         </tr>
         <?php endforeach; ?>
         <tr>
             <td colspan="3" class="td-style-commun-libelle"><strong>Total des IRSA</strong></td>
-            <td> <?= $data["somme_irsa"]; ?></td>
+            <td class="td-style-commun-nombre"> <?= $data["somme_irsa"]; ?></td>
         </tr>
         <tr>
             <td colspan="3" class="td-style-commun-libelle"><strong>Total des retenus</strong></td>
-            <td> <?= $data["somme_retenus"]; ?></td>
+            <td class="td-style-commun-nombre"> <?= $data["somme_retenus"]; ?></td>
         </tr>
         <tr>
             <td colspan="3" class="td-style-commun-libelle"><strong>Autres idemnites </strong></td>
-            <td> <?= $data["somme_montant_heure_supplementaire"]; ?></td>
+            <td class="td-style-commun-nombre"> <?= $data["somme_montant_heure_supplementaire"]; ?></td>
         </tr>
         <tr>
             <td colspan="3" class="td-style-commun-libelle"><strong>Net à payer</strong></td>
-            <td><?= $data["net_a_payer"]; ?></td>
+            <td class="td-style-commun-nombre"><?= $data["net_a_payer"]; ?></td>
         </tr>
     </table>
     <div class="impot">

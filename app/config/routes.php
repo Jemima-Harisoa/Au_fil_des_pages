@@ -15,7 +15,6 @@ use app\controllers\PlanningEntretienController;
 use app\controllers\ApiPlanningEntretienController;
 use app\controllers\PointageController;
 
-use app\controllers\MessagerieController;
 use app\controllers\FichePaieController;
 use flight\Engine;
 use flight\net\Router;
@@ -212,7 +211,14 @@ Flight::route('GET /messagerie/sse', [MessagerieController::class, 'sseNotificat
 
 
 $fiche_paie_controller = new FichePaieController();
-$router->get("/fiche_paie",[$fiche_paie_controller,'renderFichePaie'])
+
+$router->group( "/fiche_paie" , function($router) use ($fiche_paie_controller){
+		// route vers la page de formulaire
+		$router->get("/affichage", [$fiche_paie_controller,'renderFichePaie']);
+		// route vers la liste des fiche de paie d'un candidat
+		$router->get("/liste", [$fiche_paie_controller , 'renderListeFichePaie']); 
+	}
+);
 ?>
 
 
