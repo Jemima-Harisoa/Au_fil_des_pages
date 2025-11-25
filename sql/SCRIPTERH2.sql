@@ -480,11 +480,11 @@ CREATE TABLE heures_supplementaire (
 
 CREATE TABLE heures_supplementaire_historique (
     id SERIAL PRIMARY KEY,
-    id_heure_supp INT NOT NULL REFERENCES heure_supplementaire(id) ON DELETE CASCADE,
+    id_heure_supp INT NOT NULL REFERENCES heures_supplementaire(id) ON DELETE CASCADE,
     nombre_heure_effectue NUMERIC(5,2) NOT NULL,
     mois INT NOT NULL CHECK (mois >= 1 AND mois <= 12),
     annee INT NOT NULL,
-    numero_semaine INT NOT NULL CHECK (numero_semaine >= 1 AND numero_semaine <= 53),
+    numero_semaine INT NOT NULL CHECK (numero_semaine >= 1 AND numero_semaine < 53),
     date_creation TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 

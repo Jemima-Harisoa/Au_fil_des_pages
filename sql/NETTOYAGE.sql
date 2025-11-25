@@ -28,6 +28,7 @@ BEGIN
         etat,
         appreciation,
         type_contrats
+        
     RESTART IDENTITY CASCADE;
 
 END;
