@@ -80,8 +80,9 @@ public function VerificationConnectionE()
         }
 
         // ---- 🔹 Messagerie ----
-        $_SESSION['messagerie'] = $messagerieModel->getTitresConversationsU($_SESSION['employe']['id_employe']);  
-        $_SESSION['nbNonLus'] = $messagerieModel->countNouveauxMessagesU($_SESSION['employe']['id_employe']);
+        $model = new \app\models\MessagerieModel();
+        $_SESSION['messagerie'] = $model->getTitresConversationsE($_SESSION['employe']['id_employe']);
+        $_SESSION['nbNonLus'] = $model->countNouveauxMessagesE($_SESSION['employe']['id_employe']);
         
         // ---- 🔹 Affichage accueil ----
         Flight::render('accueilE', null);

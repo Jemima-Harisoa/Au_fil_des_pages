@@ -431,4 +431,171 @@ class MessagerieModel {
 
         return $conversations;
     }
+
+    /**
+     * Retourne tous les messages d'une conversation entre deux employés (exclut les marqueurs [LU]).
+     *
+     * @param int $id_employe       employé connecté (pour repérer le partenaire)
+     * @param int $partenaire_id    autre employé de la conversation
+     * @return array                [{date, auteur, message}, ...]
+     */
+    public function getConversationEmploye(int $id_employe, int $partenaire_id): array {
+        $a = (int)$id_employe;
+        $b = (int)$partenaire_id;
+        $min = min($a, $b);
+        $max = max($a, $b);
+
+        $file = __DIR__ . '/../../public/conversations_employe/conversation_emp_' . $min . '_' . $max . '.txt';
+        $messages = [];
+
+        if (!file_exists($file)) {
+            return $messages;
+        }
+
+        $lines = array_filter(file($file, FILE_IGNORE_NEW_LINES));
+        foreach ($lines as $line) {
+            if (preg_match('/^\[(.*?)\]\s+([^:]+):\s*(.*)$/', $line, $m)) {
+                $date = $m[1];
+                $auteur = trim($m[2]); // ex: Employe12
+                $contenu = trim($m[3]);
+
+                // Ignorer les marqueurs de lecture
+                if ($contenu === '[LU]' || $contenu === '') continue;
+
+                $messages[] = [
+                    'date' => $date,
+                    'auteur' => $auteur,
+                    'message' => $contenu
+                ];
+            }
+        }
+
+        return $messages;
+    }
+
+    /**
+     * Retourne les conversations employé avec métadonnées (nom du partenaire, dernier message, etc.).
+     * 
+     * @param int $id_employe
+     * @return array [{partenaire_id, nom_partenaire, prenom_partenaire, derniere_modif, dernier_auteur, nouveaux_messages}, ...]
+     */
+    public function getTitresConversationsE(int $id_employe): array {
+        $dir = __DIR__ . '/../../public/conversations_employe';
+        $conversations = [];
+
+        if (!is_dir($dir)) return $conversations;
+
+        $files = glob($dir . '/conversation_emp_*.txt');
+        $employeModel = new EmployeModel(); // pour récupérer les infos du partenaire
+
+        foreach ($files as $file) {
+            if (preg_match('/conversation_emp_(\d+)_(\d+)\.txt$/', $file, $m)) {
+                $a = (int)$m[1];
+                $b = (int)$m[2];
+
+                if ($a !== (int)$id_employe && $b !== (int)$id_employe) {
+                    continue; // pas concerné
+                }
+
+                $partenaire_id = ($a === (int)$id_employe) ? $b : $a;
+
+                // Récupérer infos du partenaire
+                $infosPartenaire = $employeModel->getInfosEmploye($partenaire_id);
+                $nomPartenaire = $infosPartenaire['nom'] ?? 'Inconnu';
+                $prenomPartenaire = $infosPartenaire['prenom'] ?? '';
+
+                // Dernière modification du fichier
+                $derniere_modif = file_exists($file) ? date('Y-m-d H:i:s', filemtime($file)) : null;
+
+                // Dernier auteur (vrai message, pas [LU])
+                $dernierAuteur = 'Inconnu';
+                if (file_exists($file)) {
+                    $lines = array_reverse(array_filter(file($file, FILE_IGNORE_NEW_LINES)));
+                    foreach ($lines as $line) {
+                        if (preg_match('/^\[(.*?)\]\s+([^:]+):\s*(.*)$/', $line, $matches)) {
+                            $auteurMsg = trim($matches[2]);
+                            $contenu = trim($matches[3]);
+                            if ($contenu !== '[LU]' && $contenu !== '') {
+                                $dernierAuteur = $auteurMsg;
+                                break;
+                            }
+                        }
+                    }
+                }
+
+                // Vérifier si non lu : dernier message vient du partenaire et pas encore de [LU] de ma part après
+                $nouveauxMessages = $this->aNouveauxMessagesE($id_employe, $partenaire_id);
+
+                $conversations[] = [
+                    'partenaire_id' => $partenaire_id,
+                    'nom_partenaire' => $nomPartenaire,
+                    'prenom_partenaire' => $prenomPartenaire,
+                    'derniere_modification' => $derniere_modif,
+                    'dernier_auteur' => $dernierAuteur,
+                    'nouveaux_messages' => $nouveauxMessages
+                ];
+            }
+        }
+
+        // Trier par date de dernière modification (décroissant)
+        usort($conversations, function($x, $y) {
+            return strtotime($y['derniere_modification'] ?? '1970-01-01') - strtotime($x['derniere_modification'] ?? '1970-01-01');
+        });
+
+        return $conversations;
+    }
+
+    /**
+     * Indique si la conversation avec un partenaire a des messages non lus pour id_employe.
+     */
+    private function aNouveauxMessagesE(int $id_employe, int $partenaire_id): bool {
+        $a = (int)$id_employe;
+        $b = (int)$partenaire_id;
+        $min = min($a, $b);
+        $max = max($a, $b);
+
+        $file = __DIR__ . '/../../public/conversations_employe/conversation_emp_' . $min . '_' . $max . '.txt';
+
+        if (!file_exists($file)) return false;
+
+        $lines = array_filter(file($file, FILE_IGNORE_NEW_LINES));
+        $dernierMessagePartenaire = null;
+        $derniereLectureMoi = null;
+
+        $auteurPartenaire = 'Employe' . $partenaire_id;
+        $auteurMoi = 'Employe' . $id_employe;
+
+        foreach ($lines as $line) {
+            if (preg_match('/^\[(.*?)\]\s+([^:]+):\s*(.*)$/', $line, $m)) {
+                $dateMsg = $m[1];
+                $auteurMsg = trim($m[2]);
+                $contenu = trim($m[3]);
+
+                if ($auteurMsg === $auteurPartenaire && $contenu !== '[LU]' && $contenu !== '') {
+                    $dernierMessagePartenaire = $dateMsg;
+                }
+
+                if ($auteurMsg === $auteurMoi && $contenu === '[LU]') {
+                    $derniereLectureMoi = $dateMsg;
+                }
+            }
+        }
+
+        if (!$dernierMessagePartenaire) return false;
+        if (!$derniereLectureMoi) return true;
+
+        return strtotime($dernierMessagePartenaire) > strtotime($derniereLectureMoi);
+    }
+
+    /**
+     * Compte les conversations employé non lues.
+     */
+    public function countNouveauxMessagesE(int $id_employe): int {
+        $convs = $this->getTitresConversationsE($id_employe);
+        $count = 0;
+        foreach ($convs as $c) {
+            if ($c['nouveaux_messages']) $count++;
+        }
+        return $count;
+    }
 }

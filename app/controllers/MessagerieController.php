@@ -307,6 +307,61 @@ class MessagerieController {
         ]);
     }
 
+    /**
+     * Endpoint AJAX : renvoie la conversation entre l'employé connecté et un partenaire.
+     * Usage : GET /messagerie/convEmploye/{id_employe}/{partenaire_id}
+     */
+    public function getConversationEmploye($id_employe, $partenaire_id) {
+        // Sécurité : l'utilisateur doit être l'employé demandé ou un admin
+        $sessionId = $_SESSION['employe']['id_employe'] ?? null;
+        $isAdmin = isset($_SESSION['admin']);
+
+        if (!$isAdmin && ((int)$sessionId !== (int)$id_employe)) {
+            http_response_code(403);
+            echo json_encode(['success' => false, 'message' => 'Accès refusé']);
+            exit;
+        }
+
+        $model = new MessagerieModel();
+
+        // Optionnel : marquer comme lu la conversation pour l'employé connecté
+        // $model->repondreE($id_employe, $partenaire_id, '');
+
+        $messages = $model->getConversationEmploye((int)$id_employe, (int)$partenaire_id);
+
+        echo json_encode([
+            'success' => true,
+            'messages' => $messages,
+            'count' => count($messages)
+        ]);
+        exit;
+    }
+
+    /**
+     * Endpoint pour récupérer les conversations employé (AJAX).
+     */
+    public function getConversationsE($id_employe) {
+        $sessionId = $_SESSION['employe']['id_employe'] ?? null;
+        $isAdmin = isset($_SESSION['admin']);
+
+        if (!$isAdmin && ((int)$sessionId !== (int)$id_employe)) {
+            http_response_code(403);
+            echo json_encode(['success' => false, 'message' => 'Accès refusé']);
+            exit;
+        }
+
+        $model = new MessagerieModel();
+        $conversations = $model->getTitresConversationsE((int)$id_employe);
+        $nbNonLus = $model->countNouveauxMessagesE((int)$id_employe);
+
+        echo json_encode([
+            'success' => true,
+            'conversations' => $conversations,
+            'nbNonLus' => $nbNonLus
+        ]);
+        exit;
+    }
+
 public function getMessagerie($id_candidat, $id_annonce) {
     $file = __DIR__ . '/../../public/conversations/conversation_' . $id_candidat . '_' . $id_annonce . '.txt';
 
@@ -334,6 +389,54 @@ public function getMessagerie($id_candidat, $id_annonce) {
 
     return $conversation;
 }
+
+// ...existing code...
+    /**
+     * Endpoint pour rechercher des employés (AJAX).
+     */
+    public function searchEmployes($id_employe) {
+        $sessionId = $_SESSION['employe']['id_employe'] ?? null;
+        $isAdmin = isset($_SESSION['admin']);
+
+        if (!$isAdmin && ((int)$sessionId !== (int)$id_employe)) {
+            http_response_code(403);
+            echo json_encode(['success' => false, 'message' => 'Accès refusé']);
+            exit;
+        }
+
+        $query = $_GET['q'] ?? '';
+        
+        if (strlen($query) < 1) {
+            echo json_encode(['success' => true, 'employes' => []]);
+            exit;
+        }
+
+        $employeModel = new \app\models\EmployeModel();
+        
+        // Récupérer tous les employés sauf l'employé connecté
+        $tousEmployes = $employeModel->getEmployeAutre((int)$id_employe);
+        
+        // Filtrer selon la recherche
+        $query = strtolower($query);
+        $resultats = array_filter($tousEmployes, function($emp) use ($query) {
+            $nom = strtolower($emp['nom_personne'] ?? '');
+            $prenom = strtolower($emp['prenom'] ?? '');
+            $poste = strtolower($emp['poste'] ?? '');
+            $dept = strtolower($emp['nom_departement'] ?? '');
+            
+            return strpos($nom, $query) !== false 
+                || strpos($prenom, $query) !== false
+                || strpos($poste, $query) !== false
+                || strpos($dept, $query) !== false;
+        });
+
+        echo json_encode([
+            'success' => true,
+            'employes' => array_values($resultats)
+        ]);
+        exit;
+    }
+// ...existing code...
 public function refreshConversation() {
     $model = new MessagerieModel();
 
@@ -352,5 +455,67 @@ public function refreshConversation() {
     }
     exit;
 }
+
+    /**
+     * Afficher la conversation entre deux employés.
+     */
+    public function showMessagerieE($id_employe, $partenaire_id) {
+        $sessionId = $_SESSION['employe']['id_employe'] ?? null;
+        $isAdmin = isset($_SESSION['admin']);
+
+        if (!$isAdmin && ((int)$sessionId !== (int)$id_employe)) {
+            Flight::redirect('/employe');
+            return;
+        }
+
+        $model = new MessagerieModel();
+        $employeModel = new \app\models\EmployeModel();
+        
+        // Marquer comme lu
+        $model->repondreE((int)$id_employe, (int)$partenaire_id, '');
+        
+        // Récupérer les messages
+        $messages = $model->getConversationEmploye((int)$id_employe, (int)$partenaire_id);
+        
+        // Récupérer les infos du partenaire
+        $infosPartenaire = $employeModel->getInfosEmploye((int)$partenaire_id);
+        
+        // Mettre à jour le compteur dans la session
+        $_SESSION['nbNonLus'] = $model->countNouveauxMessagesE((int)$id_employe);
+        
+        Flight::render('messagerieE', [
+            'messages' => $messages,
+            'partenaire_id' => $partenaire_id,
+            'partenaire_nom' => $infosPartenaire['nom'] ?? 'Inconnu',
+            'partenaire_prenom' => $infosPartenaire['prenom'] ?? ''
+        ]);
+    }
+    
+    /**
+     * Envoyer un message entre employés (POST).
+     */
+    public function sendMessageE() {
+        $id_employe = $_POST['id_employe'] ?? null;
+        $partenaire_id = $_POST['partenaire_id'] ?? null;
+        $message = $_POST['message'] ?? '';
+
+        $sessionId = $_SESSION['employe']['id_employe'] ?? null;
+        
+        if (!$sessionId || (int)$sessionId !== (int)$id_employe) {
+            echo json_encode(['success' => false, 'message' => 'Non autorisé']);
+            exit;
+        }
+
+        if (empty($message)) {
+            echo json_encode(['success' => false, 'message' => 'Message vide']);
+            exit;
+        }
+
+        $model = new MessagerieModel();
+        $result = $model->repondreE((int)$id_employe, (int)$partenaire_id, $message);
+
+        echo json_encode(['success' => $result]);
+        exit;
+    }
 
 }
