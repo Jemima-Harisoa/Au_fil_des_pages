@@ -2,6 +2,7 @@
 use app\controllers\WelcomeController;
 use app\controllers\ConnexionController;
 use app\controllers\AnnoncesController;
+use app\controllers\conge\JustificatifController;
 
 
 use app\controllers\TestController;
@@ -206,15 +207,17 @@ $router->group('/conge', function($router) use ($Conge_Controller) {
 
 // Routes de gestion des justifications d'absences
 $Abscence_Controller = new AbscenceController();
-$router->group('/absence', function($router) use ($Abscence_Controller) {
+$Justificatif_Controller = new JustificatifController();
+
+$router->group('/absence', function($router) use ($Abscence_Controller,$Justificatif_Controller ) {
     // Afficher les absences à justifier
-    $router->get('/justifications', [$Abscence_Controller, 'getListeAbsencesAJustifier']);
+    $router->get('/justifier', [$Abscence_Controller, 'getListeAbsencesAJustifier']);
     
     // Afficher le formulaire de justification pour une absence spécifique
     $router->get('/justifier/@idAbsence', [$Abscence_Controller, 'getJustifierAbsence']);
     
     // Traiter la soumission du formulaire de justification
-    $router->post('/justifier', [$Abscence_Controller, 'submitJustification']);
+    $router->post('/justifier/submit', [$Abscence_Controller, 'submitJustification']);
 
     // Liste des abscences
     $router->get('/liste(/@estAutorise)', [$Abscence_Controller, 'getListeAbsence']);
@@ -222,4 +225,8 @@ $router->group('/absence', function($router) use ($Abscence_Controller) {
     $router->get('/', function(){
         Flight::redirect('/absence/justifications');
     });
+
+    // Routes pour les justificatifs
+    $router->get('/justificatif/view/@id', [$Justificatif_Controller, 'viewJustificatif']);
+    $router->get('/justificatif/download/@id', [$Justificatif_Controller, 'downloadJustificatif']);
 });

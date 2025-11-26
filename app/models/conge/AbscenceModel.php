@@ -296,15 +296,15 @@ class AbscenceModel
                                             <td>' . htmlspecialchars($absence['penalite']) . '</td>
                                             <td class="text-center">' . $statutBadge . '</td>
                                             <td class="text-center">';
-                    
+                        
                     // Actions selon si l'absence est autorisée ou non
                     if ($absence['est_autorise']) {
                         // Si autorisée, on affiche un lien pour voir le justificatif
                         if (!empty($absence['justificatif'])) {
-                            $html .= '<a href="/absence/justificatif/' . $absence['id_abscence'] . '" class="btn btn-sm btn-primary" target="_blank" title="Voir le justificatif">
-                                        <i class="fas fa-eye"></i>
-                                    </a>';
-                        } else {
+                            $html .= '<button onclick="afficherJustificatif(' . $absence['id_abscence'] . ')" class="btn btn-sm btn-primary" title="Voir le justificatif">
+                                        <i class="fas fa-eye"></i> Voir
+                                    </button>';
+                        } else {            
                             $html .= '<span class="text-muted small">Aucun justificatif</span>';
                         }
                     } else {
@@ -387,10 +387,76 @@ class AbscenceModel
     }
 
     /**
-     * Met à jour une absence avec la justification
+     * Met à jour une absence avec la justification (fichier, texte ou les deux)
      */
-    public function justifierAbsence($idAbsence, $justificatif, $commentaire = null) {
+    public function justifierAbsence($idAbsence, $data) {
         try {
+            $uploadDir = __DIR__ . '/../../../public/uploads/justificatifs_absence/';
+            
+            // Créer le dossier s'il n'existe pas
+            if (!is_dir($uploadDir)) {
+                mkdir($uploadDir, 0755, true);
+            }
+
+            $justificatifValue = '';
+
+            // Cas 1: Justificatif texte uniquement
+            if (!empty($data['justificatif_texte']) && empty($data['justificatif_fichier'])) {
+                $justificatifValue = $data['justificatif_texte'];
+            }
+            // Cas 2: Fichier unique
+            elseif (!empty($data['justificatif_fichier']) && $data['justificatif_fichier']['error'] === UPLOAD_ERR_OK) {
+                $fileInfo = pathinfo($data['justificatif_fichier']['name']);
+                $extension = strtolower($fileInfo['extension'] ?? '');
+                
+                // Valider le type de fichier
+                $allowedTypes = ['pdf', 'jpg', 'jpeg', 'png', 'doc', 'docx', 'txt'];
+                if (!in_array($extension, $allowedTypes)) {
+                    return [
+                        'success' => false,
+                        'error' => 'Type de fichier non autorisé'
+                    ];
+                }
+
+                // Générer un nom de fichier unique
+                $fileName = uniqid() . '_' . time() . '.' . $extension;
+                $filePath = $uploadDir . $fileName;
+
+                if (move_uploaded_file($data['justificatif_fichier']['tmp_name'], $filePath)) {
+                    $justificatifValue = $fileName;
+                }
+            }
+            // Cas 3: Texte ET fichier - stocker dans un dossier
+            elseif (!empty($data['justificatif_texte']) && !empty($data['justificatif_fichier']) && $data['justificatif_fichier']['error'] === UPLOAD_ERR_OK) {
+                // Créer un dossier pour cette absence
+                $dossierAbsence = 'absence_' . $idAbsence . '_' . time();
+                $dossierPath = $uploadDir . $dossierAbsence;
+                
+                if (!is_dir($dossierPath)) {
+                    mkdir($dossierPath, 0755, true);
+                }
+
+                // Sauvegarder le fichier
+                $fileInfo = pathinfo($data['justificatif_fichier']['name']);
+                $extension = strtolower($fileInfo['extension'] ?? '');
+                $fileName = 'justificatif.' . $extension;
+                $filePath = $dossierPath . '/' . $fileName;
+
+                if (move_uploaded_file($data['justificatif_fichier']['tmp_name'], $filePath)) {
+                    // Sauvegarder le texte dans un fichier séparé
+                    $textePath = $dossierPath . '/description.txt';
+                    file_put_contents($textePath, $data['justificatif_texte']);
+                    
+                    $justificatifValue = $dossierAbsence;
+                }
+            } else {
+                return [
+                    'success' => false,
+                    'error' => 'Aucun justificatif fourni'
+                ];
+            }
+
+            // Mettre à jour la base de données
             $sql = "
                 UPDATE abscence 
                 SET justificatif = :justificatif,
@@ -400,7 +466,7 @@ class AbscenceModel
             
             $stmt = $this->db->prepare($sql);
             $result = $stmt->execute([
-                'justificatif' => $justificatif,
+                'justificatif' => $justificatifValue,
                 'id_abscence' => $idAbsence
             ]);
 
@@ -408,19 +474,36 @@ class AbscenceModel
                 return [
                     'success' => true,
                     'message' => 'Absence justifiée avec succès',
+                    'type' => $this->determinerTypeJustificatif($justificatifValue),
                     'id_abscence' => $idAbsence
                 ];
-            } else {
-                return [
-                    'success' => false,
-                    'error' => 'Erreur lors de la mise à jour de l\'absence'
-                ];
             }
+
+            return [
+                'success' => false,
+                'error' => 'Erreur lors de la mise à jour de la base de données'
+            ];
+
         } catch (\Exception $e) {
             return [
                 'success' => false,
                 'error' => 'Erreur: ' . $e->getMessage()
             ];
+        }
+    }
+    /**
+     * Détermine le type de justificatif stocké
+     */
+    private function determinerTypeJustificatif($justificatif) {
+        $uploadDir = __DIR__ . '/../../../public/uploads/justificatifs_absence/';
+        $fullPath = $uploadDir . $justificatif;
+        
+        if (is_dir($fullPath)) {
+            return 'dossier';
+        } elseif (file_exists($fullPath)) {
+            return 'fichier';
+        } else {
+            return 'texte';
         }
     }
     /**

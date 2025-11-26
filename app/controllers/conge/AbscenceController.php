@@ -1,12 +1,13 @@
 <?php
 
 namespace app\controllers\conge;
-
 use app\models;
 use Flight;
 
+
 class AbscenceController {
-    
+
+
     /**
      * Affiche la liste complète des absences (tous les employés)
      */
@@ -41,7 +42,7 @@ class AbscenceController {
             return;
         }
 
-        $cheminFichier = __DIR__ . '/../../uploads/justificatifs_absence/' . $justificatif;
+        $cheminFichier = __DIR__ . '/../../../public/uploads/justificatifs_absence/' . $justificatif;
         
         if (!file_exists($cheminFichier)) {
             Flight::halt(404, 'Fichier justificatif introuvable');
@@ -173,7 +174,7 @@ class AbscenceController {
         $employe = $employeModel->findByIdWithDetails($idEmploye);
         
         Flight::render('conge/liste_absence', [
-            'absences' => $absencesNonAutorisees,
+            'absences' => $absencesNonAutorisees, // Correction: pluriel
             'employe' => $employe
         ]);
     }
@@ -207,8 +208,8 @@ class AbscenceController {
         }
 
         // Afficher le formulaire de justification
-        Flight::render('conge/justification_absence', [
-            'absence' => $absence
+        Flight::render('conge/justification_absence', [ // Nouveau fichier pour le formulaire
+            'absence' => $absence // Singulier pour une seule absence
         ]);
     }
 
@@ -216,13 +217,25 @@ class AbscenceController {
      * Traite la soumission du formulaire de justification
      */
     public function submitJustification() {
+        // Récupérer l'ID de l'employé connecté
+        $idEmploye = $this->getIdEmployeConnecte();
+        
+        if (!$idEmploye) {
+            Flight::json([
+                'success' => false,
+                'error' => 'Non authentifié'
+            ], 401);
+            return;
+        }
+
         $abscenceModel = Flight::Abscence();
         
         // Récupérer les données du formulaire
         $data = [
             'id_abscence' => $_POST['id_abscence'] ?? null,
-            'justificatif' => $_FILES['justificatif'] ?? null,
-            'commentaire' => $_POST['commentaire'] ?? null
+            'justificatif_texte' => $_POST['justificatif_texte'] ?? null,
+            'justificatif_fichier' => $_FILES['justificatif_fichier'] ?? null,
+            'type_justificatif' => $_POST['type_justificatif'] ?? 'auto'
         ];
 
         // Validation des données
@@ -235,16 +248,33 @@ class AbscenceController {
             return;
         }
 
-        // Traitement du justificatif
-        $nomFichier = null;
-        if (!empty($data['justificatif']) && $data['justificatif']['error'] === UPLOAD_ERR_OK) {
-            $nomFichier = $this->uploadJustificatif($data['justificatif']);
+        // Vérifier que l'absence appartient bien à l'employé
+        $absence = $abscenceModel->getAbsenceById($data['id_abscence'], $idEmploye);
+        if (!$absence) {
+            Flight::json([
+                'success' => false,
+                'error' => 'Absence non trouvée ou accès non autorisé'
+            ], 404);
+            return;
         }
 
-        // Mise à jour de l'absence avec la justification
-        $result = $abscenceModel->justifierAbsence($data['id_abscence'], $nomFichier, $data['commentaire']);
-        
-        Flight::json($result);
+        try {
+            // Traitement de la justification
+            $result = $abscenceModel->justifierAbsence($data['id_abscence'], $data);
+            
+            if ($result['success']) {
+                // Journaliser l'action
+                error_log("Absence {$data['id_abscence']} justifiée par l'employé $idEmploye - Type: " . ($result['type'] ?? 'inconnu'));
+            }
+            
+            Flight::json($result);
+            
+        } catch (\Exception $e) {
+            Flight::json([
+                'success' => false,
+                'error' => 'Erreur lors du traitement: ' . $e->getMessage()
+            ], 500);
+        }
     }
 
     /**
@@ -255,18 +285,39 @@ class AbscenceController {
             return ['success' => false, 'error' => 'ID d\'absence manquant'];
         }
 
-        if (empty($data['justificatif']) || $data['justificatif']['error'] !== UPLOAD_ERR_OK) {
-            return ['success' => false, 'error' => 'Justificatif obligatoire'];
+        // Vérifier qu'au moins un justificatif est fourni
+        $hasTexte = !empty(trim($data['justificatif_texte'] ?? ''));
+        $hasFichier = !empty($data['justificatif_fichier']['name']) && $data['justificatif_fichier']['error'] === UPLOAD_ERR_OK;
+        
+        if (!$hasTexte && !$hasFichier) {
+            return ['success' => false, 'error' => 'Veuillez fournir un justificatif (texte ou fichier)'];
+        }
+
+        // Validation du fichier si fourni
+        if ($hasFichier) {
+            $file = $data['justificatif_fichier'];
+            
+            // Vérifier la taille (5MB max)
+            if ($file['size'] > 5 * 1024 * 1024) {
+                return ['success' => false, 'error' => 'Le fichier est trop volumineux (max 5MB)'];
+            }
+
+            // Vérifier le type
+            $allowedTypes = ['pdf', 'jpg', 'jpeg', 'png', 'doc', 'docx', 'txt'];
+            $extension = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
+            
+            if (!in_array($extension, $allowedTypes)) {
+                return ['success' => false, 'error' => 'Type de fichier non autorisé. Types acceptés: ' . implode(', ', $allowedTypes)];
+            }
         }
 
         return ['success' => true];
     }
-
-    /**
+        /**
      * Upload le fichier justificatif (identique à celui des congés)
      */
     private function uploadJustificatif($file) {
-        $dossierUpload = __DIR__ . '/../../uploads/justificatifs_absence/';
+        $dossierUpload = __DIR__ . '/../../../public/uploads/justificatifs_absence/';
         
         // Créer le dossier s'il n'existe pas
         if (!is_dir($dossierUpload)) {

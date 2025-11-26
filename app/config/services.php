@@ -4,7 +4,7 @@ use flight\Engine;
 use flight\database\PdoWrapper;
 use flight\debug\database\PdoQueryCapture;
 use Tracy\Debugger;
-
+use app\models\conge\JustificationModel;
 use app\models\ProductModel;
 use app\models\InscriptionModel;
 use app\models\ConnexionModel;
@@ -145,4 +145,8 @@ Flight::map('Abscence', function () {
 
 Flight::map('Conge', function () {
     return new CongeModel(Flight::db());
+});
+
+Flight::map('Justification', function (){
+    return new JustificationModel(Flight::db());
 });

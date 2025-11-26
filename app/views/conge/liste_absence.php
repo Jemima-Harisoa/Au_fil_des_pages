@@ -1,5 +1,5 @@
 <?php
-// liste_absence.php
+// liste_absence.php - Vue pour afficher la LISTE des absences à justifier
 $extra_css = '
 <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" rel="stylesheet">
 <style>
@@ -49,6 +49,12 @@ Flight::render("headerA", ['extra_css' => $extra_css]);
     <!-- Page Heading -->
     <div class="d-sm-flex align-items-center justify-content-between mb-4">
         <h1 class="h3 mb-0 text-gray-800">Justification d'Absences</h1>
+        <div class="d-flex align-items-center">
+            <span class="mr-3 text-gray-600">
+                <i class="fas fa-user mr-2"></i>
+                <?= htmlspecialchars($employe['prenom'] . ' ' . $employe['nom']) ?>
+            </span>
+        </div>
     </div>
 
     <!-- Content Row -->

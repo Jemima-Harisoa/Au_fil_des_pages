@@ -395,6 +395,7 @@ CREATE TABLE abscence_conge_suivi (
     annee INT,
     penalite_appliquee BOOLEAN DEFAULT FALSE,
     id_type_penalite INT,
+    dateMouvement TIMESTAMP,
     CONSTRAINT fk_conge_suivi_demande FOREIGN KEY (id_demande) REFERENCES conge_demande(id_demande),
     CONSTRAINT fk_conge_suivi_type FOREIGN KEY (id_type) REFERENCES conge_type(id_type),
     CONSTRAINT fk_conge_suivi_employe FOREIGN KEY (id_employe) REFERENCES employes(id_employe),

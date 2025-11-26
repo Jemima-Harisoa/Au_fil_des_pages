@@ -325,7 +325,7 @@ class CongeController {
      * Upload le fichier justificatif
      */
     private function uploadJustificatif($file) {
-        $dossierUpload = __DIR__ . '/../../uploads/justificatifs/';
+        $dossierUpload = __DIR__ . '/../../../public/uploads/justificatifs/';
         
         // Créer le dossier s'il n'existe pas
         if (!is_dir($dossierUpload)) {

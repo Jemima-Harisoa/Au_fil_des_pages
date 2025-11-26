@@ -81,7 +81,8 @@
         <p class="mb-0">Veuillez fournir un justificatif pour l'absence sélectionnée</p>
     </div>
     <div class="form-body-justification">
-        <form id="formJustificationAbsence" method="post" action="/abscence/justifier" enctype="multipart/form-data">
+        <!-- LIGNE 24 - REMPLACER -->
+        <form id="formJustificationAbsence" method="post" action="/absence/justifier/submit" enctype="multipart/form-data">
             <input type="hidden" name="id_abscence" value="<?= $absence['id_abscence'] ?>">
             
             <!-- Informations sur l'absence -->
@@ -102,30 +103,25 @@
                 <textarea class="form-control" rows="3" readonly><?= htmlspecialchars($absence['description'] ?? 'Aucune description') ?></textarea>
             </div>
             
-            <!-- Justificatif -->
             <div class="form-group mb-4">
-                <label class="form-label">Justificatif</label>
+                <label for="justificatif_texte" class="form-label">Justification textuelle</label>
+                <textarea class="form-control" id="justificatif_texte" name="justificatif_texte" 
+                    rows="5" placeholder="Décrivez les raisons de votre absence..."></textarea>
+            </div>
+            
+            <!-- Justificatif fichier -->
+            <div class="form-group mb-4">
+                <label class="form-label">Justificatif numérique</label>
                 <div class="file-input-wrapper">
-                    <input type="file" class="form-control" id="justificatif" name="justificatif" 
-                        accept=".pdf,.jpg,.jpeg,.png" required>
-                    <label for="justificatif" class="file-input-label">
+                    <input type="file" class="form-control" id="justificatif_fichier" name="justificatif_fichier" 
+                        accept=".pdf,.jpg,.jpeg,.png,.doc,.docx,.txt">
+                    <label for="justificatif_fichier" class="file-input-label">
                         <i class="fas fa-cloud-upload-alt mr-2"></i>
-                        <span id="file-name">Choisir un fichier (PDF, JPG, PNG - Max 2MB)</span>
+                        <span id="file-name">Choisir un fichier (PDF, images, documents - Max 5MB)</span>
                     </label>
                 </div>
-                <small class="form-text text-muted mt-2">
-                    <i class="fas fa-info-circle mr-1"></i>
-                    Formats acceptés: PDF, JPG, PNG (taille maximale: 2MB)
-                </small>
             </div>
-            
-            <!-- Commentaire supplémentaire -->
-            <div class="form-group mb-4">
-                <label for="commentaire" class="form-label">Commentaire (optionnel)</label>
-                <textarea class="form-control" id="commentaire" name="commentaire" 
-                    rows="3" placeholder="Ajoutez un commentaire si nécessaire..."></textarea>
-            </div>
-            
+
             <!-- Boutons d'action -->
             <div class="form-group row mt-5">
                 <div class="col-sm-6 mb-3 mb-sm-0">
@@ -162,14 +158,20 @@
             e.preventDefault();
             
             const formData = new FormData(this);
+            const submitBtn = $(this).find('button[type="submit"]');
             
+            // Désactiver le bouton pendant l'envoi
+            submitBtn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin mr-2"></i> Envoi en cours...');
+
             $.ajax({
-                url: '/abscence/justifier',
+                url: '/absence/justifier/submit',  // URL corrigée
                 type: 'POST',
                 data: formData,
                 processData: false,
                 contentType: false,
                 success: function(response) {
+                    console.log('Réponse reçue:', response); // Pour debug
+                    
                     if (response.success) {
                         Swal.fire({
                             icon: 'success',
@@ -178,7 +180,8 @@
                             confirmButtonText: 'OK',
                             confirmButtonColor: '#4e73df'
                         }).then(() => {
-                            // Recharger la page pour mettre à jour la liste
+                            // Fermer le formulaire et recharger
+                            $('#formulaireJustificationContainer').html('');
                             location.reload();
                         });
                     } else {
@@ -191,14 +194,19 @@
                         });
                     }
                 },
-                error: function(xhr) {
+                error: function(xhr, status, error) {
+                    console.error('Erreur AJAX:', status, error); // Pour debug
                     Swal.fire({
                         icon: 'error',
-                        title: 'Erreur',
-                        text: 'Erreur lors de l\'envoi du formulaire',
+                        title: 'Erreur de connexion',
+                        text: 'Impossible de contacter le serveur. Vérifiez votre connexion.',
                         confirmButtonText: 'OK',
                         confirmButtonColor: '#e74a3b'
                     });
+                },
+                complete: function() {
+                    // Réactiver le bouton
+                    submitBtn.prop('disabled', false).html('<i class="fas fa-paper-plane mr-2"></i> Soumettre la justification');
                 }
             });
         });
