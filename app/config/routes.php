@@ -11,12 +11,10 @@ use app\controllers\migration\MigrationController;
 
 use app\controllers\cvController;
 
+use app\controllers\MessagerieController;
 use app\controllers\PlanningEntretienController;
 use app\controllers\ApiPlanningEntretienController;
-
-use app\controllers\MessagerieController;
-use app\controllers\conge\CongeController;
-use app\controllers\conge\AbscenceController;
+use app\controllers\PointageController;
 
 use flight\Engine;
 use flight\net\Router;
@@ -26,11 +24,32 @@ use flight\net\Router;
  * @var Router $router 
  * @var Engine $app
  */
+/*$router->get('/', function() use ($app) {
+	$Welcome_Controller = new WelcomeController($app);
+	$app->render('welcome', [ 'message' => 'It works!!' ]);
+});*/
+
+$welcomeController = new WelcomeController();
+$ConnexionController = new ConnexionController();
+
+
+$pointageController = new PointageController();
+$router->get('/pointage', [ $pointageController, 'getAllEmployes' ]);
+// fichier routes.php ou bootstrap
+
+// Relève individuelle AVEC période
+Flight::route('GET /presence/individuelle/@idEmploye', [$pointageController, 'releverPresenceIndividuelle']);
+
+// Relève groupe AVEC période
+Flight::route('GET /presence/groupe/@dept', [$pointageController, 'releverPresenceGroupe']);
+
+$router->get('/employe', [ $ConnexionController, 'AppelLoginE' ]);
 
 $ConnexionController = new ConnexionController();
 $router->get('/', [ $ConnexionController, 'AppelLoginU' ]);
 $router->post('/inscriptionU', [ $ConnexionController, 'InscrireU' ]);
 $router->post('/loginU', [ $ConnexionController, 'VerificationConnectionU' ]);
+$router->post('/loginE', [ $ConnexionController, 'VerificationConnectionE' ]);
 $router->get('/deconnexion', [ $ConnexionController, 'deconnexion' ]);
 
 $router->get('/admin', [ $ConnexionController, 'AppelLoginA' ]);
@@ -73,6 +92,12 @@ $router->get('/retourFill',[ $cvController, 'retourAccueilU']);
 $router->get('/listeCV',[ $cvController, 'listeCV']);
 
 $router->get('/exportCV',[ $cvController, 'exportExcel']);
+$router->post('/exportRelevePost',[ $pointageController, 'exportExcelPost']);
+$router->get('/relevePresenceE/@idEmploye', [$pointageController, 'releverPresenceE']);
+$router->get('/presence/export/pdf/@idEmploye', [$pointageController, 'exporterPDF']);
+$router->get('/presence/export/csv/@idEmploye', [$pointageController, 'exporterCSV']);
+
+
 
 // $router->get('/CV', [ $cvController, 'redirectCV']);
 
@@ -97,6 +122,8 @@ $WelcomeController = new WelcomeController();
 $router->get('/accueilG', [ $WelcomeController, 'AppelAccueilG' ]);
 $router->get('/accueilA', [ $WelcomeController, 'AppelAccueilA' ]);
 $router->get('/accueilU', [ $WelcomeController, 'AppelAccueilU' ]);
+$router->post('/deconnexionE', [ $ConnexionController, 'deconnexionE' ]);
+
 
 $AnnoncesController = new AnnoncesController();
     
