@@ -20,6 +20,7 @@ use app\controllers\PointageController;
 use app\controllers\conge\CongeController;
 use app\controllers\conge\AbscenceController;
 
+use app\controllers\FichePaieController;
 use flight\Engine;
 use flight\net\Router;
 //use Flight;
@@ -216,6 +217,16 @@ $router->group( "/migration" , function($router) use ($Migration_Controller){
 // Route pour SSE
 Flight::route('GET /messagerie/sse', [MessagerieController::class, 'sseNotifications']);
 
+
+$fiche_paie_controller = new FichePaieController();
+
+$router->group( "/fiche_paie" , function($router) use ($fiche_paie_controller){
+		// route vers la page de formulaire
+		$router->get("/affichage", [$fiche_paie_controller,'renderFichePaie']);
+		// route vers la liste des fiche de paie d'un candidat
+		$router->get("/liste", [$fiche_paie_controller , 'renderListeFichePaie']); 
+	}
+);
 $Conge_Controller = new CongeController();
 
 // Routes de gestion des congés et absences

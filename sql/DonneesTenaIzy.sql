@@ -9,7 +9,6 @@ INSERT INTO departements (nom) VALUES
   ('Comptabilite'),
   ('Stock'),
   ('Vente');
-
 -- Personnes
 INSERT INTO personnes (nom, prenom, date_naissance, contact, lien_image) VALUES
   ('Rakoto', 'Jean', '1985-03-12', '0341234567', 'images/jean.jpg'),
@@ -185,7 +184,7 @@ INSERT INTO reponses_question (id_question, reponse, est_correct) VALUES
 (13, 'Comparer revenus et depenses, calculer marge', TRUE),
 (13, 'Se baser uniquement sur l instinct', FALSE),
 (13, 'Consulter des rumeurs de marche', FALSE),
-(14, 'Offrir un service de qualite et un suivi', TRUE),
+(14, 'Offrir un service de qualite un suivi', TRUE),
 (14, 'Augmenter les prix sans raison', FALSE),
 (14, 'Eviter tout contact apres la vente', FALSE),
 (15, 'Attribuer selon competences et suivre l avancement', TRUE),

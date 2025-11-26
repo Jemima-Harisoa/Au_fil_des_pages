@@ -333,6 +333,11 @@ CREATE TABLE config_entretien (
 CREATE TABLE evenements (
     id_evenement SERIAL PRIMARY KEY,
     nom_evenement VARCHAR
+); 
+CREATE TABLE conge_type (
+    id_type SERIAL PRIMARY KEY,
+    nom VARCHAR,
+    description VARCHAR
 );
 
 CREATE TABLE historique_mobilite (
@@ -404,6 +409,7 @@ CREATE TABLE conge_historique (
     CONSTRAINT fk_conge_historique_employe FOREIGN KEY (id_employe) REFERENCES employes(id_employe)
 );
 
+<<<<<<< HEAD
 CREATE TABLE abscence_conge_suivi (
     id_suivi SERIAL PRIMARY KEY,
     id_demande INT,
@@ -420,4 +426,130 @@ CREATE TABLE abscence_conge_suivi (
     CONSTRAINT fk_conge_suivi_employe FOREIGN KEY (id_employe) REFERENCES employes(id_employe),
     CONSTRAINT fk_conge_suivi_abscence FOREIGN KEY (id_abscence) REFERENCES abscence(id_abscence),
     CONSTRAINT fk_conge_suivi_type_penalite FOREIGN KEY (id_type_penalite) REFERENCES abscence_type_penalite(id_type_penalite)
+=======
+-- Solde de congés par employé et par type (nouvelle table pour gérer séparément congé normal/exc.)
+CREATE TABLE conge_solde (
+    id_solde SERIAL PRIMARY KEY,
+    id_employe INT,
+    id_type_conge INT,
+    solde DOUBLE PRECISION,
+    annee INT,
+    CONSTRAINT fk_conge_solde_employe FOREIGN KEY (id_employe) REFERENCES employes(id_employe),
+    CONSTRAINT fk_conge_solde_type FOREIGN KEY (id_type_conge) REFERENCES conge_type(id_type)
+);
+
+CREATE TABLE abscence (
+    id_abscence SERIAL PRIMARY KEY,
+    debut TIMESTAMP,
+    fin TIMESTAMP,
+    est_autorise BOOLEAN,
+    justificatif TEXT
+);
+
+CREATE TABLE pointage (
+    id_pointage SERIAL PRIMARY KEY,
+    id_employe INT,
+    connexion TIMESTAMP,
+    deconnexion TIMESTAMP,
+    duree_session INTERVAL,
+    CONSTRAINT fk_pointage_employe FOREIGN KEY (id_employe) REFERENCES employes(id_employe)
+);
+
+CREATE TABLE seuil_tolerance (
+    id_seuil SERIAL PRIMARY KEY,
+    valeur NUMERIC(5,2) DEFAULT 5,
+    date_creation TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE salaire_historique (
+    id_salaire_historique SERIAL PRIMARY KEY,
+    salaire DOUBLE PRECISION,
+    date_creation TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    id_employe INT,
+    CONSTRAINT fk_salaire_historique_employe FOREIGN KEY (id_employe) REFERENCES employes(id_employe)
+);
+
+CREATE TABLE parametre (
+    id SERIAL PRIMARY KEY,
+    libelle VARCHAR,
+    pourcentage NUMERIC(5,2)
+);
+
+CREATE TABLE smig (
+    id SERIAL PRIMARY KEY,
+    montant NUMERIC(10,2) NOT NULL,
+    date_application DATE NOT NULL
+);
+
+
+CREATE TABLE irsa (
+    id SERIAL PRIMARY KEY,
+    min DOUBLE PRECISION,
+    max DOUBLE PRECISION,
+    pourcentage NUMERIC(5,2),
+    date_creation TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE type_prime (
+    id SERIAL PRIMARY KEY,
+    libelle VARCHAR
+);
+
+CREATE TABLE prime (
+    id SERIAL PRIMARY KEY,
+    id_type_prime INT,
+    pourcentage NUMERIC(5,2),
+    id_employe INT,
+    date_creation TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_prime_type FOREIGN KEY (id_type_prime) REFERENCES type_prime(id),
+    CONSTRAINT fk_prime_employe FOREIGN KEY (id_employe) REFERENCES employes(id_employe)
+>>>>>>> origin/gestion_paie
+);
+
+CREATE TABLE preavis (
+    id SERIAL PRIMARY KEY,
+    id_employe INT NOT NULL REFERENCES employes(id_employe) ON DELETE CASCADE,
+    date_debut_preavis DATE NOT NULL,
+    date_fin_preavis DATE NOT NULL,
+    est_termine BOOLEAN DEFAULT FALSE,
+    date_creation TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE heure_supplementaire_config (
+    id SERIAL PRIMARY KEY,
+    date_creation TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    nombre_premieres_heures INT NOT NULL
+);
+
+CREATE TABLE heures_supplementaire (
+    id SERIAL PRIMARY KEY,
+    id_employe INT NOT NULL REFERENCES employes(id_employe) ON DELETE CASCADE,
+    nombre_heure_effectue NUMERIC(5,2) NOT NULL,
+    mois INT NOT NULL CHECK (mois >= 1 AND mois <= 12),
+    annee INT NOT NULL,
+    numero_semaine INT NOT NULL CHECK (numero_semaine >= 1 AND numero_semaine <= 52),
+    date_enregistrement TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE heures_supplementaire_historique (
+    id SERIAL PRIMARY KEY,
+    id_heure_supp INT NOT NULL REFERENCES heure_supplementaire(id) ON DELETE CASCADE,
+    nombre_heure_effectue NUMERIC(5,2) NOT NULL,
+    mois INT NOT NULL CHECK (mois >= 1 AND mois <= 12),
+    annee INT NOT NULL,
+    numero_semaine INT NOT NULL CHECK (numero_semaine >= 1 AND numero_semaine <= 53),
+    date_creation TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+
+CREATE TABLE abscence_conge_suivi (
+    id_suivi SERIAL PRIMARY KEY,
+    id_demande INT,
+    id_type INT,
+    id_employe INT,
+    nombre_conge INt,
+    annee INT,
+    CONSTRAINT fk_conge_suivi_demande FOREIGN KEY (id_demande) REFERENCES conge_demande(id_demande),
+    CONSTRAINT fk_conge_suivi_type FOREIGN KEY (id_type) REFERENCES conge_type(id_type),
+    CONSTRAINT fk_conge_suivi_employe FOREIGN KEY (id_employe) REFERENCES employes(id_employe)
 );
