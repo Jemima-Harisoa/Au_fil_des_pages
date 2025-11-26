@@ -315,23 +315,24 @@ class MessagerieModel {
     }
 
         // Fonction pour détecter et styliser les liens dans les messages
-    public function styliserLiens($message, $urlAffichage) {
-        // Pattern pour détecter URLs absolues et chemins relatifs
+    public function styliserLiens($message, $urlAffichage ) {
         $pattern = '/((https?:\/\/[^\s]+)|(\/[a-zA-Z0-9\/._-][^\s]*))/i';
         
-        $messageAvecLiens = preg_replace_callback($pattern, function($matches) {
-            $url = htmlspecialchars($matches[0]);
+        $messageAvecLiens = preg_replace_callback($pattern, function($matches) use ($urlAffichage) {
+            $raw = $matches[0];
+            // Escape displayed text and href values
+            $display = htmlspecialchars($raw, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
             
-            // Si c'est un chemin relatif (commence par /)
-            if (strpos($matches[0], '/') === 0 && !preg_match('/^\/\/[^\/]/', $matches[0])) {
-                // Utiliser le base URL de Flight ou une config
-                $baseUrl = Flight::request()->base; // ou définir une constante
-                $urlComplete = $baseUrl . $matches[0];
-                return '<a href="' . $urlComplete . '" class="btn btn-primary btn-sm message-lien" style="padding: 4px 12px; margin: 2px; display: inline-block; text-decoration: none;"> ' . $urlAffichage . '</a>';
+            // Relative path -> build full URL safely
+            if (strpos($raw, '/') === 0 && !preg_match('/^\/\/[^\/]/', $raw)) {
+                $baseUrl = Flight::request()->base ?? '';
+                $href = htmlspecialchars($baseUrl . $raw, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+            } else {
+                $href = htmlspecialchars($raw, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
             }
             
-            // URLs absolues
-            return '<a href="' . $url . '" target="_blank" class="btn btn-primary btn-sm message-lien" style="padding: 4px 12px; margin: 2px; display: inline-block; text-decoration: none;"> ' . $urlAffichage . '</a>';
+            $label = ($urlAffichage ?? 'Voir le lien');
+            return '<a href="' . $href . '" target="_blank" class="btn btn-primary btn-sm message-lien" style="padding: 4px 12px; margin: 2px; display: inline-block; text-decoration: none;">' . htmlspecialchars($label, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') . '</a>';
         }, $message);
         
         return $messageAvecLiens;

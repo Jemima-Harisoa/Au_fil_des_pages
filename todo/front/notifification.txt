@@ -1,0 +1,17 @@
+Objectif: 
+dans la liste des abscences lorsqu'on clique sur notifier une notification avec le lien vers 
+la liste des abscence non justifier est envoye vers l'employe
+
+Comment ca marche :
+=> dans abscence_admin qui liste toute les abscence on peut voir qui sont autorise ou non
+    + pour celle autorise on peut voir les justificatif
+    + pour celle non autorise on notifie la personne
+=> quand il est notifier l'employe recoit un message et est rediriger vers /abscence/justifier
+
+Ce qu'il faut:
+un controller pour envoye le message de notification dans justificationController 
+fonction : notifierAbsences()
+route : $router->get('/notifier', [$Abscence_Controller, 'notifierAbsences'] );
+logic interne : appel de la fonction pour les notif et envoyer le lien vers la personne 
+concerner
+

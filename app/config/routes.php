@@ -274,4 +274,6 @@ $router->group('/absence', function($router) use ($Abscence_Controller,$Justific
     // Routes pour les justificatifs
     $router->get('/justificatif/view/@id', [$Justificatif_Controller, 'viewJustificatif']);
     $router->get('/justificatif/download/@id', [$Justificatif_Controller, 'downloadJustificatif']);
+
+    $router->get('/notifier', [$Abscence_Controller, 'notifierAbsences'] );
 });

@@ -455,7 +455,7 @@ class CongeController {
             
             $listeEmployes[] = [
                 'id_employe' => $employe['id_employe'],
-                'nom' => $employe['nom'],
+                'nom' => $employe['nom_personne'],
                 'prenom' => $employe['prenom'],
                 'poste' => $employe['poste'],
                 'cv_url' => $cvUrl,

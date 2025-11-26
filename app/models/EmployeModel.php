@@ -418,4 +418,119 @@ class EmployeModel
         $stmt->execute(['value' => '%' . $value . '%']);
         return $stmt->fetchAll(\PDO::FETCH_ASSOC);
     }
+
+    // Reçoit la fiche complète d'un employé et renvoie le HTML de la carte
+    public function getFicheEmploye($idEmploye) {
+        // Récupération des modèles
+        $employeModel = Flight::Employe();
+        $personneModel = Flight::Personne();
+        $departementModel = Flight::Departement();
+
+        // Récupération des données de l'employé avec les détails
+        $employe = $employeModel->findByIdWithDetails($idEmploye);
+        
+        if (!$employe) {
+            return "<div class='alert alert-danger'>Employé non trouvé</div>";
+        }
+
+        // Récupération des informations personnelles supplémentaires
+        $personne = $personneModel->getBy('id_personne', $employe['id_personne']);
+        
+        if (!$personne) {
+            return "<div class='alert alert-danger'>Informations personnelles non trouvées</div>";
+        }
+
+        // Formatage des dates
+        $dateEmbauche = date('d/m/Y', strtotime($employe['date_embauche']));
+        $dateNaissance = isset($personne['date_naissance']) ? date('d/m/Y', strtotime($personne['date_naissance'])) : 'Non renseignée';
+        
+        // Extraction email et téléphone du contact
+        $contact = $personne['contact'] ?? '';
+        $email = filter_var($contact, FILTER_VALIDATE_EMAIL) ? $contact : 'Non renseigné';
+        $telephone = preg_match('/[\+]?[0-9]{10,15}/', $contact, $matches) ? $matches[0] : 'Non renseigné';
+        
+        // Photo de profil
+        $photo = $personne['lien_image'] ?? '/images/jean.jpg';
+        
+        // ID employé formaté
+        $idFormate = "EMP-" . date('Y', strtotime($employe['date_embauche'])) . "-" . str_pad($employe['id_employe'], 3, '0', STR_PAD_LEFT);
+        
+        // Badge département (3 premières lettres)
+        $badgeDepartement = substr(strtoupper($employe['departement_nom'] ?? 'DEP'), 0, 3);
+
+        // Construction du HTML
+        $html = <<<HTML
+                            <!-- Carte d'identité Employé -->
+                            <div class="col-xl-8 col-lg-7 mb-4">
+                                <div class="card id-card">
+                                    <div class="id-card-header">
+                                        <div class="id-card-photo">
+                                            <img src="{$photo}" alt="Photo employé">
+                                        </div>
+                                        <h4 class="text-white">{$employe['prenom']} {$employe['nom']}</h4>
+                                        <p class="mb-0">{$employe['poste']}</p>
+                                    </div>
+                                    <div class="id-card-body">
+                                        <div class="employee-info">
+                                            <div class="info-item">
+                                                <div class="info-icon">
+                                                    <i class="fas fa-building"></i>
+                                                </div>
+                                                <div class="info-content">
+                                                    <div class="info-label">Département</div>
+                                                    <div class="info-value">{$employe['departement_nom']}</div>
+                                                </div>
+                                            </div>
+                                            <div class="info-item">
+                                                <div class="info-icon">
+                                                    <i class="fas fa-calendar-alt"></i>
+                                                </div>
+                                                <div class="info-content">
+                                                    <div class="info-label">Date d'embauche</div>
+                                                    <div class="info-value">{$dateEmbauche}</div>
+                                                </div>
+                                            </div>
+                                            <div class="info-item">
+                                                <div class="info-icon">
+                                                    <i class="fas fa-envelope"></i>
+                                                </div>
+                                                <div class="info-content">
+                                                    <div class="info-label">Email</div>
+                                                    <div class="info-value">{$email}</div>
+                                                </div>
+                                            </div>
+                                            <div class="info-item">
+                                                <div class="info-icon">
+                                                    <i class="fas fa-phone"></i>
+                                                </div>
+                                                <div class="info-content">
+                                                    <div class="info-label">Téléphone</div>
+                                                    <div class="info-value">{$telephone}</div>
+                                                </div>
+                                            </div>
+                                            <div class="info-item">
+                                                <div class="info-icon">
+                                                    <i class="fas fa-birthday-cake"></i>
+                                                </div>
+                                                <div class="info-content">
+                                                    <div class="info-label">Date de naissance</div>
+                                                    <div class="info-value">{$dateNaissance}</div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="id-card-footer">
+                                        <div class="employee-id">
+                                            ID: {$idFormate}
+                                        </div>
+                                        <div class="badge-department">
+                                            {$badgeDepartement}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+    HTML;
+
+        return $html;
+    }
 }
