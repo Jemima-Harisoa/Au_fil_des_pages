@@ -16,6 +16,9 @@ use app\controllers\PlanningEntretienController;
 use app\controllers\ApiPlanningEntretienController;
 use app\controllers\PointageController;
 
+use app\controllers\conge\CongeController;
+use app\controllers\conge\AbscenceController;
+
 use flight\Engine;
 use flight\net\Router;
 //use Flight;
