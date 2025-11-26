@@ -2,6 +2,7 @@
 use app\controllers\WelcomeController;
 use app\controllers\ConnexionController;
 use app\controllers\AnnoncesController;
+use app\controllers\EmployeController;
 use app\controllers\conge\JustificatifController;
 
 
@@ -34,7 +35,10 @@ use flight\net\Router;
 
 $welcomeController = new WelcomeController();
 $ConnexionController = new ConnexionController();
+$employeController = new EmployeController();
 
+$router-> get('/employeList', [ $employeController, 'redirectEmploye' ]);
+$router-> get('/employeDetails/@id', [ $employeController, 'redirectEmployeDetails' ]);
 
 $pointageController = new PointageController();
 $router->get('/pointage', [ $pointageController, 'getAllEmployes' ]);
