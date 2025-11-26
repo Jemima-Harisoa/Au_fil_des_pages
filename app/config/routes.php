@@ -69,6 +69,7 @@ $WelcomeController = new WelcomeController();
 $router->get('/accueilG', [ $WelcomeController, 'AppelAccueilG' ]);
 $router->get('/accueilA', [ $WelcomeController, 'AppelAccueilA' ]);
 $router->get('/accueilU', [ $WelcomeController, 'AppelAccueilU' ]);
+$router->get('/accueilE', [ $WelcomeController, 'AppelAccueilE' ]);
 
 $AnnoncesController = new AnnoncesController();
     
@@ -216,6 +217,18 @@ $router->group( "/migration" , function($router) use ($Migration_Controller){
 
 // Route pour SSE
 Flight::route('GET /messagerie/sse', [MessagerieController::class, 'sseNotifications']);
+
+Flight::route('GET /messagerie/conversationsE/@id_employe', [MessagerieController::class, 'getConversationsE']);
+Flight::route('GET /messagerie/searchEmployes/@id_employe', [MessagerieController::class, 'searchEmployes']);
+
+Flight::route('GET /messagerieE/@id_employe/@partenaire_id', [MessagerieController::class, 'showMessagerieE']);
+Flight::route('POST /messagerieE/send', [MessagerieController::class, 'sendMessageE']);
+
+Flight::route('GET /messagerie/conversationsE/@id_employe', [MessagerieController::class, 'getConversationsE']);
+Flight::route('GET /messagerie/searchEmployes/@id_employe', [MessagerieController::class, 'searchEmployes']);
+
+Flight::route('GET /messagerieE/@id_employe/@partenaire_id', [MessagerieController::class, 'showMessagerieE']);
+Flight::route('POST /messagerieE/send', [MessagerieController::class, 'sendMessageE']);
 
 
 $fiche_paie_controller = new FichePaieController();

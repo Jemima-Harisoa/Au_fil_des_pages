@@ -418,6 +418,41 @@ class EmployeModel
         $stmt->execute(['value' => '%' . $value . '%']);
         return $stmt->fetchAll(\PDO::FETCH_ASSOC);
     }
+        /**
+         * Retourne tous les employés sauf celui dont l'id est fourni.
+         *
+         * @param int $id_employe
+         * @return array
+         */
+        public function getEmployeAutre(int $id_employe): array {
+            $sql = "
+                SELECT 
+                    e.id_employe,
+                    e.id_personne,
+                    e.id_contrat,
+                    e.id_departement,
+                    e.poste,
+                    e.date_embauche,
+                    e.nombre_conge,
+                    e.salaire_base,
+                    p.nom AS nom_personne,
+                    p.prenom,
+                    p.date_naissance,
+                    p.contact,
+                    p.lien_image,
+                    d.nom AS nom_departement
+                FROM employes e
+                LEFT JOIN personnes p ON e.id_personne = p.id_personne
+                LEFT JOIN departements d ON e.id_departement = d.id_departement
+                WHERE e.id_employe <> :id
+                ORDER BY p.nom ASC, p.prenom ASC
+            ";
+            $stmt = $this->db->prepare($sql);
+            $stmt->execute(['id' => $id_employe]);
+            $rows = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+            return $rows ?: [];
+        }
+
 
     // Reçoit la fiche complète d'un employé et renvoie le HTML de la carte
     public function getFicheEmploye($idEmploye) {
