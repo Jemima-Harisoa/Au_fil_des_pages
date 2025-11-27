@@ -224,12 +224,6 @@ Flight::route('GET /messagerie/searchEmployes/@id_employe', [MessagerieControlle
 Flight::route('GET /messagerieE/@id_employe/@partenaire_id', [MessagerieController::class, 'showMessagerieE']);
 Flight::route('POST /messagerieE/send', [MessagerieController::class, 'sendMessageE']);
 
-Flight::route('GET /messagerie/conversationsE/@id_employe', [MessagerieController::class, 'getConversationsE']);
-Flight::route('GET /messagerie/searchEmployes/@id_employe', [MessagerieController::class, 'searchEmployes']);
-
-Flight::route('GET /messagerieE/@id_employe/@partenaire_id', [MessagerieController::class, 'showMessagerieE']);
-Flight::route('POST /messagerieE/send', [MessagerieController::class, 'sendMessageE']);
-
 
 $fiche_paie_controller = new FichePaieController();
 
