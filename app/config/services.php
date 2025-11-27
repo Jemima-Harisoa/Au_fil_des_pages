@@ -35,7 +35,7 @@ use app\models\conge\AbscenceModel;
 use app\models\conge\CongeModel;
 use app\models\PrimeModel;
 use app\models\TypePrimeModel;
-
+use app\models\conge\CalendrierModel;
 
 /** 
  * @var array $config This comes from the returned array at the bottom of the config.php file
@@ -191,4 +191,8 @@ Flight::map('Prime', function () {
 
 Flight::map('TypePrime', function () {
     return new PrimeModel(Flight::db());
+});
+
+Flight::map('Calendrier', function () {
+    return new CalendrierModel(Flight::db());
 });

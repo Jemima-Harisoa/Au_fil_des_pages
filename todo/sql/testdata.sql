@@ -522,3 +522,19 @@ INSERT INTO notifications (id_personne, message, date_notification) VALUES
 (2, 'Votre demande de congé a été validée', '2025-11-11 10:30:00'),
 (3, 'Rappel : Vous avez une réunion à 14h00', '2025-11-10 13:45:00'),
 (5, 'Votre contrat a été mis à jour', '2025-11-09 16:20:00');
+
+
+INSERT INTO abscence (id_employe, debut, fin, est_autorise, justificatif) VALUES
+(1, '2025-09-10 08:00:00', '2025-09-12 17:00:00', TRUE, 'Certificat médical - Consultation et repos');
+
+INSERT INTO abscence (id_employe, debut, fin, est_autorise, justificatif) VALUES
+(1, '2025-11-18 08:00:00', '2025-11-18 17:00:00', FALSE, NULL);
+
+INSERT INTO abscence (id_employe, debut, fin, est_autorise, justificatif) VALUES
+(2, '2025-07-15 00:00:00', '2025-07-17 23:59:59', TRUE, 'Autorisation formation externe - Attestation fournie');
+
+INSERT INTO abscence (id_employe, debut, fin, est_autorise, justificatif) VALUES
+(2, '2025-10-08 09:00:00', '2025-10-08 17:00:00', FALSE, NULL);
+
+INSERT INTO abscence (id_employe, debut, fin, est_autorise, justificatif) VALUES
+(9, '2025-11-03 08:00:00', '2025-11-03 17:00:00', FALSE, NULL);

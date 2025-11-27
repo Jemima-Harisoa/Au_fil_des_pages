@@ -151,7 +151,7 @@ class MessagerieController {
                     $lastCount = $count;
                 }
                 
-            } catch (Exception $e) {
+            } catch (\Exception $e) {
                 echo "data: " . json_encode(['error' => $e->getMessage()]) . "\n\n";
                 flush();
                 break;
@@ -198,7 +198,7 @@ class MessagerieController {
             } else {
                 echo json_encode(['success' => false, 'message' => 'Non connecté']);
             }
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             echo json_encode(['success' => false, 'message' => 'Erreur: ' . $e->getMessage()]);
         }
         exit;
@@ -230,7 +230,7 @@ class MessagerieController {
             } else {
                 echo json_encode(['success' => false, 'message' => 'Non connecté']);
             }
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             echo json_encode(['success' => false, 'message' => 'Erreur: ' . $e->getMessage()]);
         }
         exit;
@@ -450,7 +450,7 @@ public function refreshConversation() {
         } else {
             echo json_encode(['success' => false]);
         }
-    } catch (Exception $e) {
+    } catch (\Exception $e) {
         echo json_encode(['success' => false, 'message' => $e->getMessage()]);
     }
     exit;

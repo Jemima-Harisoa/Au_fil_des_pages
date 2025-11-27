@@ -166,9 +166,9 @@
                                 <datalist id="listeEmployes">
                                     <?php if (!empty($data['liste_employes'])): ?>
                                         <?php foreach ($data['liste_employes'] as $emp): ?>
-                                            <option value="<?= htmlspecialchars($emp['nom'] . ' ' . $emp['prenom']) ?>" 
+                                            <option value="<?= htmlspecialchars($emp['nom_personne'] . ' ' . $emp['prenom']) ?>" 
                                                     data-id="<?= htmlspecialchars($emp['id_employe']) ?>">
-                                                <?= htmlspecialchars($emp['nom'] . ' ' . $emp['prenom'] . ' — ' . $emp['departement_nom']) ?>
+                                                <?= htmlspecialchars($emp['nom_personne'] . ' ' . $emp['prenom'] . ' — ' . $emp['nom_departement']) ?>
                                             </option>
                                         <?php endforeach; ?>
                                     <?php endif; ?>

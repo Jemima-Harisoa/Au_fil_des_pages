@@ -19,6 +19,8 @@ use app\controllers\PointageController;
 
 use app\controllers\conge\CongeController;
 use app\controllers\conge\AbscenceController;
+use app\controllers\conge\NotificationController;
+use app\controllers\conge\CalendrierController;
 
 use app\controllers\FichePaieController;
 use flight\Engine;
@@ -69,7 +71,6 @@ $WelcomeController = new WelcomeController();
 $router->get('/accueilG', [ $WelcomeController, 'AppelAccueilG' ]);
 $router->get('/accueilA', [ $WelcomeController, 'AppelAccueilA' ]);
 $router->get('/accueilU', [ $WelcomeController, 'AppelAccueilU' ]);
-$router->get('/accueilE', [ $WelcomeController, 'AppelAccueilE' ]);
 
 $AnnoncesController = new AnnoncesController();
     
@@ -218,12 +219,6 @@ $router->group( "/migration" , function($router) use ($Migration_Controller){
 // Route pour SSE
 Flight::route('GET /messagerie/sse', [MessagerieController::class, 'sseNotifications']);
 
-Flight::route('GET /messagerie/conversationsE/@id_employe', [MessagerieController::class, 'getConversationsE']);
-Flight::route('GET /messagerie/searchEmployes/@id_employe', [MessagerieController::class, 'searchEmployes']);
-
-Flight::route('GET /messagerieE/@id_employe/@partenaire_id', [MessagerieController::class, 'showMessagerieE']);
-Flight::route('POST /messagerieE/send', [MessagerieController::class, 'sendMessageE']);
-
 
 $fiche_paie_controller = new FichePaieController();
 
@@ -235,9 +230,10 @@ $router->group( "/fiche_paie" , function($router) use ($fiche_paie_controller){
 	}
 );
 $Conge_Controller = new CongeController();
+$Calendrier_Controller = new CalendrierController();
 
 // Routes de gestion des congés et absences
-$router->group('/conge', function($router) use ($Conge_Controller) {
+$router->group('/conge', function($router) use ($Conge_Controller, $Calendrier_Controller) {
     
     // Route principale - fiche employé complète
     $router->get('/fiche/@idEmploye', [$Conge_Controller, 'getFicheEmploye']);
@@ -255,13 +251,18 @@ $router->group('/conge', function($router) use ($Conge_Controller) {
     
     // Route par défaut
     $router->get('/', [$Conge_Controller, 'getListeEmployes']);
+
+    // Routes pour le calendrier des congés
+    $router->get('/calendrier', [$Calendrier_Controller, 'index']);
+    $router->get('/calendrier/data', [$Calendrier_Controller, 'getData']);
 });
 
 // Routes de gestion des justifications d'absences
 $Abscence_Controller = new AbscenceController();
 $Justificatif_Controller = new JustificatifController();
+$Notification_Controller = new NotificationController();
 
-$router->group('/absence', function($router) use ($Abscence_Controller,$Justificatif_Controller ) {
+$router->group('/absence', function($router) use ($Abscence_Controller,$Justificatif_Controller, $Notification_Controller ) {
     // Afficher les absences à justifier
     $router->get('/justifier', [$Abscence_Controller, 'getListeAbsencesAJustifier']);
     
@@ -282,5 +283,7 @@ $router->group('/absence', function($router) use ($Abscence_Controller,$Justific
     $router->get('/justificatif/view/@id', [$Justificatif_Controller, 'viewJustificatif']);
     $router->get('/justificatif/download/@id', [$Justificatif_Controller, 'downloadJustificatif']);
 
-    $router->get('/notifier', [$Abscence_Controller, 'notifierAbsences'] );
+    $router->get('/notifier/@idAbsence', [$Notification_Controller, 'notifierAbsences'] );
+    $router->get('/notifier/tous', [$Notification_Controller, 'notifierAbsencesLot'] );
 });
+

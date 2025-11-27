@@ -311,64 +311,67 @@ document.addEventListener('keydown', function(e) {
     }
 });
 
-function notifierEmploye(idEmploye, idAbsence) {
-    // Votre code existant pour notifier...
-    Swal.fire({
-        title: 'Notifier l\'employé',
-        text: "Voulez-vous envoyer une notification à l'employé pour justifier son absence ?",
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonColor: '#f6c23e',
-        cancelButtonColor: '#d1d3e2',
-        confirmButtonText: 'Oui, notifier',
-        cancelButtonText: 'Annuler',
-        input: 'textarea',
-        inputLabel: 'Message personnalisé (optionnel)',
-        inputPlaceholder: 'Veuillez justifier votre absence dans les plus brefs délais.',
-        inputAttributes: {
-            'aria-label': 'Message personnalisé'
-        }
-    }).then((result) => {
-        if (result.isConfirmed) {
-            // Envoyer la notification
-            $.ajax({
-                url: '/abscence/notifier',
-                type: 'POST',
-                data: {
-                    id_employe: idEmploye,
-                    id_abscence: idAbsence,
-                    message: result.value
-                },
-                success: function(response) {
-                    if (response.success) {
-                        Swal.fire({
-                            icon: 'success',
-                            title: 'Succès',
-                            text: response.message,
-                            confirmButtonColor: '#1cc88a'
-                        });
-                    } else {
-                        Swal.fire({
-                            icon: 'error',
-                            title: 'Erreur',
-                            text: response.error,
-                            confirmButtonColor: '#e74a3b'
-                        });
-                    }
-                },
-                error: function() {
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Erreur',
-                        text: 'Erreur lors de l\'envoi de la notification',
-                        confirmButtonColor: '#e74a3b'
-                    });
-                }
-            });
-        }
-    });
+// Gestion des notifications d'absence
+$(document).on('click', '.notifier-absence', function() {
+    var idAbsence = $(this).data('absence-id');
+    var bouton = $(this);
+    
+    // Afficher un indicateur de chargement
+    bouton.html('<i class="fas fa-spinner fa-spin"></i> Envoi...').prop('disabled', true);
+    
+    // Envoyer la requête de notification
+    $.get('/notifier/' + idAbsence)
+        .done(function(response) {
+            if (response.success) {
+                // Afficher un message de succès
+                afficherMessage('success', response.message);
+                
+                // Mettre à jour le bouton
+                bouton.html('<i class="fas fa-check"></i> Notifié').removeClass('btn-warning').addClass('btn-success');
+            } else {
+                afficherMessage('error', response.error);
+                bouton.html('<i class="fas fa-bell"></i> Notifier').prop('disabled', false);
+            }
+        })
+        .fail(function() {
+            afficherMessage('error', 'Erreur lors de l\'envoi de la notification');
+            bouton.html('<i class="fas fa-bell"></i> Notifier').prop('disabled', false);
+        });
+});
+
+// Fonction pour afficher les messages
+function afficherMessage(type, message) {
+    var alertClass = type === 'success' ? 'alert-success' : 'alert-danger';
+    var alertHtml = '<div class="alert ' + alertClass + ' alert-dismissible fade show" role="alert">' +
+                    message +
+                    '<button type="button" class="close" data-dismiss="alert">' +
+                    '<span>&times;</span></button></div>';
+    
+    // Ajouter le message en haut de la page
+    $('.container-fluid').prepend(alertHtml);
+    
+    // Supprimer automatiquement après 5 secondes
+    setTimeout(function() {
+        $('.alert').alert('close');
+    }, 5000);
 }
 
+// Notification de tous les employés (bouton optionnel)
+$('#notifier-tous').click(function() {
+    if (confirm('Voulez-vous notifier tous les employés ayant des absences non justifiées ?')) {
+        $.get('/notifier/tous')
+            .done(function(response) {
+                if (response.success) {
+                    afficherMessage('success', response.message);
+                } else {
+                    afficherMessage('error', response.error);
+                }
+            })
+            .fail(function() {
+                afficherMessage('error', 'Erreur lors de l\'envoi des notifications');
+            });
+    }
+});
 // Script pour les filtres par colonne
 $(document).ready(function() {
     // Vos filtres existants...

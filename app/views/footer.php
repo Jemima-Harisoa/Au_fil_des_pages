@@ -1,9 +1,15 @@
 </div>
-
-                <!-- /.container-fluid -->
-
             </div>
+            <!-- End of Main Content -->
 
+            <!-- Footer -->
+            <footer class="sticky-footer bg-white">
+                <div class="container my-auto">
+                    <div class="copyright text-center my-auto">
+                        <span>Copyright &copy; Your Website 2023</span>
+                    </div>
+                </div>
+            </footer>
             <!-- End of Footer -->
 
         </div>
@@ -25,13 +31,17 @@
                 <div class="modal-header">
                     <h5 class="modal-title" id="exampleModalLabel">Ready to Leave?</h5>
                     <button class="close" type="button" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">×</span>
+                        <span aria-hidden="true">&times;</span>
                     </button>
                 </div>
                 <div class="modal-body">Select "Logout" below if you are ready to end your current session.</div>
                 <div class="modal-footer">
                     <button class="btn btn-secondary" type="button" data-dismiss="modal">Cancel</button>
-                    <a class="btn btn-primary" href="/deconnexion">Logout</a>
+                    <form method="post" action="/deconnexionE" style="display:inline;">
+                        <input type="hidden" name="Nom" value="<?= htmlspecialchars($_SESSION['employe']['prenom'] ?? 'Inconnu') ?>">
+                        <input type="hidden" name="mdp" value="<?= htmlspecialchars($_SESSION['employe']['mdp_login'] ?? 'Inconnu') ?>">
+                        <button class="btn btn-primary" type="submit">Logout</button>
+                    </form>
                 </div>
             </div>
         </div>
@@ -46,7 +56,7 @@
 
     <!-- Custom scripts for all pages-->
     <script src="/js/sb-admin-2.min.js"></script>
-
+    
     <!-- Page level plugins -->
     <script src="/vendor/datatables/jquery.dataTables.min.js"></script>
     <script src="/vendor/datatables/dataTables.bootstrap4.min.js"></script>
@@ -55,6 +65,208 @@
     <script src="/js/demo/datatables-demo.js"></script>
 
     <script>
+document.addEventListener('DOMContentLoaded', function() {
+    const idEmploye = <?= $_SESSION['employe']['id_employe'] ?? 'null' ?>;
+    
+    if (!idEmploye) {
+        console.error('ID employé non trouvé');
+        return;
+    }
+    
+    // Charger les conversations au démarrage
+    loadConversations(idEmploye);
+    
+    // Rafraîchir toutes les 10 secondes
+    setInterval(() => loadConversations(idEmploye), 10000);
+    
+    // === GESTION DE LA RECHERCHE ===
+    const searchInput = document.getElementById('messageCenterSearch');
+    const messageCenterTitle = document.getElementById('messageCenterTitle');
+    const toggleBtn = document.getElementById('toggleMessageSearch');
+    const conversationsContainer = document.getElementById('conversationsEmployeContainer');
+    const searchResultsContainer = document.getElementById('employeSearchResults');
+    const messagesDropdown = document.getElementById('messagesDropdown');
+    const dropdownMenu = document.querySelector('.dropdown-list.dropdown-menu');
+    
+    // Empêcher la fermeture du dropdown quand on clique sur l'input ou le header
+    if (dropdownMenu) {
+        dropdownMenu.addEventListener('click', function(e) {
+            // Ne fermer le dropdown QUE si on clique sur un lien de conversation
+            if (!e.target.closest('a[href*="/messagerieE/"]') && 
+                !e.target.closest('.dropdown-item[onclick]')) {
+                e.stopPropagation();
+            }
+        });
+    }
+    
+    // Toggle recherche au clic sur loupe/X
+    toggleBtn.addEventListener('click', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        
+        const isSearchVisible = !searchInput.classList.contains('d-none');
+        
+        if (isSearchVisible) {
+            // Fermer la recherche (clic sur X)
+            searchInput.value = '';
+            searchInput.classList.add('d-none');
+            messageCenterTitle.classList.remove('d-none');
+            searchResultsContainer.classList.add('d-none');
+            conversationsContainer.classList.remove('d-none');
+            toggleBtn.innerHTML = '<i class="fas fa-search fa-sm"></i>';
+        } else {
+            // Ouvrir la recherche (clic sur loupe)
+            messageCenterTitle.classList.add('d-none');
+            searchInput.classList.remove('d-none');
+            toggleBtn.innerHTML = '<i class="fas fa-times fa-sm"></i>';
+            
+            setTimeout(() => {
+                searchInput.focus();
+            }, 100);
+        }
+    });
+    
+    // Empêcher la fermeture lors des interactions avec l'input
+    searchInput.addEventListener('click', function(e) {
+        e.stopPropagation();
+    });
+    
+    searchInput.addEventListener('mousedown', function(e) {
+        e.stopPropagation();
+    });
+    
+    searchInput.addEventListener('focus', function(e) {
+        e.stopPropagation();
+    });
+    
+    searchInput.addEventListener('keydown', function(e) {
+        e.stopPropagation();
+    });
+    
+    // Recherche d'employés avec debounce
+    let searchTimeout;
+    searchInput.addEventListener('input', function(e) {
+        const query = e.target.value.trim();
+        
+        clearTimeout(searchTimeout);
+        
+        if (query.length < 2) {
+            searchResultsContainer.classList.add('d-none');
+            conversationsContainer.classList.remove('d-none');
+            return;
+        }
+        
+        searchTimeout = setTimeout(() => {
+            fetch(`/messagerie/searchEmployes/${idEmploye}?q=${encodeURIComponent(query)}`)
+                .then(r => r.json())
+                .then(data => {
+                    if (data.success && data.employes && data.employes.length > 0) {
+                        conversationsContainer.classList.add('d-none');
+                        searchResultsContainer.classList.remove('d-none');
+                        
+                        let html = '<h6 class="dropdown-header" style="background-color: #f8f9fc; color: #4e73df;">Résultats de recherche</h6>';
+                        data.employes.forEach(emp => {
+                            html += `
+                                <a class="dropdown-item d-flex align-items-center" 
+                                   href="#" 
+                                   onclick="startConversation(${idEmploye}, ${emp.id_employe}); return false;">
+                                    <div class="dropdown-list-image mr-3">
+                                        <img class="rounded-circle" 
+                                             src="${emp.lien_image || 'https://cdn-icons-png.flaticon.com/512/3135/3135715.png'}" 
+                                             alt="..." style="width: 40px; height: 40px; object-fit: cover;">
+                                    </div>
+                                    <div>
+                                        <div class="text-truncate font-weight-bold">${emp.prenom} ${emp.nom_personne || ''}</div>
+                                        <div class="small text-gray-500">${emp.poste || 'N/A'} - ${emp.nom_departement || 'N/A'}</div>
+                                    </div>
+                                </a>
+                            `;
+                        });
+                        searchResultsContainer.innerHTML = html;
+                    } else {
+                        conversationsContainer.classList.add('d-none');
+                        searchResultsContainer.classList.remove('d-none');
+                        searchResultsContainer.innerHTML = '<a class="dropdown-item text-center small text-gray-500 no-results-message">Aucun employé trouvé</a>';
+                    }
+                })
+                .catch(err => {
+                    console.error('Erreur recherche:', err);
+                    searchResultsContainer.classList.remove('d-none');
+                    searchResultsContainer.innerHTML = '<a class="dropdown-item text-center small text-danger">Erreur de recherche</a>';
+                });
+        }, 300);
+    });
+    
+    // Réinitialiser SEULEMENT quand le dropdown se ferme complètement
+    $(messagesDropdown).on('hidden.bs.dropdown', function () {
+        searchInput.value = '';
+        searchInput.classList.add('d-none');
+        messageCenterTitle.classList.remove('d-none');
+        searchResultsContainer.classList.add('d-none');
+        conversationsContainer.classList.remove('d-none');
+        toggleBtn.innerHTML = '<i class="fas fa-search fa-sm"></i>';
+    });
+});
+
+function loadConversations(idEmploye) {
+    fetch(`/messagerie/conversationsE/${idEmploye}`)
+        .then(r => r.json())
+        .then(data => {
+            if (data.success) {
+                const container = document.getElementById('conversationsEmployeContainer');
+                const badge = document.getElementById('unreadBadge');
+                
+                // Mettre à jour le badge
+                if (data.nbNonLus > 0) {
+                    if (badge) {
+                        badge.textContent = data.nbNonLus;
+                        badge.classList.remove('d-none');
+                    } else {
+                        const newBadge = document.createElement('span');
+                        newBadge.id = 'unreadBadge';
+                        newBadge.className = 'badge badge-danger badge-counter';
+                        newBadge.textContent = data.nbNonLus;
+                        document.getElementById('messagesDropdown').appendChild(newBadge);
+                    }
+                } else if (badge) {
+                    badge.classList.add('d-none');
+                }
+                
+                // Afficher les conversations
+                if (data.conversations.length === 0) {
+                    container.innerHTML = '<a class="dropdown-item text-center small text-gray-500">Aucune conversation</a>';
+                    return;
+                }
+                
+                let html = '';
+                data.conversations.forEach(conv => {
+                    const unreadClass = conv.nouveaux_messages ? 'font-weight-bold' : '';
+                    const unreadIcon = conv.nouveaux_messages ? '<span class="badge badge-danger badge-counter ml-2">Nouveau</span>' : '';
+                    
+                    html += `
+                        <a class="dropdown-item d-flex align-items-center message-item ${unreadClass}" 
+                           href="/messagerieE/${idEmploye}/${conv.partenaire_id}">
+                            <div class="dropdown-list-image mr-3">
+                                <img class="rounded-circle" src="https://cdn-icons-png.flaticon.com/512/3135/3135715.png" 
+                                     alt="..." style="width: 40px; height: 40px; object-fit: cover;">
+                            </div>
+                            <div style="flex: 1; min-width: 0;">
+                                <div class="text-truncate">${conv.prenom_partenaire} ${conv.nom_partenaire || ''}</div>
+                                <div class="small text-gray-500">${conv.derniere_modification || 'Pas de message'} ${unreadIcon}</div>
+                            </div>
+                        </a>
+                    `;
+                });
+                
+                container.innerHTML = html;
+            }
+        })
+        .catch(err => console.error('Erreur chargement conversations:', err));
+}
+
+function startConversation(idEmploye, partenaireId) {
+    window.location.href = `/messagerieE/${idEmploye}/${partenaireId}`;
+}
         // Script pour la recherche dans le Message Center (Version Utilisateur)
         document.addEventListener('DOMContentLoaded', function() {
             console.log('=== INITIALISATION RECHERCHE MESSAGE CENTER (UTILISATEUR) ===');

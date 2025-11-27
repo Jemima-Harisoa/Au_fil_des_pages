@@ -10,6 +10,7 @@ use app\models\AdminModel;
 use app\models\PointageModel;
 use app\models\MessagerieModel;
 use app\models\ConnexEmployesModel;
+
 use app\models\EmployeModel;
 class ConnexionController {
 
@@ -51,71 +52,71 @@ class ConnexionController {
             Flight::render('connexionU', ['mess' => $mess]);
         }
     }
-public function VerificationConnectionE()
-{
-    $employeModel = new EmployeModel(Flight::db());
-    $messagerieModel = new messagerieModel(Flight::db());
-    $pointageModel = new PointageModel(Flight::db());
+    public function VerificationConnectionE()
+    {
+        $employeModel = new EmployeModel(Flight::db());
+        $messagerieModel = new messagerieModel(Flight::db());
+        $pointageModel = new PointageModel(Flight::db());
 
-    $Nom = $_POST['Nom'];
-    $mdp = $_POST['mdp'];
+        $Nom = $_POST['Nom'];
+        $mdp = $_POST['mdp'];
 
-    $idEmploye = $employeModel->verifierEmploye($Nom, $mdp);
+        $idEmploye = $employeModel->verifierEmploye($Nom, $mdp);
 
-    if ($idEmploye) {
+        if ($idEmploye) {
 
-        // ---- 🔹 Récupérer les infos de l'employé ----
-        $_SESSION['employe'] = $employeModel->getInfosEmploye($idEmploye);
+            // ---- 🔹 Récupérer les infos de l'employé ----
+            $_SESSION['employe'] = $employeModel->getInfosEmploye($idEmploye);
 
-        // ---- 🔹 Processus de pointage ----
-        if (!isset($_SESSION['pointage_en_cours'])) {
-            $dernierPointage = $pointageModel->getDernierPointage($idEmploye);
+            // ---- 🔹 Processus de pointage ----
+            if (!isset($_SESSION['pointage_en_cours'])) {
+                $dernierPointage = $pointageModel->getDernierPointage($idEmploye);
 
-            if (!$dernierPointage || $dernierPointage['deconnexion'] != null) {
-                // Aucun pointage ouvert → créer une nouvelle ligne
-                $pointageModel->ajouterPointage($idEmploye);
+                if (!$dernierPointage || $dernierPointage['deconnexion'] != null) {
+                    // Aucun pointage ouvert → créer une nouvelle ligne
+                    $pointageModel->ajouterPointage($idEmploye);
+                }
+
+                $_SESSION['pointage_en_cours'] = true; // marque que le pointage est ouvert
             }
 
-            $_SESSION['pointage_en_cours'] = true; // marque que le pointage est ouvert
+            // ---- 🔹 Messagerie ----
+            $model = new \app\models\MessagerieModel();
+            $_SESSION['messagerie'] = $model->getTitresConversationsE($_SESSION['employe']['id_employe']);
+            $_SESSION['nbNonLus'] = $model->countNouveauxMessagesE($_SESSION['employe']['id_employe']);
+            
+            // ---- 🔹 Affichage accueil ----
+            Flight::render('accueilE', null);
+
+        } else {
+            $mess = "Vérifiez votre nom d'utilisateur ou votre mot de passe";
+            Flight::render('connexionE', ['mess' => $mess]);
+        }
+    }
+
+
+    public function deconnexionE() {
+        $employeModel = new EmployeModel(Flight::db());                      
+        $pointageModel = new PointageModel(Flight::db());
+
+        if (!isset($_SESSION['employe'])) {
+            Flight::render('connexionE', ['error' => 'Vous n\'êtes pas connecté']);
+            return;
         }
 
-        // ---- 🔹 Messagerie ----
-        $model = new \app\models\MessagerieModel();
-        $_SESSION['messagerie'] = $model->getTitresConversationsE($_SESSION['employe']['id_employe']);
-        $_SESSION['nbNonLus'] = $model->countNouveauxMessagesE($_SESSION['employe']['id_employe']);
-        
-        // ---- 🔹 Affichage accueil ----
-        Flight::render('accueilE', null);
+        $idEmploye = $_SESSION['employe']['id_employe'];
 
-    } else {
-        $mess = "Vérifiez votre nom d'utilisateur ou votre mot de passe";
-        Flight::render('connexionE', ['mess' => $mess]);
+        // ---- 🔹 Clôturer le dernier pointage ----
+        $dernierPointage = $pointageModel->getDernierPointage($idEmploye);
+        if ($dernierPointage && $dernierPointage['deconnexion'] == null) {
+            $pointageModel->cloturerPointage($dernierPointage['id_pointage']);
+        }
+
+        // ---- 🔹 Détruire la session ----
+        session_destroy();
+
+        Flight::render('connexionE', null);
     }
-}
-
-
-public function deconnexionE() {
-    $employeModel = new EmployeModel(Flight::db());                      
-    $pointageModel = new PointageModel(Flight::db());
-
-    if (!isset($_SESSION['employe'])) {
-        Flight::render('connexionE', ['error' => 'Vous n\'êtes pas connecté']);
-        return;
-    }
-
-    $idEmploye = $_SESSION['employe']['id_employe'];
-
-    // ---- 🔹 Clôturer le dernier pointage ----
-    $dernierPointage = $pointageModel->getDernierPointage($idEmploye);
-    if ($dernierPointage && $dernierPointage['deconnexion'] == null) {
-        $pointageModel->cloturerPointage($dernierPointage['id_pointage']);
-    }
-
-    // ---- 🔹 Détruire la session ----
-    session_destroy();
-
-    Flight::render('connexionE', null);
-}
 
 
 
