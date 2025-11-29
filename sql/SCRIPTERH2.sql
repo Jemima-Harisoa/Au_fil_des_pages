@@ -129,7 +129,7 @@ CREATE TABLE personnes (
     date_naissance DATE,
     contact VARCHAR,
     lien_image VARCHAR, 
-    id_sexe INT,
+    id_sexe INT,    
     CONSTRAINT fk_personnes_sexe FOREIGN KEY (id_sexe) REFERENCES sexe(id_sexe)
 );
 
@@ -535,3 +535,112 @@ CREATE TABLE notifications (
     date_notification TIMESTAMP,
     CONSTRAINT fk_notifications_personne FOREIGN KEY (id_personne) REFERENCES personnes(id_personne)
 );
+
+-- ===============================
+-- MODULE : Gestion des performances
+-- Sous-module : Évaluations périodiques (scoring)
+-- ===============================
+
+-- Table : Periodicité des évaluations
+-- Exemple : Mensuelle, Trimestrielle, Annuelle
+CREATE TABLE employe_evaluation_periodes (
+    id_periode SERIAL PRIMARY KEY,
+    nom VARCHAR(50) NOT NULL,
+    description TEXT,
+    frequence_mois INT NOT NULL,     -- Exemple : 1 = mensuel, 3 = trimestriel
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Table : Critères d’évaluation
+-- Exemple : Ponctualité (30%), Productivité (40%), Communication (30%)
+CREATE TABLE employe_criteres_evaluation (
+    id_critere SERIAL PRIMARY KEY,
+    nom VARCHAR(100) NOT NULL,
+    description TEXT,
+    poids NUMERIC(5,2) NOT NULL CHECK (poids >= 0),   -- en pourcentage (0–100)
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Table : Évaluations générées pour les employés
+-- Chaque évaluation appartient à un employé et à une période
+CREATE TABLE employe_evaluations (
+    id_evaluation SERIAL PRIMARY KEY,
+    employe_id INT NOT NULL REFERENCES employes(id_employe) ON DELETE CASCADE,
+    periode_id INT NOT NULL REFERENCES evaluation_periodes(id_periode),
+    date_generation DATE NOT NULL DEFAULT CURRENT_DATE,
+    date_evaluation DATE,
+    statut VARCHAR(20) NOT NULL DEFAULT 'PREVUE', 
+        -- PREVUE | EN_COURS | TERMINEE
+    score_total NUMERIC(6,2),
+    manager_id INT,  -- si tu gères des comptes managers ailleurs
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Trigger pour updated_at
+CREATE OR REPLACE FUNCTION employe_update_timestamp()
+RETURNS TRIGGER AS $$
+BEGIN
+    NEW.updated_at = CURRENT_TIMESTAMP;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER employe_trg_evaluations_updated
+BEFORE UPDATE ON evaluations
+FOR EACH ROW EXECUTE FUNCTION update_timestamp();
+
+-- Table : Détails de l’évaluation (1 ligne par critère)
+CREATE TABLE employe_evaluations_details (
+    id_detail SERIAL PRIMARY KEY,
+    evaluation_id INT NOT NULL REFERENCES evaluations(id_evaluation) ON DELETE CASCADE,
+    critere_id INT NOT NULL REFERENCES criteres_evaluation(id_critere),
+    note NUMERIC(5,2) CHECK (note >= 0 AND note <= 10),
+    commentaire TEXT
+);
+
+-- Trigger pour calcul automatique du score total
+CREATE OR REPLACE FUNCTION employe_calcul_score_total()
+RETURNS TRIGGER AS $$
+DECLARE
+    total NUMERIC(6,2);
+BEGIN
+    SELECT SUM(ed.note * c.poids / 10)
+    INTO total
+    FROM evaluations_details ed
+    JOIN criteres_evaluation c ON c.id_critere = ed.critere_id
+    WHERE ed.evaluation_id = NEW.evaluation_id;
+
+    UPDATE evaluations
+    SET score_total = total
+    WHERE id_evaluation = NEW.evaluation_id;
+
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER employe_trg_update_score
+AFTER INSERT OR UPDATE ON employe_evaluations_details
+FOR EACH ROW EXECUTE FUNCTION employe_calcul_score_total();
+
+CREATE TABLE employe_performance_aggregations (
+    id_aggregation SERIAL PRIMARY KEY,
+    employe_id INT NOT NULL REFERENCES employes(id_employe),
+    annee INT NOT NULL,
+    score_moyen NUMERIC(6,2),
+    score_max NUMERIC(6,2),
+    score_min NUMERIC(6,2),
+    total_evaluations INT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+CREATE OR REPLACE VIEW vue_employe_performances_par_critere AS
+SELECT 
+    e.employe_id,
+    c.nom AS critere,
+    AVG(ed.note * c.poids / 10) AS score_pondere,
+    EXTRACT(YEAR FROM e.date_evaluation) AS annee
+FROM employe_evaluations e
+JOIN employe_evaluations_details ed ON ed.evaluation_id = e.id_evaluation
+JOIN employe_criteres_evaluation c ON c.id_critere = ed.critere_id
+WHERE e.statut = 'TERMINEE'
+GROUP BY e.employe_id, c.nom, annee;
