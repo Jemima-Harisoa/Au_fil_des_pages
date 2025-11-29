@@ -62,7 +62,7 @@ $router->post('/loginU', [ $ConnexionController, 'VerificationConnectionU' ]);
 $router->post('/loginE', [ $ConnexionController, 'VerificationConnectionE' ]);
 $router->get('/deconnexion', [ $ConnexionController, 'deconnexion' ]);
 
-$router->get('/admin', [ $ConnexionController, 'AppelLoginA' ]);
+$router->get('/admin', [ $ConnexionController, 'AppalLoginA' ]);
 $router->post('/inscriptionA', [ $ConnexionController, 'InscrireA' ]);
 $router->post('/loginA', [ $ConnexionController, 'VerificationConnectionA' ]);
 
@@ -123,7 +123,7 @@ $router->post('/loginU', [ $ConnexionController, 'VerificationConnectionU' ]); /
 
 $router->get('/deconnexionU', [ $ConnexionController, 'deconnexionU' ]);
 
-$router->get('/admin', [ $ConnexionController, 'AppelLoginA' ]);
+$router->get('/admin', [ $ConnexionController, 'AppalLoginA' ]);
 $router->post('/inscriptionA', [ $ConnexionController, 'InscrireA' ]);
 $router->post('/loginA', [ $ConnexionController, 'VerificationConnectionA' ]);
 $router->get('/deconnexionA', [ $ConnexionController, 'deconnexionA' ]);
@@ -296,6 +296,13 @@ $router->group('/absence', function($router) use ($Abscence_Controller,$Justific
 
     $router->get('/notifier/@idAbsence', [$Notification_Controller, 'notifierAbsences'] );
     $router->get('/notifier/tous', [$Notification_Controller, 'notifierAbsencesLot'] );
+});
+
+// Route Chatbot -> vue messagerieBot (crée la vue ci‑dessous)
+Flight::route('GET /messagerieBot', function(){
+    // sécurité : vérifier session si besoin
+    // if (!isset($_SESSION['employe'])) { Flight::redirect('/login'); return; }
+    Flight::render('messagerieBot', []);
 });
 
 ?>
