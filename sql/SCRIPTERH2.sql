@@ -566,7 +566,7 @@ CREATE TABLE employe_criteres_evaluation (
 CREATE TABLE employe_evaluations (
     id_evaluation SERIAL PRIMARY KEY,
     employe_id INT NOT NULL REFERENCES employes(id_employe) ON DELETE CASCADE,
-    periode_id INT NOT NULL REFERENCES evaluation_periodes(id_periode),
+    periode_id INT NOT NULL REFERENCES employe_evaluation_periodes(id_periode),
     date_generation DATE NOT NULL DEFAULT CURRENT_DATE,
     date_evaluation DATE,
     statut VARCHAR(20) NOT NULL DEFAULT 'PREVUE', 
@@ -587,14 +587,14 @@ END;
 $$ LANGUAGE plpgsql;
 
 CREATE TRIGGER employe_trg_evaluations_updated
-BEFORE UPDATE ON evaluations
-FOR EACH ROW EXECUTE FUNCTION update_timestamp();
+BEFORE UPDATE ON employe_evaluations
+FOR EACH ROW EXECUTE FUNCTION employe_update_timestamp();
 
 -- Table : Détails de l’évaluation (1 ligne par critère)
 CREATE TABLE employe_evaluations_details (
     id_detail SERIAL PRIMARY KEY,
-    evaluation_id INT NOT NULL REFERENCES evaluations(id_evaluation) ON DELETE CASCADE,
-    critere_id INT NOT NULL REFERENCES criteres_evaluation(id_critere),
+    evaluation_id INT NOT NULL REFERENCES employe_evaluations(id_evaluation) ON DELETE CASCADE,
+    critere_id INT NOT NULL REFERENCES employe_criteres_evaluation(id_critere),
     note NUMERIC(5,2) CHECK (note >= 0 AND note <= 10),
     commentaire TEXT
 );
@@ -607,11 +607,11 @@ DECLARE
 BEGIN
     SELECT SUM(ed.note * c.poids / 10)
     INTO total
-    FROM evaluations_details ed
-    JOIN criteres_evaluation c ON c.id_critere = ed.critere_id
+    FROM employe_evaluations_details ed
+    JOIN employe_criteres_evaluation c ON c.id_critere = ed.critere_id
     WHERE ed.evaluation_id = NEW.evaluation_id;
 
-    UPDATE evaluations
+    UPDATE employe_evaluations
     SET score_total = total
     WHERE id_evaluation = NEW.evaluation_id;
 
@@ -644,3 +644,56 @@ JOIN employe_evaluations_details ed ON ed.evaluation_id = e.id_evaluation
 JOIN employe_criteres_evaluation c ON c.id_critere = ed.critere_id
 WHERE e.statut = 'TERMINEE'
 GROUP BY e.employe_id, c.nom, annee;
+
+CREATE TABLE competences (
+    id_competence SERIAL PRIMARY KEY,
+    nom VARCHAR(150) NOT NULL,
+    description TEXT,
+    domaine VARCHAR(100),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+CREATE TABLE employe_competences (
+    id SERIAL PRIMARY KEY,
+    employe_id INT NOT NULL REFERENCES employes(id_employe) ON DELETE CASCADE,
+    competence_id INT NOT NULL REFERENCES competences(id_competence) ON DELETE CASCADE,
+    niveau NUMERIC(4,2) CHECK (niveau >= 0),
+    date_obtention DATE DEFAULT CURRENT_DATE
+);
+CREATE OR REPLACE VIEW v_competence_cartographie AS
+SELECT 
+    c.id_competence,
+    c.nom,
+    c.domaine,
+    COUNT(ec.employe_id) AS nb_employes,
+    AVG(ec.niveau) AS niveau_moyen
+FROM competences c
+LEFT JOIN employe_competences ec ON ec.competence_id = c.id_competence
+GROUP BY c.id_competence;
+
+CREATE TABLE postes (
+    id_poste SERIAL PRIMARY KEY,
+    nom VARCHAR(100) NOT NULL,
+    description TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+    
+CREATE TABLE competences_postes (
+    id SERIAL PRIMARY KEY,
+    poste_id INT NOT NULL REFERENCES postes(id_poste) ON DELETE CASCADE,
+    competence_id INT NOT NULL REFERENCES competences(id_competence),
+    niveau_requis INT CHECK(niveau_requis >= 1 AND niveau_requis <= 5)
+);
+CREATE TABLE formations (
+    id_formation SERIAL PRIMARY KEY,
+    titre VARCHAR(200) NOT NULL,
+    description TEXT,
+    competence_id INT REFERENCES competences(id_competence),
+    niveau_cible NUMERIC(4,2)
+);
+CREATE TABLE employe_formations (
+    id SERIAL PRIMARY KEY,
+    employe_id INT NOT NULL REFERENCES employes(id_employe),
+    formation_id INT NOT NULL REFERENCES formations(id_formation),
+    statut VARCHAR(20) DEFAULT 'PLANIFIE', -- PLANIFIE, EN_COURS, TERMINEE
+    date_assignation DATE DEFAULT CURRENT_DATE
+);
