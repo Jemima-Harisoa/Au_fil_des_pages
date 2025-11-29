@@ -192,9 +192,13 @@ public function creerReleverPresenceIndividuelle($idEmploye, $debutPeriode = nul
                         $hFin   = strtotime($date.' '.$h['fin_travail']);
                         $seuilRetard = strtotime($h['seuil_retard']) - strtotime('00:00:00');
 
-                        // === RETARD ===
-                        if ($arrivee > ($hDebut + $seuilRetard)) {
-                            $rSec = $arrivee - ($hDebut + $seuilRetard);
+                        // === RETARD CORRIGÉ ===
+                        // Ne calculer le retard QUE si l'arrivée est pendant les heures normales
+                        // Si arrivée avant le début ou après la fin → pas de retard, juste heures sup
+                        if ($arrivee >= $hDebut && $arrivee <= $hFin) {
+                            if ($arrivee > ($hDebut + $seuilRetard)) {
+                                $rSec = $arrivee - ($hDebut + $seuilRetard);
+                            }
                         }
 
                         // === HEURES SUPPLÉMENTAIRES CORRIGÉES ===
