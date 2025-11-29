@@ -71,6 +71,7 @@ $WelcomeController = new WelcomeController();
 $router->get('/accueilG', [ $WelcomeController, 'AppelAccueilG' ]);
 $router->get('/accueilA', [ $WelcomeController, 'AppelAccueilA' ]);
 $router->get('/accueilU', [ $WelcomeController, 'AppelAccueilU' ]);
+$router->get('/accueilE', [ $WelcomeController, 'AppelAccueilE' ]);
 
 $AnnoncesController = new AnnoncesController();
     
@@ -174,18 +175,28 @@ $router->get('/messagerieA/@id_candidat/@id_annonce', [ $MessagerieController, '
 
 $router->get('/api/refresh-notifications', [ $MessagerieController, 'refreshNotifications' ]);
 
-// Routes existantes (à garder)
+// --- Routes supplémentaires pour messagerie employé (fusion des deux fichiers) ---
+// AJAX / API pour conversations entre employés
+Flight::route('GET /messagerie/conversationsE/@id_employe', [\app\controllers\MessagerieController::class, 'getConversationsE']);
+Flight::route('GET /messagerie/searchEmployes/@id_employe', [\app\controllers\MessagerieController::class, 'searchEmployes']);
+Flight::route('GET /messagerie/convEmploye/@id_employe/@partenaire_id', [\app\controllers\MessagerieController::class, 'getConversationEmploye']);
+
+// Interface et envoi pour messagerie entre employés
+Flight::route('GET /messagerieE/@id_employe/@partenaire_id', [\app\controllers\MessagerieController::class, 'showMessagerieE']);
+Flight::route('POST /messagerieE/send', [\app\controllers\MessagerieController::class, 'sendMessageE']);
+
+// routes existantes pour candidats/admin (conservées)
 Flight::route('GET /messagerieU/@id_candidat/@id_annonce', [MessagerieController::class, 'showMessagerieU']);
 Flight::route('POST /messagerieU/send', [MessagerieController::class, 'sendMessageU']);
 Flight::route('GET /messagerieA/@id_candidat/@id_annonce', [MessagerieController::class, 'showMessagerieA']);
 Flight::route('POST /messagerieA/send', [MessagerieController::class, 'sendMessageA']);
 
-// Nouvelles routes pour l'actualisation temps réel
+// Nouvelles routes pour l'actualisation temps réel (conservées)
 Flight::route('GET /messagerie/getCount', [MessagerieController::class, 'getNotificationCount']);
 Flight::route('GET /messagerie/refresh', [MessagerieController::class, 'refreshNotifications']);
 Flight::route('POST /messagerie/markAsRead', [MessagerieController::class, 'markAsReadAndGetCount']);
 Flight::route('GET /messagerie/markAsRead/@id_candidat/@id_annonce', [MessagerieController::class, 'markConversationAsRead']);
-// Route pour SSE
+// Route SSE (déjà présente, double déclaration tolérée mais gardez une seule si possible)
 Flight::route('GET /messagerie/sse', [MessagerieController::class, 'sseNotifications']);
 Flight::route('GET /messagerie/refreshSession', [MessagerieController::class, 'refreshConversation']);
 
@@ -287,3 +298,4 @@ $router->group('/absence', function($router) use ($Abscence_Controller,$Justific
     $router->get('/notifier/tous', [$Notification_Controller, 'notifierAbsencesLot'] );
 });
 
+?>
