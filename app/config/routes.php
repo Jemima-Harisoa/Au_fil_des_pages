@@ -62,7 +62,7 @@ $router->post('/loginU', [ $ConnexionController, 'VerificationConnectionU' ]);
 $router->post('/loginE', [ $ConnexionController, 'VerificationConnectionE' ]);
 $router->get('/deconnexion', [ $ConnexionController, 'deconnexion' ]);
 
-$router->get('/admin', [ $ConnexionController, 'AppalLoginA' ]);
+$router->get('/admin', [ $ConnexionController, 'AppelLoginA' ]);
 $router->post('/inscriptionA', [ $ConnexionController, 'InscrireA' ]);
 $router->post('/loginA', [ $ConnexionController, 'VerificationConnectionA' ]);
 
@@ -300,9 +300,18 @@ $router->group('/absence', function($router) use ($Abscence_Controller,$Justific
 
 // Route Chatbot -> vue messagerieBot (crée la vue ci‑dessous)
 Flight::route('GET /messagerieBot', function(){
-    // sécurité : vérifier session si besoin
-    // if (!isset($_SESSION['employe'])) { Flight::redirect('/login'); return; }
-    Flight::render('messagerieBot', []);
+    // Vérifier la session admin/employé (ajout de plus de vérifications)
+    $hasAdminSession = isset($_SESSION['infoAdmin']) && !empty($_SESSION['infoAdmin']);
+    $hasEmployeSession = isset($_SESSION['employe']) && !empty($_SESSION['employe']);
+    
+    if (!$hasAdminSession && !$hasEmployeSession) {
+        Flight::redirect('/admin'); // ou '/employe' selon votre logique
+        return;
+    }
+    
+    Flight::render('messagerieBot', ['messages' => []]);
 });
 
+// POST route for chatbot: delegate to controller
+Flight::route('POST /messagerieBot/send', [\app\controllers\ChatBotController::class, 'send']);
 ?>

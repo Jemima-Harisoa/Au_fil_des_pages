@@ -11,7 +11,7 @@ class PointageModel {
     }
 
     // --------------------------------------------------------
-    // Dernier pointage
+    // [CHATBOT] Dernier pointage - Questions: "Mon dernier pointage?", "Suis-je connecté?"
     // --------------------------------------------------------
     public function getDernierPointage($idEmploye) {
         $sql = "SELECT * FROM pointage WHERE id_employe = ? ORDER BY id_pointage DESC LIMIT 1";
@@ -41,7 +41,7 @@ class PointageModel {
     }
 
     // --------------------------------------------------------
-    // Liste brute pour tableau admin
+    // [CHATBOT] Liste brute pour tableau admin - Questions: "Qui est présent?", "Liste des présences"
     // --------------------------------------------------------
     public function getAllPresence(): array {
         $sql = "SELECT 

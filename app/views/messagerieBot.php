@@ -81,13 +81,12 @@
     gap:12px;
     margin-bottom:16px;
 }
-.bot-header img { width:56px; height:56px; object-fit:cover; border-radius:50%; }
+.bot-header img { width:60px; height:60px; object-fit:cover; border-radius:50%; }
 </style>
 
 <div class="container my-4">
     <div class="bot-header">
-<img src="https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExdmphMGhpdnNwczE1NDI1cTRxMWhhMTl5bWM1MWZqOXQwbHFvazd0ZCZlcD12MV9naWZzX3NlYXJjaCZjdD1n/uWvnp79Pi5fE4/giphy.gif" alt="Bot animé">
-
+        <img src="/img/Chatbot.gif" alt="Bot">
         <div>
             <h4 class="mb-0">Chatbot</h4>
             <small class="text-muted">Assistance automatique</small>
@@ -144,7 +143,6 @@ function appendMessage(text, isMe, dateText) {
     bubble.appendChild(meta);
     bubble.appendChild(content);
     wrapper.appendChild(bubble);
-    // insert at top since container is flex-column-reverse
     messagerieScroll.prepend(wrapper);
 }
 
@@ -152,38 +150,68 @@ form.addEventListener('submit', function(e) {
     e.preventDefault();
     const message = input.value.trim();
     if (!message) return;
-    form.querySelector('button').disabled = true;
+    
+    const submitBtn = form.querySelector('button');
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
 
-    // Append locally
+    // Afficher le message de l'utilisateur immédiatement
     appendMessage(message, true, new Date().toLocaleString());
     input.value = '';
 
-    // Send to backend bot endpoint (create /messagerieBot/send server-side)
+    console.log('Envoi message vers /messagerieBot/send:', message);
+
+    // Envoyer au backend avec gestion d'erreur détaillée
     fetch('/messagerieBot/send', {
         method: 'POST',
-        headers: {'Content-Type': 'application/json'},
+        headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+        },
         body: JSON.stringify({ message: message })
     })
-    .then(r => r.json())
+    .then(response => {
+        console.log('Réponse status:', response.status);
+        console.log('Réponse headers:', response.headers);
+        
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+        
+        return response.json();
+    })
     .then(data => {
-        if (data && data.success) {
-            // backend may return botReply
-            const reply = data.botReply || 'Réponse du bot';
-            appendMessage(reply, false, data.date || new Date().toLocaleString());
+        console.log('Données reçues:', data);
+        
+        if (data && data.success && data.botReply) {
+            appendMessage(data.botReply, false, data.date || new Date().toLocaleString());
         } else {
-            appendMessage('Erreur: impossible de joindre le bot.', false, new Date().toLocaleString());
+            const errorMsg = data?.error || 'Erreur inconnue';
+            appendMessage(`❌ ${errorMsg}`, false, new Date().toLocaleString());
         }
     })
-    .catch(() => {
-        appendMessage('Erreur réseau.', false, new Date().toLocaleString());
+    .catch(error => {
+        console.error('Erreur complète:', error);
+        appendMessage(`❌ Erreur réseau: ${error.message}`, false, new Date().toLocaleString());
     })
     .finally(() => {
-        form.querySelector('button').disabled = false;
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = '<i class="fas fa-paper-plane"></i>';
+        input.focus();
     });
 });
 
+// Message de bienvenue au chargement
 window.addEventListener('load', function() {
-    // Scroll to bottom: container is reversed so top is newest; keep focus on input
     input.focus();
+    appendMessage('👋 Bonjour ! Je suis votre assistant RH. Posez-moi vos questions sur les congés, la paie, les horaires, les procédures...', false, new Date().toLocaleString());
+});
+
+// Envoyer avec Entrée
+input.addEventListener('keypress', function(e) {
+    if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        form.dispatchEvent(new Event('submit'));
+    }
 });
 </script>

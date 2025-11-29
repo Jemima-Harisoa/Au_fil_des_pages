@@ -187,7 +187,8 @@ class EmployeModel
         return $stmt->fetchAll(\PDO::FETCH_ASSOC);
     }
 
-    // Méthode pour récupérer les employés avec les informations liées
+    // [CHATBOT] Méthode pour récupérer les employés avec les informations liées
+    // Questions supportées: "Liste des employés?", "Qui travaille où?", "Informations employés?"
    public function listWithDetails(): array {
     $sql = "SELECT e.id_employe,
                    e.id_personne,
