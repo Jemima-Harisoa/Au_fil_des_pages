@@ -312,31 +312,48 @@ document.addEventListener('keydown', function(e) {
 });
 
 // Gestion des notifications d'absence
-$(document).on('click', '.notifier-absence', function() {
-    var idAbsence = $(this).data('absence-id');
-    var bouton = $(this);
-    
-    // Afficher un indicateur de chargement
-    bouton.html('<i class="fas fa-spinner fa-spin"></i> Envoi...').prop('disabled', true);
-    
-    // Envoyer la requête de notification
-    $.get('/notifier/' + idAbsence)
-        .done(function(response) {
-            if (response.success) {
-                // Afficher un message de succès
-                afficherMessage('success', response.message);
-                
-                // Mettre à jour le bouton
-                bouton.html('<i class="fas fa-check"></i> Notifié').removeClass('btn-warning').addClass('btn-success');
-            } else {
-                afficherMessage('error', response.error);
-                bouton.html('<i class="fas fa-bell"></i> Notifier').prop('disabled', false);
+$(document).on('click', '.notifier-absence', function(e) {
+    e.preventDefault();
+    const idAbsence = $(this).data('absence-id');
+    const bouton = $(this);
+    console.log('Click notifier-absence', idAbsence, 'btn:', bouton);
+
+    if (!idAbsence) {
+        console.error('idAbsence manquant');
+        afficherMessage('error', 'ID d\'absence manquant');
+        return;
+    }
+
+    bouton.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Envoi...');
+
+    fetch('/absence/notifier/' + idAbsence, {
+        method: 'GET',
+        credentials: 'same-origin',
+        headers: { 'Accept': 'application/json' }
+    })
+    .then(resp => {
+        console.log('Fetch status', resp.status, resp.headers.get('content-type'));
+        return resp.text().then(text => {
+            try { return JSON.parse(text); } catch(e) {
+                throw new Error('Réponse non JSON: ' + text);
             }
-        })
-        .fail(function() {
-            afficherMessage('error', 'Erreur lors de l\'envoi de la notification');
-            bouton.html('<i class="fas fa-bell"></i> Notifier').prop('disabled', false);
         });
+    })
+    .then(data => {
+        console.log('Response data', data);
+        if (data && data.success) {
+            afficherMessage('success', data.message || 'Notifié');
+            bouton.html('<i class="fas fa-check"></i> Notifié').removeClass('btn-warning').addClass('btn-success');
+        } else {
+            afficherMessage('error', data?.error || 'Erreur serveur');
+            bouton.prop('disabled', false).html('<i class="fas fa-bell"></i> Notifier');
+        }
+    })
+    .catch(err => {
+        console.error('Erreur fetch notifier:', err);
+        afficherMessage('error', 'Erreur réseau ou serveur: ' + err.message);
+        bouton.prop('disabled', false).html('<i class="fas fa-bell"></i> Notifier');
+    });
 });
 
 // Fonction pour afficher les messages
@@ -359,7 +376,7 @@ function afficherMessage(type, message) {
 // Notification de tous les employés (bouton optionnel)
 $('#notifier-tous').click(function() {
     if (confirm('Voulez-vous notifier tous les employés ayant des absences non justifiées ?')) {
-        $.get('/notifier/tous')
+        $.get('/absence/notifier/tous')
             .done(function(response) {
                 if (response.success) {
                     afficherMessage('success', response.message);

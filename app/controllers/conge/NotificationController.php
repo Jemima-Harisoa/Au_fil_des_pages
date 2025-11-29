@@ -16,6 +16,7 @@ class NotificationController
      * Route: GET /notifier
      */
     public function notifierAbsences($idAbsence) {
+        error_log("notifierAbsences called idAbsence=" . json_encode($idAbsence) . " sessionInfoAdmin=" . json_encode($_SESSION['infoAdmin'] ?? null));
         try {
             // Vérifier les droits d'administration
             if (!$this->estAdministrateur()) {

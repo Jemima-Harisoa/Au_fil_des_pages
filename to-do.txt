@@ -46,3 +46,69 @@ liste au clique"
 employe
 jour ferier
 "
+
+
+Gestion des compétences(jemima)	
+Cartographie des compétences de l’entreprise	
+cartographie_competences	
+Front	
+"Liste des compétences
+
+Barre de recherche
+
+Filtre par département / par niveau
+
+Bouton Ajouter compétence
+
+Popup Modifier compétence
+
+Tableau Compétences → Employés
+
+Indicateur du niveau moyen
+
+Bouton Exporter CSV / PDF"
+Back
+"getCompetenceList() : Retourne toutes les compétences + stats.
+searchCompetences(keyword): Recherche par nom ou domaine.
+filterCompetences(departement, niveau_min) : Filtre pour la cartographie.
+createCompetence(nom, description, domaine): Ajout d’une nouvelle compétence.
+updateCompetence(id_competence, data): Mise à jour d’une compétence existante.
+deleteCompetence(id_competence): Suppression (si nécessaire).
+getCompetenceEmployees(id_competence): Liste des employés possédant cette compétence + niveau.
+exportCompetences(format): CSV ou PDF."
+base
+competences , employe_competences,v_competence_cartographie
+profil_matching	
+Front	
+"Champ sélection employé
+Champ sélection poste
+Affichage compétences requises du poste
+Affichage compétences possédées
+Indicateur de matching (%)
+
+Liste des manques
+Bouton Voir formations recommandées"
+Back	
+"getEmployeeCompetences(id_employe): Retourne compétences + niveaux.
+getPosteCompetences(id_poste): Retourne compétences requises + niveaux minimums.
+calculateMatching(id_employe, id_poste): Retourne % de matching + liste des compétences manquantes.
+getRecommendedTraining(missingCompetences[]): Retourne formations associées."
+base
+postes;competences;competences_postes
+
+suggestion_formations	
+Front	
+"Liste des compétences manquantes
+
+Niveau actuel vs niveau attendu
+
+Liste des formations proposées
+
+Bouton 
+“Ajouter au plan de formation”"
+Back	
+"getMissingCompetences(id_employe, id_poste):Renvoie les compétences où niveau_employé < niveau_min.
+getFormationsByCompetence(id_competence):Renvoie les formations liées.
+assignTrainingToEmployee(id_employe, id_formation):Ajoute une formation au plan."
+base
+formations;employe_formations
