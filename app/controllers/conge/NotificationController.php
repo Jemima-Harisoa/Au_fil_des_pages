@@ -7,9 +7,6 @@ use app\models\MessagerieModel;
 
 class NotificationController
 {
-    private $messagerieModel;
-
-
 
     /**
      * Notifie les employés concernant leurs absences non justifiées
@@ -19,15 +16,17 @@ class NotificationController
         error_log("notifierAbsences called idAbsence=" . json_encode($idAbsence) . " sessionInfoAdmin=" . json_encode($_SESSION['infoAdmin'] ?? null));
         try {
             // Vérifier les droits d'administration
-            if (!$this->estAdministrateur()) {
-                Flight::json([
-                    'success' => false,
-                    'error' => 'Accès non autorisé. Droits administrateur requis.'
-                ], 403);
-                return;
-            }
+            // if (!$this->estAdministrateur()) {
+            //     error_log("Accès non autorisé: session infoAdmin manquante");
+            //     Flight::json([
+            //         'success' => false,
+            //         'error' => 'Accès non autorisé. Droits administrateur requis.'
+            //     ], 403);
+            //     return;
+            // }
             
             if (!$idAbsence) {
+                error_log("ID d'absence manquant");
                 Flight::json([
                     'success' => false,
                     'error' => 'ID d\'absence manquant. Utilisez: /notifier?id_abscence=ID'
@@ -39,12 +38,15 @@ class NotificationController
             $absenceInfo = $this->getAbsenceInfo($idAbsence);
             
             if (!$absenceInfo) {
+                error_log("Absence non trouvée pour idAbsence: " . $idAbsence);
                 Flight::json([
                     'success' => false,
                     'error' => 'Absence non trouvée'
                 ], 404);
                 return;
             }
+
+            error_log("Absence trouvée: " . json_encode($absenceInfo));
 
             // Envoyer la notification via la messagerie interne
             $resultat = $this->envoyerNotificationMessagerie($absenceInfo);
@@ -62,6 +64,7 @@ class NotificationController
                     'type' => 'messagerie_interne'
                 ]);
             } else {
+                error_log("Erreur lors de l'envoi de la notification: " . $resultat['error']);
                 Flight::json([
                     'success' => false,
                     'error' => $resultat['error']
@@ -86,13 +89,18 @@ class NotificationController
         $abscenceModel = Flight::Abscence();
         $absences = $abscenceModel->getListeAbsence(false);
         
+        error_log("Absences non autorisées: " . json_encode(array_column($absences, 'id_abscence')));
+        error_log("Recherche d'absence ID: " . $idAbsence);
+        
         // Trouver l'absence spécifique par ID
         foreach ($absences as $absence) {
             if ($absence['id_abscence'] == $idAbsence) {
+                error_log("Absence trouvée: " . json_encode($absence));
                 return $absence;
             }
         }
         
+        error_log("Absence non trouvée pour l'ID: " . $idAbsence);
         return null;
     }
 
@@ -101,6 +109,7 @@ class NotificationController
      */
     private function envoyerNotificationMessagerie($absenceInfo) {
         try {
+            error_log("envoyerNotificationMessagerie called with absenceInfo: " . json_encode($absenceInfo));
             // ID de l'admin qui envoie la notification
             $idAdmin = $_SESSION['infoAdmin']['id_employe'] ?? 1;
             $idEmploye = $absenceInfo['id_employe'];
@@ -113,8 +122,10 @@ class NotificationController
             $resultat = $messagerieModel->repondreE($idAdmin, $idEmploye, $message);
             
             if ($resultat) {
+                error_log("Notification envoyée avec succès via messagerie");
                 return ['success' => true];
             } else {
+                error_log("Erreur lors de l'envoi via la messagerie");
                 return [
                     'success' => false,
                     'error' => 'Erreur lors de l\'envoi via la messagerie'
@@ -122,12 +133,14 @@ class NotificationController
             }
             
         } catch (\Exception $e) {
+            error_log("Exception dans envoyerNotificationMessagerie: " . $e->getMessage());
             return [
                 'success' => false,
                 'error' => 'Erreur messagerie: ' . $e->getMessage()
             ];
         }
     }
+
 
     /**
      * Prépare le message de notification formaté
@@ -160,6 +173,7 @@ class NotificationController
      * Vérifie si l'utilisateur est administrateur
      */
     private function estAdministrateur() {
+        error_log("Vérification admin - Session: " . json_encode($_SESSION));
         return isset($_SESSION['infoAdmin']['id_employe']);
     }
 

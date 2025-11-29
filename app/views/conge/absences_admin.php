@@ -316,43 +316,58 @@ $(document).on('click', '.notifier-absence', function(e) {
     e.preventDefault();
     const idAbsence = $(this).data('absence-id');
     const bouton = $(this);
-    console.log('Click notifier-absence', idAbsence, 'btn:', bouton);
+    
+    console.log('Click notifier-absence', {
+        idAbsence: idAbsence,
+        bouton: bouton,
+        dataAttributes: $(this).data()
+    });
 
     if (!idAbsence) {
-        console.error('idAbsence manquant');
+        console.error('idAbsence manquant dans data-absence-id');
         afficherMessage('error', 'ID d\'absence manquant');
         return;
     }
 
     bouton.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Envoi...');
 
+    // Utilisez la même URL que dans vos routes
     fetch('/absence/notifier/' + idAbsence, {
         method: 'GET',
         credentials: 'same-origin',
-        headers: { 'Accept': 'application/json' }
+        headers: {
+            'Accept': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest'
+        }
     })
-    .then(resp => {
-        console.log('Fetch status', resp.status, resp.headers.get('content-type'));
-        return resp.text().then(text => {
-            try { return JSON.parse(text); } catch(e) {
+    .then(response => {
+        console.log('Response status:', response.status);
+        console.log('Response headers:', response.headers);
+        return response.json().catch(() => {
+            return response.text().then(text => {
                 throw new Error('Réponse non JSON: ' + text);
-            }
+            });
         });
     })
     .then(data => {
-        console.log('Response data', data);
+        console.log('Response data:', data);
         if (data && data.success) {
-            afficherMessage('success', data.message || 'Notifié');
-            bouton.html('<i class="fas fa-check"></i> Notifié').removeClass('btn-warning').addClass('btn-success');
+            afficherMessage('success', data.message || 'Notification envoyée avec succès');
+            bouton.html('<i class="fas fa-check"></i> Notifié')
+                  .removeClass('btn-warning')
+                  .addClass('btn-success')
+                  .prop('disabled', true);
         } else {
-            afficherMessage('error', data?.error || 'Erreur serveur');
-            bouton.prop('disabled', false).html('<i class="fas fa-bell"></i> Notifier');
+            afficherMessage('error', data?.error || 'Erreur inconnue du serveur');
+            bouton.prop('disabled', false)
+                  .html('<i class="fas fa-bell"></i> Notifier');
         }
     })
-    .catch(err => {
-        console.error('Erreur fetch notifier:', err);
-        afficherMessage('error', 'Erreur réseau ou serveur: ' + err.message);
-        bouton.prop('disabled', false).html('<i class="fas fa-bell"></i> Notifier');
+    .catch(error => {
+        console.error('Erreur fetch:', error);
+        afficherMessage('error', 'Erreur: ' + error.message);
+        bouton.prop('disabled', false)
+              .html('<i class="fas fa-bell"></i> Notifier');
     });
 });
 
