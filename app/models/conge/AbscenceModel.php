@@ -309,11 +309,11 @@ class AbscenceModel
                         }
                     } else {
                         // Si non autorisée, on affiche un bouton pour notifier l'employé
-                        $html .= '  <button class="btn btn-sm btn-warning notifier-absence" 
-                                            data-absence-id="' . $absence['id_abscence'] . '"
-                                            title="Notifier l\'employé pour justifier son absence">
-                                        <i class="fas fa-bell"></i> Notifier
-                                    </button>';
+                        $html .= '<button onclick="notifierAbsence(' . $absence['id_abscence'] . ')" 
+                                        class="btn btn-sm btn-warning" 
+                                        title="Notifier l\'employé pour justifier son absence">
+                                    <i class="fas fa-bell"></i> Notifier
+                                </button>';
                     }
                     
                     $html .= '

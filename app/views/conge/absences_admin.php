@@ -234,7 +234,30 @@ Flight::render("headerA", ['extra_css' => $extra_css]);
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
+console.log("=== SCRIPT CHARGÉ ===");
+
+// TEST DE DÉBOGAGE - À ajouter immédiatement
+document.addEventListener('DOMContentLoaded', function() {
+    console.log("DOM chargé - Recherche des boutons notifier...");
+    
+    // Vérifier si les boutons existent
+    const boutons = document.querySelectorAll('.notifier-absence');
+    console.log(`Nombre de boutons notifier trouvés: ${boutons.length}`);
+    
+    boutons.forEach((bouton, index) => {
+        console.log(`Bouton ${index}:`, bouton);
+        console.log(`Data absence-id: ${bouton.dataset.absenceId}`);
+        
+        // Ajouter un événement simple pour tester
+        bouton.addEventListener('click', function(e) {
+            e.preventDefault();
+            console.log("CLICK DIRECT - Bouton cliqué!", this.dataset.absenceId);
+            alert("Test click - ID: " + this.dataset.absenceId);
+        });
+    });
+});
 function afficherFormulaireJustification(idAbsence) {
     // Charger le formulaire via AJAX
     $.ajax({
@@ -311,27 +334,27 @@ document.addEventListener('keydown', function(e) {
     }
 });
 
-// Gestion des notifications d'absence
-$(document).on('click', '.notifier-absence', function(e) {
-    e.preventDefault();
-    const idAbsence = $(this).data('absence-id');
-    const bouton = $(this);
+// Fonction pour notifier un employé d'une absence non justifiée
+function notifierAbsence(idAbsence) {
+    console.log('notifierAbsence appelée avec ID:', idAbsence);
     
-    console.log('Click notifier-absence', {
-        idAbsence: idAbsence,
-        bouton: bouton,
-        dataAttributes: $(this).data()
-    });
-
-    if (!idAbsence) {
-        console.error('idAbsence manquant dans data-absence-id');
-        afficherMessage('error', 'ID d\'absence manquant');
+    // Confirmation avant d'envoyer
+    if (!confirm('Voulez-vous envoyer une notification à cet employé pour justifier son absence ?')) {
         return;
     }
-
-    bouton.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Envoi...');
-
-    // Utilisez la même URL que dans vos routes
+    
+    // Afficher un indicateur de chargement
+    Swal.fire({
+        title: 'Envoi en cours...',
+        text: 'Veuillez patienter',
+        allowOutsideClick: false,
+        showConfirmButton: false,
+        willOpen: () => {
+            Swal.showLoading();
+        }
+    });
+    
+    // Envoyer la requête
     fetch('/absence/notifier/' + idAbsence, {
         method: 'GET',
         credentials: 'same-origin',
@@ -342,35 +365,37 @@ $(document).on('click', '.notifier-absence', function(e) {
     })
     .then(response => {
         console.log('Response status:', response.status);
-        console.log('Response headers:', response.headers);
-        return response.json().catch(() => {
-            return response.text().then(text => {
-                throw new Error('Réponse non JSON: ' + text);
-            });
-        });
+        return response.json();
     })
     .then(data => {
         console.log('Response data:', data);
+        
         if (data && data.success) {
-            afficherMessage('success', data.message || 'Notification envoyée avec succès');
-            bouton.html('<i class="fas fa-check"></i> Notifié')
-                  .removeClass('btn-warning')
-                  .addClass('btn-success')
-                  .prop('disabled', true);
+            Swal.fire({
+                icon: 'success',
+                title: 'Succès',
+                text: data.message || 'Notification envoyée avec succès',
+                confirmButtonColor: '#4e73df'
+            });
         } else {
-            afficherMessage('error', data?.error || 'Erreur inconnue du serveur');
-            bouton.prop('disabled', false)
-                  .html('<i class="fas fa-bell"></i> Notifier');
+            Swal.fire({
+                icon: 'error',
+                title: 'Erreur',
+                text: data.error || 'Erreur lors de l\'envoi de la notification',
+                confirmButtonColor: '#e74a3b'
+            });
         }
     })
     .catch(error => {
-        console.error('Erreur fetch:', error);
-        afficherMessage('error', 'Erreur: ' + error.message);
-        bouton.prop('disabled', false)
-              .html('<i class="fas fa-bell"></i> Notifier');
+        console.error('Erreur:', error);
+        Swal.fire({
+            icon: 'error',
+            title: 'Erreur',
+            text: 'Erreur de connexion: ' + error.message,
+            confirmButtonColor: '#e74a3b'
+        });
     });
-});
-
+}
 // Fonction pour afficher les messages
 function afficherMessage(type, message) {
     var alertClass = type === 'success' ? 'alert-success' : 'alert-danger';
