@@ -80,7 +80,7 @@ return [
         'port'     => '5432', // le port par défaut de PostgreSQL
         'dbname'   => 'aufildespages',
         'user'     => 'postgres',
-        'password' => '1234'
+        'password' => 'NouveauMotDePasse'
 
 
     ],

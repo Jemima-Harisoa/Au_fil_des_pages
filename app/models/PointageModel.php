@@ -66,6 +66,12 @@ public function creerReleverPresenceIndividuelle($idEmploye, $debutPeriode = nul
     if (!$finPeriode) $finPeriode = date('Y-m-t');
     $aujourdhui = date('Y-m-d');
 
+    // --- Récupération des jours fériés ---
+    $sqlFeries = "SELECT date FROM jour_ferie WHERE date BETWEEN :debut AND :fin";
+    $stmtFeries = $this->db->prepare($sqlFeries);
+    $stmtFeries->execute(['debut' => $debutPeriode, 'fin' => $finPeriode]);
+    $joursFeries = $stmtFeries->fetchAll(PDO::FETCH_COLUMN);
+
     // --- 1️⃣ Récupération des sessions
     $sql = "SELECT connexion, deconnexion
             FROM pointage
@@ -96,9 +102,11 @@ public function creerReleverPresenceIndividuelle($idEmploye, $debutPeriode = nul
     $current = strtotime($debutPeriode);
     $end = strtotime($finPeriode);
     while ($current <= $end) {
-        $dates[date('Y-m-d', $current)] = [
+        $dateStr = date('Y-m-d', $current);
+        $dates[$dateStr] = [
             'matin' => [],
-            'apres_midi' => []
+            'apres_midi' => [],
+            'est_ferie' => in_array($dateStr, $joursFeries)
         ];
         $current = strtotime('+1 day', $current);
     }
@@ -123,6 +131,7 @@ public function creerReleverPresenceIndividuelle($idEmploye, $debutPeriode = nul
     $result = [];
 
     foreach ($dates as $date => $sessionsJour) {
+        $estFerie = $sessionsJour['est_ferie'];
         $etatJour = strtotime($date) > strtotime($aujourdhui) ? 'À venir' : 'Absent';
         $totalSecDay = $retardDay = $pauseDay = $supDay = 0;
         $sessionsDetail = [];
@@ -170,30 +179,52 @@ public function creerReleverPresenceIndividuelle($idEmploye, $debutPeriode = nul
 
                 $rSec = $sSec = 0;
                 
-                // Calcul du retard et heures supplémentaires
-                foreach ($horairesPeriode as $h) {
-                    $hDebut = strtotime($date.' '.$h['debut_travail']);
-                    $hFin   = strtotime($date.' '.$h['fin_travail']);
-                    $seuilRetard = strtotime($h['seuil_retard']) - strtotime('00:00:00');
+                // === JOUR FÉRIÉ : TOUT EST HEURES SUPPLÉMENTAIRES ===
+                if ($estFerie) {
+                    if ($depart) {
+                        $sSec = $depart - $arrivee; // Toute la session est heures sup
+                    }
+                } 
+                // === CALCUL NORMAL ===
+                else if (!empty($horairesPeriode)) {
+                    foreach ($horairesPeriode as $h) {
+                        $hDebut = strtotime($date.' '.$h['debut_travail']);
+                        $hFin   = strtotime($date.' '.$h['fin_travail']);
+                        $seuilRetard = strtotime($h['seuil_retard']) - strtotime('00:00:00');
 
-                    // === RETARD ===
-                    // Retard = arrivée après (début + seuil)
-                    if ($arrivee > ($hDebut + $seuilRetard)) {
-                        $rSec = $arrivee - ($hDebut + $seuilRetard);
-                    }
+                        // === RETARD ===
+                        if ($arrivee > ($hDebut + $seuilRetard)) {
+                            $rSec = $arrivee - ($hDebut + $seuilRetard);
+                        }
 
-                    // === HEURES SUPPLÉMENTAIRES ===
-                    // 1. Arrivée plus tôt que l'horaire normal
-                    if ($arrivee < $hDebut) {
-                        $sSec += $hDebut - $arrivee;
+                        // === HEURES SUPPLÉMENTAIRES CORRIGÉES ===
+                        // CAS 1: Session complètement avant l'horaire normal
+                        if ($depart && $depart <= $hDebut) {
+                            $sSec = $depart - $arrivee; // Toute la session est heures sup
+                        }
+                        // CAS 2: Session complètement après l'horaire normal  
+                        else if ($arrivee >= $hFin && $depart) {
+                            $sSec = $depart - $arrivee; // Toute la session est heures sup
+                        }
+                        // CAS 3: Session qui chevauche les horaires normaux
+                        else {
+                            // Heures sup avant le début
+                            if ($arrivee < $hDebut) {
+                                $sSec += $hDebut - $arrivee;
+                            }
+                            // Heures sup après la fin
+                            if ($depart && $depart > $hFin) {
+                                $sSec += $depart - $hFin;
+                            }
+                        }
+                        
+                        break;
                     }
-                    
-                    // 2. Départ plus tard que l'horaire normal
-                    if ($depart && $depart > $hFin) {
-                        $sSec += $depart - $hFin;
+                } else {
+                    // Aucun horaire défini pour cette période → tout est heures supplémentaires
+                    if ($depart) {
+                        $sSec = $depart - $arrivee;
                     }
-                    
-                    break; // On prend le premier horaire qui correspond
                 }
 
                 $retardPeriode += $rSec;
@@ -244,17 +275,19 @@ public function creerReleverPresenceIndividuelle($idEmploye, $debutPeriode = nul
             }
         }
 
-        // Heures supplémentaires pour travail en dehors des horaires prévus
-        // Si l'employé travaille un jour sans horaire défini, tout est considéré comme heures sup
-        if (empty($horaires)) {
-            $supDay += $totalSecDay;
+        // Si jour férié, marquer l'état spécial
+        if ($estFerie && (!empty($sessionsJour['matin']) || !empty($sessionsJour['apres_midi']))) {
+            $etatJour = 'Férié travaillé';
+        } elseif ($estFerie) {
+            $etatJour = 'Férié';
         }
 
         $result[$date] = [
             'etat' => $etatJour,
             'matin' => $sessionsDetail['matin'],
             'apres_midi' => $sessionsDetail['apres_midi'],
-            'pause_dejeuner' => gmdate('H:i:s', $pauseDejeuner)
+            'pause_dejeuner' => gmdate('H:i:s', $pauseDejeuner),
+            'est_ferie' => $estFerie
         ];
 
         $totalWorked += $totalSecDay;
