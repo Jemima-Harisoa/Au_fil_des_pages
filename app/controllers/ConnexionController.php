@@ -60,7 +60,7 @@ class ConnexionController {
 
         $Nom = $_POST['Nom'];
         $mdp = $_POST['mdp'];
-
+       
         $idEmploye = $employeModel->verifierEmploye($Nom, $mdp);
 
         if ($idEmploye) {
@@ -164,7 +164,7 @@ class ConnexionController {
         $v = $p->verifierAdmin($Nom, $mdp);
         if($v == true)
         {
-            $_SESSION['admin']  = $p->getAdmin($Nom, $mdp); 
+            $_SESSION['admin']  = $p->getAdmin($Nom, $mdp);
             $_SESSION['departement']  = $p-> getDepartementAdmin($_SESSION['admin']['id_admin']);     
             $_SESSION['infoAdmin'] = $AdminModel -> getDetailsPersoAdmin($_SESSION['admin']['id_admin']);
             $_SESSION['messagerie'] = $messagerieModel->getTitresConversationsA();  

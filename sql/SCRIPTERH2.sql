@@ -979,3 +979,107 @@ CREATE TABLE employe_formations (
     statut VARCHAR(20) DEFAULT 'PLANIFIE', -- PLANIFIE, EN_COURS, TERMINEE
     date_assignation DATE DEFAULT CURRENT_DATE
 );
+CREATE TABLE employe_evaluations_statuts (
+    id SERIAL PRIMARY KEY,
+    evaluation_id INT REFERENCES employe_evaluations(id_evaluation) ON DELETE CASCADE,
+    statut VARCHAR(20) CHECK (statut IN ('PREVUE','EN_COURS','TERMINEE')),
+    date_changement TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+CREATE TABLE employe_score_trends (
+    id SERIAL PRIMARY KEY,
+    employe_id INT REFERENCES employes(id_employe),
+    mois INT,
+    annee INT,
+    score NUMERIC(6,2)
+);
+CREATE TABLE employe_evaluation_calendrier (
+    id SERIAL PRIMARY KEY,
+    employe_id INT REFERENCES employes(id_employe),
+    periode_id INT REFERENCES employe_evaluation_periodes(id_periode),
+    date_prevue DATE,
+    date_limite DATE
+);
+CREATE TABLE manager_employes (
+    id SERIAL PRIMARY KEY,
+    manager_id INT REFERENCES employes(id_employe),
+    employe_id INT REFERENCES employes(id_employe)
+);
+CREATE TABLE IF NOT EXISTS managers (
+    id_manager SERIAL PRIMARY KEY,
+    employe_id INT NOT NULL REFERENCES employes(id_employe),
+    date_nomination DATE DEFAULT CURRENT_DATE
+);
+
+INSERT INTO managers (employe_id, date_nomination) VALUES
+(1, '2025-10-27'),  -- Jean
+(2, '2025-10-27'),  -- Claire
+(6, '2025-10-27');  -- Lina
+INSERT INTO manager_employes (manager_id, employe_id) VALUES
+(1, 8),  -- Jean manage Bob
+(1, 9),  -- Jean manage Caroline
+(2, 10), -- Claire manage David
+(2, 11), -- Claire manage Evelyne
+(3, 12); -- Lina manage Fabrice
+
+
+INSERT INTO employe_evaluation_periodes (nom, description, frequence_mois) VALUES
+('Mensuel', 'evaluation mensuelle', 1), 
+('Trimestriel', 'evaluation trimestrielle', 3), 
+('Annuel', 'evaluation annuelle', 12); 
+INSERT INTO competences (nom, description, domaine) VALUES
+('Python', 'Programmation Python', 'Informatique'),
+('Leadership', 'Gestion d equipe', 'Management'), 
+('Communication', 'Communication interpersonnelle', 'Soft Skills');
+INSERT INTO formations (titre, description, competence_id, niveau_cible) VALUES
+('Formation Python Avance', 'Python pour projets complexes', 1, 5), 
+('Leadership', 'Ameliorer la gestion d equipe', 2, 5); 
+INSERT INTO employe_evaluations (employe_id, periode_id, date_evaluation, statut, manager_id) VALUES
+(1, 1, '2025-11-01', 'TERMINEE', 1),
+(2, 1, '2025-11-01', 'EN_COURS', 1),
+(3, 2, '2025-11-10', 'PREVUE', 2),
+(4, 2, '2025-11-12', 'PREVUE', 2);
+INSERT INTO employe_evaluations_details (evaluation_id, critere_id, note, commentaire) VALUES
+(6, 1, 8.0, 'Bien'),
+(6, 2, 7.5, 'Peut mieux faire'),
+(7, 1, 6.0, NULL),
+(7, 2, 7.0, NULL),
+(8, 1, 7.5, 'À suivre'),
+(8, 2, 8.0, NULL),
+(9, 1, 6.5, NULL),
+(9, 2, 7.0, 'Correct');
+INSERT INTO employe_formations (employe_id, formation_id, statut) VALUES
+(1, 1, 'PLANIFIE'),
+(2, 2, 'EN_COURS'),
+(3, 1, 'PLANIFIE'),
+(4, 2, 'PLANIFIE');
+INSERT INTO employe_evaluations_statuts (evaluation_id, statut) VALUES
+(6, 'PREVUE'),
+(6, 'EN_COURS'),
+(6, 'TERMINEE'),
+(7, 'PREVUE'),
+(7, 'EN_COURS'),
+(8, 'PREVUE'),
+(9, 'PREVUE');
+INSERT INTO employe_score_trends (employe_id, mois, annee, score) VALUES
+(1, 10, 2025, 8.0),
+(1, 11, 2025, 8.5),
+(2, 10, 2025, 7.0),
+(2, 11, 2025, 7.5),
+(3, 10, 2025, 6.0);
+INSERT INTO employe_evaluation_calendrier (employe_id, periode_id, date_prevue, date_limite) VALUES
+(1, 1, '2025-11-01', '2025-11-05'),
+(2, 1, '2025-11-01', '2025-11-05'),
+(3, 2, '2025-10-15', '2025-10-20');
+
+CREATE TABLE manager_admins (
+    id_manager_admin SERIAL PRIMARY KEY,
+    id_manager INT NOT NULL REFERENCES managers(id_manager), 
+    id_admin INT NOT NULL REFERENCES admins(id_admin),
+    date_lien TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+INSERT INTO manager_admins (id_manager, id_admin)
+VALUES
+(1, 1),
+(2, 2),
+(3, 3);

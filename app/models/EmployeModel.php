@@ -154,7 +154,34 @@ class EmployeModel
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
+    public function verifierManager($prenom, $mdp)
+{
+    $sql = "
+        SELECT m.id_manager, m.employe_id, m.mot_de_passe, p.nom, p.prenom
+        FROM managers m
+        JOIN employes e ON e.id_employe = m.employe_id
+        JOIN personnes p ON p.id_personne = e.id_personne
+        WHERE p.prenom = :prenom
+    ";
 
+    $stmt = $this->db->prepare($sql);
+    $stmt->execute(['prenom' => $prenom]);
+    $result = $stmt->fetch(\PDO::FETCH_ASSOC);
+
+    if ($result) {
+        // Comparaison du mot de passe simple
+        if ($result['mot_de_passe'] === $mdp) {
+            return [
+                'id_manager' => (int)$result['id_manager'],
+                'employe_id' => (int)$result['employe_id'],
+                'nom' => $result['nom'],
+                'prenom' => $result['prenom']
+            ];
+        }
+    }
+
+    return false;
+}
     public function verifierEmploye($prenom, $mdp)
     {
         $sql = "

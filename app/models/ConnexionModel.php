@@ -46,19 +46,38 @@ class ConnexionModel {
     }
 
     // ADMINS
-    public function getAdmin($nom, $motDePasse)
-    {
-        $utilisateur = null;
-        $stmt = $this->db->prepare("SELECT * FROM admins WHERE nom = :nom AND mdp = :mdp");
-        $stmt->execute(['nom' => $nom, 'mdp' => $motDePasse]);
-        $utilisateur = $stmt->fetch(PDO::FETCH_ASSOC);
+ public function getAdmin($nom, $motDePasse)
+{
+    $stmt = $this->db->prepare("
+        SELECT 
+            a.id_admin AS id_admin,
+            a.id_employe AS id_employe,
+            a.nom AS nom,
+            a.mdp AS mdp,
+            a.date_affiliation AS date_affiliation,
+            a.date_fin_affiliation AS date_fin_affiliation,
+            ma.id_manager AS id_manager
+        FROM admins a
+        LEFT JOIN manager_admins ma
+            ON ma.id_admin = a.id_admin
+        WHERE a.nom = :nom
+          AND a.mdp = :mdp
+    ");
 
-        if ($utilisateur === false) {
-            return null;
-        }
+    $stmt->execute([
+        'nom' => $nom,
+        'mdp' => $motDePasse
+    ]);
 
-        return $utilisateur; 
+    $admin = $stmt->fetch(PDO::FETCH_ASSOC);
+
+    if ($admin === false) {
+        return null;
     }
+
+    return $admin;
+}
+
 
     public function inscrireAdmin($nom, $motDePasse)
     {

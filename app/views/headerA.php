@@ -149,6 +149,11 @@
                 <i class="fas fa-clock"></i> <!-- Icône horloge -->
                     <span>Pointage</span></a>
             </li>
+            <li class="nav-item">
+                <a class="nav-link" href="/dashboard/<?= $_SESSION['admin']['id_manager'] ?? 'Inconnu' ?>/manager">
+                <i class="fas fa-clock"></i> <!-- Icône horloge -->
+                    <span>Evaluation</span></a>
+            </li>
 
             <!-- Nav Item - Dashboard -->
             <li class="nav-item">
