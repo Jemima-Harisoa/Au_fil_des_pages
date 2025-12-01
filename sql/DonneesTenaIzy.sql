@@ -170,11 +170,6 @@ INSERT INTO abscence_type_penalite (nom, description, montant) VALUES
 ('Avertissement verbal', 'Avertissement', 0),
 ('Retenue sur salaire', 'Retenue salaire', 50000);
 
--- Demandes de congé
-INSERT INTO conge_demande (description, id_employe, date_demande, date_debut, date_fin, niveau_validation, id_type_conge) VALUES
-('Conge annuel famille', 1, '2024-02-15', '2024-04-01', '2024-04-15', 2, 1),
-('Conge maladie', 2, '2024-02-20', '2024-03-10', '2024-03-12', 2, 2);
-
 
 -- Compétences
 INSERT INTO competences (nom, description, domaine, id_type_competence) VALUES
@@ -310,13 +305,6 @@ INSERT INTO employe_evaluation_periodes (nom, frequence_mois) VALUES
 ('Trimestriel',3),
 ('Annuel',12);
 
-
-INSERT INTO employe_criteres_evaluation (nom, poids) VALUES
-('Qualité du travail', 30),
-('Respect des délais', 25),
-('Autonomie', 20),
-('Esprit d''équipe', 15),
-('Initiative', 10);
 
 INSERT INTO employe_evaluations 
 (employe_id, periode_id, date_generation, date_evaluation, statut, score_total, manager_id, created_at, updated_at) VALUES
@@ -484,12 +472,13 @@ INSERT INTO conge_demande (description, id_employe, date_demande, date_debut, da
 ('Conge maternite', 2, '2024-03-05', '2024-07-01', '2024-09-28', 2, 5);
 
 INSERT INTO abscence_conge_suivi (id_demande, id_abscence, id_type, id_employe, nombre_conge, annee, penalite_appliquee, id_type_penalite, dateMouvement) VALUES
+(NULL, 5, NULL, 1, 0, 2024, TRUE, 1, '2024-03-25 10:00:00'),
 (1, NULL, 1, 1, 15, 2024, FALSE, NULL, '2024-02-16'),
 (NULL, 1, NULL, 2, 0, 2024, TRUE, 2, '2024-03-06'),
 (2, NULL, 2, 2, 3, 2024, FALSE, NULL, '2024-02-21'),
-(NULL, 3, NULL, 5, 0, 2024, TRUE, 1, '2024-03-16'),
-(3, NULL, 3, 3, 3, 2024, FALSE, NULL, '2024-02-26');
-
+(NULL, 3, NULL, 4, 0, 2024, TRUE, 1, '2024-03-16'),
+(3, NULL, 3, 3, 3, 2024, FALSE, NULL, '2024-02-26'); 
 -- FIN DES DONNÉES
 
 SELECT 'Données insérées avec succès!' AS message;
+
