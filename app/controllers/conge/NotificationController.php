@@ -16,14 +16,14 @@ class NotificationController
         error_log("notifierAbsences called idAbsence=" . json_encode($idAbsence) . " sessionInfoAdmin=" . json_encode($_SESSION['infoAdmin'] ?? null));
         try {
             // Vérifier les droits d'administration
-            // if (!$this->estAdministrateur()) {
-            //     error_log("Accès non autorisé: session infoAdmin manquante");
-            //     Flight::json([
-            //         'success' => false,
-            //         'error' => 'Accès non autorisé. Droits administrateur requis.'
-            //     ], 403);
-            //     return;
-            // }
+            if (!$this->estAdministrateur()) {
+                error_log("Accès non autorisé: session infoAdmin manquante");
+                Flight::json([
+                    'success' => false,
+                    'error' => 'Accès non autorisé. Droits administrateur requis.'
+                ], 403);
+                return;
+            }
             
             if (!$idAbsence) {
                 error_log("ID d'absence manquant");
@@ -141,7 +141,6 @@ class NotificationController
         }
     }
 
-
     /**
      * Prépare le message de notification formaté
      */
@@ -150,21 +149,24 @@ class NotificationController
         $fin = $absenceInfo['fin_formatted'];
         $joursPris = $absenceInfo['jours_pris'];
         
-        $lienJustification = Flight::request()->base . '/absence/justifier';
+        $lienJustification = '/absence/justifier';
         
-        $message = "🔔 **Notification d'absence non justifiée**\n\n";
-        $message .= "Bonjour {$absenceInfo['prenom']},\n\n";
-        $message .= "Votre absence du **{$debut}** au **{$fin}** ({$joursPris} jour(s)) ";
-        $message .= "n'a pas encore été justifiée.\n\n";
+        // Message en une seule ligne avec bouton HTML
+        $message = "🔔 **Notification d'absence non justifiée** - ";
+        $message .= "Bonjour {$absenceInfo['prenom']}, ";
+        $message .= "Votre absence du **{$debut}** au **{$fin}** ({$joursPris} jour(s)) n'a pas encore été justifiée. ";
         
         if (!empty($absenceInfo['description'])) {
-            $message .= "**Motif déclaré :** {$absenceInfo['description']}\n\n";
+            $message .= "**Motif déclaré :** {$absenceInfo['description']} - ";
         }
         
-        $message .= "**Veuillez justifier cette absence en cliquant sur le lien suivant :**\n";
-        $message .= "📍 " . $lienJustification . "\n\n";
-        $message .= "⚠️ **Important :** En l'absence de justification, cette absence pourra entraîner des mesures disciplinaires.\n\n";
-        $message .= "Cordialement,\nL'équipe des Ressources Humaines";
+        $message .= "**Veuillez justifier cette absence en cliquant sur le bouton ci-dessous :** ";
+        
+        // Ajout du bouton HTML stylisé
+        $message .= '<a href="' . htmlspecialchars($lienJustification, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') . '"  class="btn btn-primary btn-sm message-lien" style="padding: 8px 16px; margin: 5px 0; display: inline-block; text-decoration: none; background: linear-gradient(135deg, #4e73df 0%, #224abe 100%); color: white; border-radius: 8px; font-weight: 600; border: none;">📍 Justifier mon absence</a> ';
+        
+        $message .= "⚠️ **Important :** En l'absence de justification, cette absence pourra entraîner des mesures disciplinaires. ";
+        $message .= "Cordialement, L'équipe des Ressources Humaines";
         
         return $message;
     }
@@ -178,7 +180,7 @@ class NotificationController
     }
 
     /**
-     * Méthode pour notifier plusieurs employés en lot (optionnel)
+     * Méthode pour notifier plusieurs employés en lot (optionnel) - ADMIN SEULEMENT
      */
     public function notifierAbsencesLot() {
         try {

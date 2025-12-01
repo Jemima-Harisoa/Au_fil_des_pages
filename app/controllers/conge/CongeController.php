@@ -9,8 +9,6 @@ class CongeController {
 
     /**
      * Calcule le taux de validation global pour les statistiques
-     * @param array $demandesEnAttente Liste des demandes en attente
-     * @return float Taux de validation en pourcentage
      */
     private function calculerTauxValidation($demandesEnAttente) {
         if (empty($demandesEnAttente)) {
@@ -31,10 +29,17 @@ class CongeController {
         
         return 0;
     }
+
     /**
-     * Affiche l'interface de validation des congés
+     * Affiche l'interface de validation des congés - ADMIN SEULEMENT
      */
     public function getInterfaceValidation() {
+        // Vérifier les droits d'administration
+        if (!$this->estAdministrateur()) {
+            Flight::redirect('/connexion-employe');
+            return;
+        }
+
         $congeModel = Flight::Conge();
         
         // Récupérer l'ID de l'employé connecté
@@ -55,7 +60,7 @@ class CongeController {
                 ? round(($demande['validations_obtenues'] / $demande['niveau_validation']) * 100, 2)
                 : 0;
             
-            // ✅ NOUVEAU : Vérifier si l'employé connecté a déjà validé cette demande
+            // Vérifier si l'employé connecté a déjà validé cette demande
             $demande['deja_valide'] = $congeModel->aDejaValide($demande['id_demande'], $idEmployeConnecte);
         }
         
@@ -66,11 +71,19 @@ class CongeController {
     }
 
     /**
-     * Valide une demande de congé
-     * @param int $idDemande ID de la demande de congé
+     * Valide une demande de congé - ADMIN SEULEMENT
      */
     public function postValidation($idDemande) {
         try {
+            // Vérifier les droits d'administration
+            if (!$this->estAdministrateur()) {
+                Flight::json([
+                    'success' => false,
+                    'error' => 'Accès non autorisé. Droits administrateur requis.'
+                ], 403);
+                return;
+            }
+
             $congeModel = Flight::Conge();
             
             // Récupérer l'ID de l'employé validateur depuis la session
@@ -90,7 +103,7 @@ class CongeController {
                 throw new \Exception("Employé non connecté");
             }
             
-            // ✅ NOUVEAU : Vérifier si l'employé a déjà validé cette demande
+            // Vérifier si l'employé a déjà validé cette demande
             if ($congeModel->aDejaValide($idDemande, $idValidateur)) {
                 Flight::json([
                     'success' => false,
@@ -139,6 +152,7 @@ class CongeController {
             ], 500);
         }
     }
+
     /**
      * Calcule une estimation de déduction salariale
      */
@@ -180,42 +194,50 @@ class CongeController {
 
     /**
      * Récupère l'ID de l'employé connecté
-     * @return int|null ID de l'employé ou null si non connecté
      */
     private function getIdEmployeConnecte() {
-        // ✅ ADAPTATION aux tables admins et employes du schéma
-        if (isset($_SESSION['admin']['id_employe'])) {
-            return $_SESSION['admin']['id_employe'];
-        } elseif (isset($_SESSION['admin']['id_admin'])) {
-            // Si seul l'ID admin est disponible, récupérer l'ID employé associé
-            $adminModel = Flight::adminModel(); // À créer selon votre structure
-            $admin = $adminModel->getAdminById($_SESSION['admin']['id_admin']);
-            return $admin['id_employe'] ?? null;
+        if (isset($_SESSION['infoAdmin']['id_employe'])) {
+            return $_SESSION['infoAdmin']['id_employe'];
+        } elseif (isset($_SESSION['employe']['id_employe'])) {
+            return $_SESSION['employe']['id_employe'];
         }
-        
         return null;
+    }
+
+    /**
+     * Vérifie si l'utilisateur est administrateur
+     */
+    private function estAdministrateur() {
+        return isset($_SESSION['infoAdmin']['id_employe']);
+    }
+
+    /**
+     * Vérifie si l'utilisateur est un employé connecté
+     */
+    private function estEmploye() {
+        return isset($_SESSION['employe']['id_employe']);
     }
 
     /**
      * Affiche le formulaire de demande de congé
      */
     public function getDemandeConge() {
-        // Récupérer les types de congé disponibles
+        // Vérifier que l'utilisateur est connecté (admin ou employé)
+        if (!$this->estAdministrateur() && !$this->estEmploye()) {
+            Flight::redirect('/connexion-employe');
+            return;
+        }
+
         $congeModel = Flight::Conge();
         $types_conge = $congeModel->getTypesConge();
         
-        // Récupérer les informations de l'employé connecté
         $employeModel = Flight::Employe();
         
         // Déterminer l'ID de l'employé selon le type de session
-        if (isset($_SESSION['infoAdmin']['id_employe'])) {
-            $idEmploye = $_SESSION['infoAdmin']['id_employe'];
-        } elseif (isset($_SESSION['utilisateur']['id_utilisateur'])) {
-            // Si vous avez un lien entre utilisateur et employé
-            $idEmploye = $_SESSION['utilisateur']['id_utilisateur']; // À adapter selon votre structure
-        } else {
-            // Redirection si non connecté
-            Flight::redirect('/admin');
+        $idEmploye = $this->getIdEmployeConnecte();
+        
+        if (!$idEmploye) {
+            Flight::redirect('/connexion-employe');
             return;
         }
         
@@ -225,7 +247,7 @@ class CongeController {
         // Récupérer les statistiques de congés
         $statistiquesConges = $congeModel->getDonneesCongesParType($idEmploye);
         
-        // CORRECTION : Calculer le nombre total de congés restants basé sur conge_type
+        // Calculer le nombre total de congés restants basé sur conge_type
         $nombre_conge_restant = 0;
         foreach ($statistiquesConges as $stat) {
             $nombre_conge_restant += max(0, $stat['jours_totaux'] - $stat['jours_pris']);
@@ -240,21 +262,36 @@ class CongeController {
         Flight::render('conge/demande_conge', [
             'types_conge' => $types_conge,
             'employe' => $employe,
-            'nombre_conge' => $nombre_conge_restant, // CORRECTION : Utiliser le calcul basé sur conge_type
+            'nombre_conge' => $nombre_conge_restant,
             'demandes_annee' => $demandes_annee,
             'taux_approbation' => $taux_approbation,
-            'statistiques' => $statistiquesConges
+            'statistiques' => $statistiquesConges,
+            'estEmploye' => $this->estEmploye() && !$this->estAdministrateur()
         ]);
     }
+
     /**
      * Traite la soumission du formulaire de demande de congé
      */
     public function submitDemande() {
+        // Vérifier que l'utilisateur est connecté (admin ou employé)
+        if (!$this->estAdministrateur() && !$this->estEmploye()) {
+            Flight::json([
+                'success' => false,
+                'error' => 'Non authentifié'
+            ], 401);
+            return;
+        }
+
         $congeModel = Flight::Conge();
         $employeModel = Flight::Employe();
+        
+        // Récupérer l'ID de l'employé connecté
+        $idEmployeConnecte = $this->getIdEmployeConnecte();
+        
         // Récupérer les données du formulaire
         $data = [
-            'id_employe' => $_POST['id_employe'] ?? null,
+            'id_employe' => $idEmployeConnecte, // Utiliser l'ID de l'employé connecté
             'id_type_conge' => $_POST['id_type_conge'] ?? null,
             'date_debut' => $_POST['date_debut'] ?? null,
             'date_fin' => $_POST['date_fin'] ?? null,
@@ -284,11 +321,12 @@ class CongeController {
         // Rendu vers la page demande_conge avec le résultat
         Flight::render('conge/demande_conge', [
             'resultat_demande' => $result,
-            'employe' => $employeModel->findByIdWithDetails($data['id_employe']), // Récupère les infos employé
+            'employe' => $employeModel->findByIdWithDetails($idEmployeConnecte),
             'types_conge' => $congeModel->getTypesConge(),
-            'nombre_conge' => $congeModel->getSoldeConge($data['id_employe']),
-            'demandes_annee' => $congeModel->getNombreDemandesAnnee($data['id_employe']),
-            'taux_approbation' => $congeModel->getTauxApprobation($data['id_employe'])
+            'nombre_conge' => $congeModel->getSoldeConge($idEmployeConnecte),
+            'demandes_annee' => $congeModel->getNombreDemandesAnnee($idEmployeConnecte),
+            'taux_approbation' => $congeModel->getTauxApprobation($idEmployeConnecte),
+            'estEmploye' => $this->estEmploye() && !$this->estAdministrateur()
         ]);
     }
 
@@ -356,14 +394,16 @@ class CongeController {
         return $nomFichier;
     }
 
-
-
     /**
      * Récupère les détails complets des congés pour un employé
-     * @param int $idEmploye ID de l'employé
-     * @param int|null $idType Type de congé (optionnel)
      */
     public function getDetailConges($idEmploye, $idType = null) {
+        // Vérifier les droits d'accès
+        if (!$this->peutVoirFiche($idEmploye)) {
+            Flight::redirect('/connexion-employe');
+            return;
+        }
+
         $ficheDetail = $this->parametreInfoEmploye($idEmploye);
         $congeModel = Flight::Conge();
         
@@ -380,10 +420,14 @@ class CongeController {
 
     /**
      * Récupère les détails complets des absences pour un employé
-     * @param int $idEmploye ID de l'employé
-     * @param bool|null $estAutorise Type d'absence (true=autorisé, false=non autorisé, null=tous)
      */
     public function getDetailAbsences($idEmploye, $estAutorise = null) {
+        // Vérifier les droits d'accès
+        if (!$this->peutVoirFiche($idEmploye)) {
+            Flight::redirect('/connexion-employe');
+            return;
+        }
+
         $ficheDetail = $this->parametreInfoEmploye($idEmploye);
         $abscenceModel = Flight::Abscence();
         // Récupération des détails d'absences
@@ -395,40 +439,108 @@ class CongeController {
 
     /**
      * Affiche la fiche complète d'un employé avec ses congés et absences
-     * @param int $idEmploye ID de l'employé
      */
     public function getFicheEmploye($idEmploye) {
+        // Vérifier les droits d'accès
+        if (!$this->peutVoirFiche($idEmploye)) {
+            Flight::redirect('/employe');
+            return;
+        }
+
         // Passage des données à la vue
         Flight::render('conge/fiche_employe', $this->parametreInfoEmploye($idEmploye));
     }
 
     /**
-     * Parametre les info de la personne et les options (abscence, conge, etc)
-     * @param int $idEmploye ID de l'employé
+     * Vérifie si l'utilisateur peut voir la fiche de l'employé
      */
-    
-    private function parametreInfoEmploye($idEmploye) {
-            $employeModel = Flight::Employe();
-            $abscenceModel = Flight::Abscence();
-            $congeModel = Flight::Conge();
-            
-            // Récupération des données
-            $fiche = $employeModel->getFicheEmploye($idEmploye);
-            $absences = $abscenceModel->getSectionAbsences($idEmploye);
-            $listeconge = $congeModel->getNombreConge($idEmploye);
-            $employe = $employeModel->findByIdWithDetails($idEmploye);
+    private function peutVoirFiche($idEmploye) {
+        // Les admins peuvent tout voir
+        if ($this->estAdministrateur()) {
+            return true;
+        }
         
+        // Les employés ne peuvent voir que leur propre fiche
+        if ($this->estEmploye()) {
+            $idEmployeConnecte = $this->getIdEmployeConnecte();
+            return $idEmployeConnecte == $idEmploye;
+        }
+        
+        return false;
+    }
+
+    /**
+     * Paramètre les info de la personne et les options (abscence, conge, compétences, etc)
+     */
+    private function parametreInfoEmploye($idEmploye) {
+        $employeModel = Flight::Employe();
+        $abscenceModel = Flight::Abscence();
+        $congeModel = Flight::Conge();
+        $competenceModel = Flight::Competence();
+        
+        // Récupération des données
+        $fiche = $employeModel->getFicheEmploye($idEmploye);
+        $absences = $abscenceModel->getSectionAbsences($idEmploye);
+        $listeconge = $congeModel->getNombreConge($idEmploye);
+        $employe = $employeModel->findByIdWithDetails($idEmploye);
+        
+        // Nouvelles données de compétences
+        $competences = $competenceModel->getCompetencesByEmployee($idEmploye);
+        $statsCompetences = $this->getStatsCompetencesEmploye($competences);
+        $suggestionsFormations = $competenceModel->suggestFormationsForEmployee($idEmploye);
+
         return [
-           'fiche' => $fiche,
+            'fiche' => $fiche,
             'absences' => $absences,
             'listeconge' => $listeconge, 
-            'nombre_conge' => $employe['nombre_conge']
+            'nombre_conge' => $employe['nombre_conge'],
+            'competences' => $competences,
+            'stats_competences' => $statsCompetences,
+            'suggestions_formations' => $suggestionsFormations,
+            'estEmploye' => $this->estEmploye() && !$this->estAdministrateur()
+        ];
+    }
+
+    /**
+     * Calcule les statistiques des compétences d'un employé
+     * @param array $competences Liste des compétences
+     * @return array Statistiques
+     */
+    private function getStatsCompetencesEmploye($competences)
+    {
+        $total = count($competences);
+        $validees = 0;
+        $niveauMoyen = 0;
+        $parNiveau = [1 => 0, 2 => 0, 3 => 0, 4 => 0, 5 => 0];
+        
+        foreach ($competences as $competence) {
+            if ($competence['valide']) {
+                $validees++;
+            }
+            $niveauMoyen += $competence['niveau'];
+            $parNiveau[$competence['niveau']]++;
+        }
+        
+        $niveauMoyen = $total > 0 ? $niveauMoyen / $total : 0;
+        
+        return [
+            'total' => $total,
+            'validees' => $validees,
+            'niveau_moyen' => round($niveauMoyen, 2),
+            'pourcentage_validees' => $total > 0 ? round(($validees / $total) * 100, 1) : 0,
+            'par_niveau' => $parNiveau
         ];
     }
     /**
-     * Affiche la liste des employés avec leurs informations de congés et absences
+     * Affiche la liste des employés avec leurs informations de congés et absences - ADMIN SEULEMENT
      */
     public function getListeEmployes() {
+        // Vérifier les droits d'administration
+        if (!$this->estAdministrateur()) {
+            Flight::redirect('/connexion-employe');
+            return;
+        }
+
         // Récupération des modèles
         $employeModel = Flight::Employe();
         $congeModel = Flight::Conge();
@@ -471,10 +583,18 @@ class CongeController {
     
     /**
      * Récupère seulement les statistiques de congés (pour API)
-     * @param int $idEmploye ID de l'employé
      */
     public function getStatistiques($idEmploye) {
         try {
+            // Vérifier les droits d'accès
+            if (!$this->peutVoirFiche($idEmploye)) {
+                Flight::json([
+                    'success' => false,
+                    'error' => 'Accès non autorisé'
+                ], 403);
+                return;
+            }
+
             $congeModel = Flight::Conge();
             $statistiques = $congeModel->getDonneesConges($idEmploye);
             

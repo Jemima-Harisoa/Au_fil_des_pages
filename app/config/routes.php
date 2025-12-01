@@ -22,6 +22,8 @@ use app\controllers\conge\AbscenceController;
 use app\controllers\conge\NotificationController;
 use app\controllers\conge\CalendrierController;
 
+use app\controllers\CompetenceController;
+
 use app\controllers\FichePaieController;
 use flight\Engine;
 use flight\net\Router;
@@ -189,6 +191,10 @@ Flight::route('GET /messagerie/markAsRead/@id_candidat/@id_annonce', [Messagerie
 Flight::route('GET /messagerie/sse', [MessagerieController::class, 'sseNotifications']);
 Flight::route('GET /messagerie/refreshSession', [MessagerieController::class, 'refreshConversation']);
 
+
+Flight::route('GET /messagerieE/@id_employe/@partenaire_id', [MessagerieController::class, 'showMessagerieE']);
+Flight::route('POST /messagerieE/send', [MessagerieController::class, 'sendMessageE']);
+
 $planning_entretien_controller = new PlanningEntretienController();
 $router->get('/planning-entretien',[$planning_entretien_controller,'showPageEntretien']);
 
@@ -287,3 +293,51 @@ $router->group('/absence', function($router) use ($Abscence_Controller,$Justific
     $router->get('/notifier/tous', [$Notification_Controller, 'notifierAbsencesLot'] );
 });
 
+
+
+$Competence_Controller = new CompetenceController();
+
+// Routes de gestion des compétences
+$router->group('/competences', function($router) use ($Competence_Controller) {
+    
+    // Route principale - liste des compétences avec pagination, filtres et tri
+    $router->get('/liste', [$Competence_Controller, 'getListeCompetences']);
+    
+    // Routes pour les détails d'une compétence spécifique
+    $router->get('/details/@idCompetence', [$Competence_Controller, 'getDetailsCompetence']);
+    
+    // Routes pour l'export des compétences
+    $router->get('/export', [$Competence_Controller, 'exportCompetences']);
+    
+    // Routes pour la recherche et le filtrage
+    $router->get('/recherche', [$Competence_Controller, 'searchCompetences']);
+    $router->get('/filtres', [$Competence_Controller, 'filterCompetences']);
+    
+    // Route pour les statistiques globales
+    $router->get('/statistiques', [$Competence_Controller, 'getStatsGlobales']);
+    
+    // Route par défaut - redirige vers la liste
+    $router->get('/', [$Competence_Controller, 'getListeCompetences']);
+});
+
+// Alternative: routes API pour les appels AJAX
+$router->group('/api/competences', function($router) use ($Competence_Controller) {
+    
+    // API pour la liste des compétences (retour JSON)
+    $router->get('/liste', [$Competence_Controller, 'getListeCompetences']);
+    
+    // API pour les détails d'une compétence
+    $router->get('/details/@idCompetence', [$Competence_Controller, 'getDetailsCompetence']);
+    
+    // API pour l'export
+    $router->get('/export', [$Competence_Controller, 'exportCompetences']);
+    
+    // API pour la recherche (autocomplétion)
+    $router->get('/recherche', [$Competence_Controller, 'searchCompetences']);
+    
+    // API pour le filtrage avancé
+    $router->get('/filtres', [$Competence_Controller, 'filterCompetences']);
+    
+    // API pour les statistiques
+    $router->get('/statistiques', [$Competence_Controller, 'getStatsGlobales']);
+});

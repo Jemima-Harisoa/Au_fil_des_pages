@@ -1,0 +1,63 @@
+    Dans paranetre info ici je voudrais que tu rajoute ceci, la structure de table est dans script rh2 et 
+    les fonction deja presente pour le model de competence se trouve dans competenceModel la map de competence Model est comme suit Flight :
+    Flight::map('Competence', function () {
+        return new CompetenceModel(Flight::db());
+    }); 
+    2) Vue employé / profil => a ajouter a l’inerface des profils pour les conge dans la ficheemploye : 
+But : pour un employé, exposer son profil de compétences (historique, sources, validations, gaps vs profil/poste).
+Fonctions (WS / services)
+getCompetencesByEmployee(id_employe) : compétences + niveau + historique.
+
+
+getCompetenceHistory(id_employe,id_competence) : timeline (source, date, ancien niveau).
+
+
+getGapForEmployee(id_employe,id_profil) : écarts vs profil requis.
+
+
+suggestFormationsForEmployee(id_employe) : map gaps → formations.
+
+
+(Traitement appliqué : consolidation historiques, calcul trend, mapping règles → actions)
+Base (tables)
+employe_competences, competences, profils, formations, employes.
+
+
+Affichage (front)
+Profil : nom/poste/dept + tableau compétence | niveau | source | validé | date.
+
+
+Historique : timeline par compétence.
+
+
+Gap widget : compétences manquantes + bouton « suggérer formation ».
+
+
+Integration
+JSON endpoint export profil.
+
+
+Webhook pour notifier manager quand gap > seuil.
+
+    /**
+     * Paramètre les info de la personne et les options (abscence, conge, etc)
+     */
+    private function parametreInfoEmploye($idEmploye) {
+        $employeModel = Flight::Employe();
+        $abscenceModel = Flight::Abscence();
+        $congeModel = Flight::Conge();
+        
+        // Récupération des données
+        $fiche = $employeModel->getFicheEmploye($idEmploye);
+        $absences = $abscenceModel->getSectionAbsences($idEmploye);
+        $listeconge = $congeModel->getNombreConge($idEmploye);
+        $employe = $employeModel->findByIdWithDetails($idEmploye);
+
+        return [
+           'fiche' => $fiche,
+            'absences' => $absences,
+            'listeconge' => $listeconge, 
+            'nombre_conge' => $employe['nombre_conge'],
+            'estEmploye' => $this->estEmploye() && !$this->estAdministrateur()
+        ];
+    }

@@ -568,4 +568,283 @@ class EmployeModel
 
         return $html;
     }
+
+    // --- Requêtes / fonctionnalités compétences (auto-évaluation) ---
+
+    /**
+     * Soumettre une auto-évaluation de compétence
+     * 
+     * @param int $id_employe
+     * @param int $id_competence
+     * @param int $niveau (1-5)
+     * @param array $details Données supplémentaires optionnelles
+     * @return bool
+     */
+    public function submitSelfCompetence(int $id_employe, int $id_competence, int $niveau, array $details = []): bool
+    {
+        try {
+            if ($niveau < 1 || $niveau > 5) {
+                throw new \Exception("Le niveau doit être compris entre 1 et 5");
+            }
+
+            $id_source_auto = $this->getAutoEvaluationSourceId();
+            $valide = false;
+            $date_mesure = date('Y-m-d H:i:s');
+
+            if (!$this->competenceExists($id_competence)) {
+                throw new \Exception("La compétence spécifiée n'existe pas");
+            }
+
+            $sql = "INSERT INTO employe_competences 
+                    (id_employe, id_competence, niveau, id_source, date_mesure, valide) 
+                    VALUES (:id_employe, :id_competence, :niveau, :id_source, :date_mesure, :valide)
+                    ON CONFLICT (id_employe, id_competence) 
+                    DO UPDATE SET 
+                        niveau = EXCLUDED.niveau,
+                        id_source = EXCLUDED.id_source,
+                        date_mesure = EXCLUDED.date_mesure,
+                        valide = EXCLUDED.valide,
+                        id_employe_validateur = NULL,
+                        date_validation = NULL";
+
+            $stmt = $this->db->prepare($sql);
+            $result = $stmt->execute([
+                'id_employe' => $id_employe,
+                'id_competence' => $id_competence,
+                'niveau' => $niveau,
+                'id_source' => $id_source_auto,
+                'date_mesure' => $date_mesure,
+                'valide' => $valide
+            ]);
+
+            if ($result && $this->isRealtimeMode()) {
+                $this->triggerCompetenceConsolidationJob($id_employe, $id_competence);
+            }
+
+            return (bool)$result;
+
+        } catch (PDOException $e) {
+            error_log("Erreur lors de la soumission de compétence: " . $e->getMessage());
+            return false;
+        } catch (\Exception $e) {
+            error_log("Erreur de validation: " . $e->getMessage());
+            return false;
+        }
+    }
+
+    /**
+     * Lister toutes les auto-évaluations d'un employé
+     * 
+     * @param int $id_employe
+     * @return array
+     */
+    public function listSelfSubmissions(int $id_employe): array
+    {
+        try {
+            $id_source_auto = $this->getAutoEvaluationSourceId();
+
+            $sql = "SELECT 
+                        ec.id,
+                        ec.id_competence,
+                        c.nom as competence_nom,
+                        c.description as competence_description,
+                        c.domaine,
+                        tc.libelle as type_competence,
+                        ec.niveau,
+                        ncl.libelle as niveau_libelle,
+                        ncl.description as niveau_description,
+                        ncl.couleur as niveau_couleur,
+                        ec.date_mesure,
+                        ec.valide,
+                        ec.date_validation,
+                        ev.nom as validateur_nom,
+                        ev.prenom as validateur_prenom
+                    FROM employe_competences ec
+                    JOIN competences c ON ec.id_competence = c.id_competence
+                    LEFT JOIN type_competence tc ON c.id_type_competence = tc.id_type_competence
+                    JOIN niveau_competence_libelle ncl ON ec.niveau = ncl.niveau
+                    LEFT JOIN employes ev ON ec.id_employe_validateur = ev.id_employe
+                    LEFT JOIN personnes evp ON ev.id_personne = evp.id_personne
+                    WHERE ec.id_employe = :id_employe 
+                      AND ec.id_source = :id_source
+                    ORDER BY c.domaine, c.nom";
+
+            $stmt = $this->db->prepare($sql);
+            $stmt->execute([
+                'id_employe' => $id_employe,
+                'id_source' => $id_source_auto
+            ]);
+
+            return $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        } catch (PDOException $e) {
+            error_log("Erreur lors du listing des auto-évaluations: " . $e->getMessage());
+            return [];
+        }
+    }
+
+    /**
+     * Récupérer l'ID de la source "Auto-évaluation"
+     * 
+     * @return int
+     */
+    private function getAutoEvaluationSourceId(): int
+    {
+        try {
+            $sql = "SELECT id_source FROM source_evaluation WHERE libelle = 'Auto-évaluation'";
+            $stmt = $this->db->query($sql);
+            $result = $stmt->fetch(PDO::FETCH_ASSOC);
+
+            if ($result) {
+                return (int)$result['id_source'];
+            }
+
+            $sql = "INSERT INTO source_evaluation (libelle, description) 
+                    VALUES ('Auto-évaluation', 'Évaluation réalisée par l\\'employé lui-même') 
+                    RETURNING id_source";
+            $stmt = $this->db->query($sql);
+            $result = $stmt->fetch(PDO::FETCH_ASSOC);
+
+            return (int)$result['id_source'];
+
+        } catch (PDOException $e) {
+            error_log("Erreur lors de la récupération de la source auto-évaluation: " . $e->getMessage());
+            return 1;
+        }
+    }
+
+    /**
+     * Vérifier si une compétence existe
+     * 
+     * @param int $id_competence
+     * @return bool
+     */
+    private function competenceExists(int $id_competence): bool
+    {
+        $sql = "SELECT 1 FROM competences WHERE id_competence = :id_competence";
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute(['id_competence' => $id_competence]);
+        return (bool)$stmt->fetch(PDO::FETCH_ASSOC);
+    }
+
+    /**
+     * Vérifier si le mode temps réel est activé
+     * 
+     * @return bool
+     */
+    private function isRealtimeMode(): bool
+    {
+        try {
+            $sql = "SELECT libelle FROM parametre WHERE libelle = 'mode_realtime_competences'";
+            $stmt = $this->db->query($sql);
+            $result = $stmt->fetch(PDO::FETCH_ASSOC);
+            return $result && $result['libelle'] === 'actif';
+        } catch (PDOException $e) {
+            return false;
+        }
+    }
+
+    /**
+     * Déclencher un job de consolidation des compétences
+     * 
+     * @param int $id_employe
+     * @param int $id_competence
+     * @return void
+     */
+    private function triggerCompetenceConsolidationJob(int $id_employe, int $id_competence): void
+    {
+        try {
+            $sql = "INSERT INTO jobs_competences (id_employe, id_competence, type_job, date_creation) 
+                    VALUES (:id_employe, :id_competence, 'consolidation', NOW())";
+            $stmt = $this->db->prepare($sql);
+            $stmt->execute([
+                'id_employe' => $id_employe,
+                'id_competence' => $id_competence
+            ]);
+        } catch (PDOException $e) {
+            error_log("Erreur lors du déclenchement du job: " . $e->getMessage());
+        }
+    }
+
+    /**
+     * Obtenir la liste des compétences disponibles avec leurs types
+     * 
+     * @return array
+     */
+    public function getAvailableCompetences(): array
+    {
+        try {
+            $sql = "SELECT 
+                        c.id_competence,
+                        c.nom,
+                        c.description,
+                        c.domaine,
+                        tc.libelle as type_competence,
+                        tc.id_type_competence
+                    FROM competences c
+                    LEFT JOIN type_competence tc ON c.id_type_competence = tc.id_type_competence
+                    WHERE c.id_competence IN (
+                        SELECT DISTINCT id_competence 
+                        FROM employe_competences 
+                        WHERE valide = true
+                    )
+                    ORDER BY c.domaine, c.nom";
+
+            $stmt = $this->db->query($sql);
+            return $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        } catch (PDOException $e) {
+            error_log("Erreur lors de la récupération des compétences: " . $e->getMessage());
+            return [];
+        }
+    }
+
+    /**
+     * Obtenir les libellés des niveaux de compétence
+     * 
+     * @return array
+     */
+    public function getNiveauLibelles(): array
+    {
+        try {
+            $sql = "SELECT niveau, libelle, description, couleur 
+                    FROM niveau_competence_libelle 
+                    ORDER BY niveau";
+            $stmt = $this->db->query($sql);
+            return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        } catch (PDOException $e) {
+            error_log("Erreur lors de la récupération des niveaux: " . $e->getMessage());
+            return [];
+        }
+    }
+
+    /**
+     * Supprimer une auto-évaluation de compétence
+     * 
+     * @param int $id_employe
+     * @param int $id_competence
+     * @return bool
+     */
+    public function deleteSelfCompetence(int $id_employe, int $id_competence): bool
+    {
+        try {
+            $id_source_auto = $this->getAutoEvaluationSourceId();
+
+            $sql = "DELETE FROM employe_competences 
+                    WHERE id_employe = :id_employe 
+                    AND id_competence = :id_competence 
+                    AND id_source = :id_source";
+
+            $stmt = $this->db->prepare($sql);
+            return (bool)$stmt->execute([
+                'id_employe' => $id_employe,
+                'id_competence' => $id_competence,
+                'id_source' => $id_source_auto
+            ]);
+
+        } catch (PDOException $e) {
+            error_log("Erreur lors de la suppression de compétence: " . $e->getMessage());
+            return false;
+        }
+    }
 }

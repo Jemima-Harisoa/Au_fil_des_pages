@@ -1,540 +1,575 @@
 -- ========================================
--- FICHIER DE TEST - Données cohérentes
--- Système de gestion RH et congés
+-- DONNÉES DE TEST COHÉRENTES - AU FIL DES PAGES
 -- ========================================
 
--- =========================
--- 1. DONNÉES DE RÉFÉRENCE (SANS DÉPENDANCES)
--- =========================
+-- Tables de base sans dépendances
+INSERT INTO sexe (type_sexe) VALUES
+('Homme'),
+('Femme'),
+('Non specifie');
 
--- Départements
 INSERT INTO departements (nom) VALUES 
-('Ressources Humaines'),
-('Informatique'),
-('Opérations'),
-('Finance'),
-('Marketing'),
-('Commercial');
+('Direction'),
+('Comptabilite'),
+('Stock'),
+('Vente'),
+('Ressources Humaines');
 
--- Types de contrats
+INSERT INTO filieres (nom) VALUES 
+('Toutes series'),
+('Comptabilite et Finance'),
+('Management et Commerce'),
+('Logistique'),
+('Informatique');
+
 INSERT INTO type_contrats (nom) VALUES
 ('CDI'),
 ('CDD'),
 ('Stage'),
-('Freelance');
+('Freelance'),
+('Interim');
 
--- Sexe
-INSERT INTO sexe (type_sexe) VALUES
-('Masculin'),
-('Féminin');
-
--- Diplômes
 INSERT INTO diplomes (nom, niveau) VALUES
 ('Brevet', -3),
 ('Bac', 0),
 ('BTS / DUT (Bacc+2)', 2),
 ('Licence (Bacc+3)', 3),
-('Master (Bacc+5)', 5),
-('Doctorat', 6);
+('Master (Bacc+5)', 5);
 
--- Filières
-INSERT INTO filieres (nom) VALUES
-('Toutes séries'),
-('Comptabilité et Finance'),
-('Management et Commerce'),
-('Logistique'),
-('Informatique');
-
--- États
 INSERT INTO etat (nom) VALUES
 ('En attente'),
-('Validé'),
-('Refusé'),
+('Valide'),
+('Refuse'),
 ('En cours'),
-('Terminé');
+('Termine');
 
--- Appréciations
 INSERT INTO appreciation (type_appreciation, code) VALUES
 ('Excellent', 5),
-('Très bon', 4),
+('Tres bon', 4),
 ('Bon', 3),
 ('Moyen', 2),
 ('Insuffisant', 1);
 
--- Types de congés avec configuration cohérente
+-- Tables avec caractères problématiques simplifiés
+INSERT INTO evenements (nom_evenement) VALUES
+('Entretien embauche'),
+('Formation interne'),
+('Evaluation annuelle'),
+('Reunion equipe'),
+('Seminaire');
+
 INSERT INTO conge_type (nom, description, nombre_jour, deductible_sur_salaire, deductible_sur_conge) VALUES
-('Congé annuel', 'Congé payé annuel réglementaire', 30, FALSE, TRUE),
-('Congé maladie', 'Congé pour raison de santé avec justificatif médical', 15, FALSE, FALSE),
-('Congé maternité', 'Congé maternité selon législation malgache (98 jours)', 98, FALSE, FALSE),
-('Congé paternité', 'Congé paternité pour les employés (10 jours)', 10, FALSE, FALSE),
-('Congé sans solde', 'Congé non payé à la demande de l''employé', 0, TRUE, FALSE),
-('Congé formation', 'Congé pour formation professionnelle', 10, FALSE, FALSE);
+('Conge annuel', 'Conge paye annuel', 30, FALSE, TRUE),
+('Conge maladie', 'Arret maladie avec certificat medical', 15, FALSE, TRUE),
+('Conge exceptionnel', 'Evenements familiaux', 5, FALSE, TRUE),
+('Conge sans solde', 'Conge non paye', 0, TRUE, FALSE),
+('Conge maternite', 'Conge maternite', 90, FALSE, TRUE);
 
--- Types de pénalités pour absences
 INSERT INTO abscence_type_penalite (nom, description, montant) VALUES
-('Retard', 'Pénalité pour retard répété', 50000.00),
-('Absence non justifiée', 'Retenue salariale pour absence sans justificatif', 200000.00),
-('Dépassement congé', 'Retenue pour dépassement de jours de congé accordés', 150000.00),
-('Non respect horaires', 'Pénalité pour non-respect des horaires de travail', 75000.00);
+('Retard simple', 'Retard de moins de 30 minutes', 5000),
+('Absence non justifiee', 'Absence sans justification', 20000),
+('Depart anticipe', 'Depart sans autorisation', 10000),
+('Absence prolongee', 'Absence de plus de 3 jours', 50000),
+('Retard repete', 'Plus de 3 retards dans le mois', 15000);
 
--- Types de prime
+INSERT INTO status_validation_cv (statut) VALUES
+('En attente'),
+('Valide'),
+('Refuse'),
+('A corriger'),
+('Accepte avec reserves');
+
 INSERT INTO type_prime (libelle) VALUES
 ('Prime de performance'),
-('Prime d ancienneté'),
-('Prime de transport'),
-('Prime de panier'),
-('Prime de fin d année');
+('Prime d anciennete'),
+('Prime de fin d annee'),
+('Prime de projet'),
+('Prime de participation');
 
--- Paramètres système
 INSERT INTO parametre (libelle, pourcentage) VALUES
-('Taux heure supplémentaire', 25.00),
-('Taux majoré nuit', 50.00),
-('Taux majoré dimanche', 100.00),
-('Taux majoré férié', 150.00);
+('Taux horaire normal', 100.00),
+('Taux heures supplementaires', 125.00),
+('Taux travail dimanche', 150.00),
+('Taux jours feries', 200.00),
+('Taux nuit', 120.00);
 
--- SMIG (Salaire Minimum Interprofessionnel Garanti)
 INSERT INTO smig (montant, date_application) VALUES
-(250000.00, '2024-01-01'),
-(275000.00, '2025-01-01');
+(250000, '2024-01-01'),
+(260000, '2024-06-01'),
+(270000, '2025-01-01'),
+(280000, '2025-06-01'),
+(290000, '2026-01-01');
 
--- Tranches IRSA (Impôt sur le Revenu des Salariés)
 INSERT INTO irsa (min, max, pourcentage) VALUES
 (0, 350000, 0),
 (350001, 400000, 5),
 (400001, 500000, 10),
 (500001, 600000, 15),
-(600001, NULL, 20);
+(600001, 9999999, 20);
 
--- Seuil de tolérance pour les retards
 INSERT INTO seuil_tolerance (valeur) VALUES
-(5.00);
+(5.00),
+(10.00),
+(15.00),
+(3.00),
+(7.00);
 
--- Configuration heures supplémentaires
-INSERT INTO heure_supplementaire_config (nombre_premieres_heures) VALUES
-(8);
-
--- Status validation CV
-INSERT INTO status_validation_cv (statut) VALUES
-('En attente'),
-('Validé'),
-('Rejeté'),
-('À corriger');
-
--- Événements de mobilité
-INSERT INTO evenements (nom_evenement) VALUES
-('Promotion'),
-('Changement de poste'),
-('Mutation département'),
-('Formation interne');
-
--- API externes
-INSERT INTO api (nom, cle_api) VALUES
-('API SMMT', 'smmt_sk_test_abc123xyz456'),
-('API Paie Madagascar', 'paie_mg_sk_def789uvw012');
-
--- Seuil (treshold)
 INSERT INTO treshold (valeur, date_treshold) VALUES
-(80.00, '2025-01-01 00:00:00'),
-(75.00, '2025-06-01 00:00:00');
+(80.00, '2024-01-01'),
+(85.00, '2024-06-01'),
+(75.00, '2025-01-01'),
+(90.00, '2025-06-01'),
+(82.00, '2026-01-01');
 
--- Message automatique
 INSERT INTO message_automatique (message) VALUES
-('Votre demande de congé a été enregistrée. Elle sera examinée par les responsables dans les 48 heures. Vous recevrez une notification dès validation.');
+('Votre demande de conge a ete approuvee'),
+('Votre absence necessite une justification'),
+('Votre solde de conge est faible'),
+('Rappel : Pointage requis avant 8h15'),
+('Votre entretien annuel est programme');
 
--- =========================
--- 2. PERSONNES
--- =========================
+INSERT INTO api (nom, cle_api) VALUES
+('API RH', 'rh_123456_secret'),
+('API Paie', 'paie_789012_secret'),
+('API Pointage', 'pointage_345678_secret'),
+('API Conges', 'conge_901234_secret'),
+('API Recrutement', 'recrutement_567890_secret');
 
+INSERT INTO jour_ferie (date) VALUES
+('2024-01-01'),
+('2024-03-29'),
+('2024-05-01'),
+('2024-06-26'),
+('2024-08-15');
+
+-- Personnes
 INSERT INTO personnes (nom, prenom, date_naissance, contact, lien_image, id_sexe) VALUES
-('Razafindrakoto', 'Andry', '1985-04-12', '+261341234567', '/images/andry.jpg', 1),
-('Rasoamanana', 'Mialy', '1992-07-01', '+261332345678', '/images/mialy.jpg', 2),
-('Rakoto', 'Hery', '1990-11-20', '+261339876543', '/images/hery.jpg', 1),
-('Randriatsara', 'Fanja', '2003-05-10', '+261344556677', '/images/fanja.jpg', 2),
-('Razanamparany', 'Lova', '1991-02-28', '+261329998877', '/images/lova.jpg', 2),
-('Rajaonarivelo', 'Thierry', '1988-09-09', '+261334443322', '/images/thierry.jpg', 1),
-('Andriamasy', 'Nirina', '1995-01-18', '+261330112233', '/images/nirina.jpg', 2),
-('Rakotomanga', 'Tiana', '1993-06-25', '+261339992211', '/images/tiana.jpg', 2),
-('Randriamanantsoa', 'Faly', '1989-12-05', '+261334455667', '/images/faly.jpg', 1),
-('Ravalomanana', 'Miora', '1996-08-14', '+261331122334', '/images/miora.jpg', 2);
+('Rakoto', 'Jean', '1985-03-12', '0341234567', 'images/jean.jpg', 1),
+('Rasoanaivo', 'Marie', '1990-07-25', '0342345678', 'images/marie.jpg', 2),
+('Randriamahenina', 'Paul', '1988-11-02', '0343456789', 'images/paul.jpg', 1),
+('Andriantsitoha', 'Lova', '1995-01-15', '0344567890', 'images/lova.jpg', 1),
+('Rakotondrazaka', 'Hery', '1992-05-30', '0345678901', 'images/hery.jpg', 1);
 
--- =========================
--- 3. UTILISATEURS ET ADMINS
--- =========================
-
--- Utilisateurs simples
+-- Utilisateurs
 INSERT INTO utilisateurs (nom, mdp, date_inscription) VALUES
-('user_hery', '123', '2019-01-05 08:00:00'),
-('user_fanja', '123', '2025-09-01 08:00:00'),
-('user_lova', '123', '2022-02-01 08:00:00'),
-('user_nirina', '123', '2019-05-20 08:00:00'),
-('user_tiana', '123', '2021-07-11 08:00:00');
+('admin', 'admin123', '2024-01-01'),
+('manager', 'manager123', '2024-01-02'),
+('comptable', 'comptable123', '2024-01-03'),
+('vendeur', 'vendeur123', '2024-01-04'),
+('stock', 'stock123', '2024-01-05');
 
--- =========================
--- 4. PROFILS
--- =========================
+-- Profils
+INSERT INTO profils (titre, competences, skills, loisirs, id_diplome, id_filiere, experience_pro, id_type_contrat, est_minimum, id_departement) VALUES
+('Directeur', 'Gestion d equipe, Strategie', 'Leadership, Communication', 'Lecture, Golf', 5, 3, '10 ans en management', 1, TRUE, 1),
+('Comptable', 'Comptabilite generale, Fiscalite', 'Excel, Sage', 'Jeux de strategie', 4, 2, '5 ans en cabinet', 1, TRUE, 2),
+('Responsable stock', 'Gestion inventaire, Logistique', 'Organisation, ERP', 'Sport, Bricolage', 3, 4, '7 ans en logistique', 1, TRUE, 3),
+('Vendeur senior', 'Vente, Relation client', 'Negociation, Communication', 'Lecture, Theatre', 3, 3, '4 ans en vente', 1, TRUE, 4),
+('Assistant RH', 'Recrutement, Administration', 'Organisation, Communication', 'Social, Voyages', 4, 3, '3 ans en RH', 1, TRUE, 5);
 
-INSERT INTO profils (titre, competences, skills, loisirs, id_diplome, id_filiere, experience_pro, certifications, langues, id_type_contrat, id_departement, est_minimum) VALUES
-('Développeur Full Stack', 
- 'Développement web frontend et backend; Gestion de bases de données; DevOps et CI/CD; Tests unitaires et d''intégration',
- 'JavaScript, React, Node.js; Python, Django; PostgreSQL, MongoDB; Git, Docker',
- 'Coding challenges; Contribution open source; Veille technologique',
- 3, 5, '2-3 ans d''expérience en développement web', 'AWS Certified Developer', 'Français, Anglais technique', 1, 2, TRUE);
+-- ProfilsCV
+INSERT INTO profilsCV (titre, competences, skills, loisirs, id_diplome, filiere, experience_pro, id_type_contrat, est_minimum, id_departement) VALUES
+('Directeur', 'Gestion d equipe, Strategie', 'Leadership, Communication', 'Lecture, Golf', 5, 'Management', '10 ans en management', 1, TRUE, 1),
+('Comptable', 'Comptabilite generale, Fiscalite', 'Excel, Sage', 'Jeux de strategie', 4, 'Finance', '5 ans en cabinet', 1, TRUE, 2),
+('Responsable stock', 'Gestion inventaire, Logistique', 'Organisation, ERP', 'Sport, Bricolage', 3, 'Logistique', '7 ans en logistique', 1, TRUE, 3),
+('Vendeur senior', 'Vente, Relation client', 'Negociation, Communication', 'Lecture, Theatre', 3, 'Commerce', '4 ans en vente', 1, TRUE, 4),
+('Assistant RH', 'Recrutement, Administration', 'Organisation, Communication', 'Social, Voyages', 4, 'Management', '3 ans en RH', 1, TRUE, 5);
 
--- Profils CV
-INSERT INTO profilsCV (titre, competences, skills, loisirs, id_diplome, filiere, experience_pro, certifications, langues, id_type_contrat, est_minimum, id_departement) VALUES
-('Développeur Full Stack', 'Développement web frontend et backend; Gestion de bases de données; DevOps et CI/CD; Tests unitaires et d''intégration', 'JavaScript, React, Node.js; Python, Django; PostgreSQL, MongoDB; Git, Docker', 'Coding challenges; Contribution open source; Veille technologique', 3, 'Informatique', '2-3 ans d''expérience en développement web', 'AWS Certified Developer', 'Français, Anglais technique', 1, TRUE, 2);
-
--- =========================
--- 5. CONTRATS
--- =========================
-
-INSERT INTO contrats (id_type_contrat, url_contrat) VALUES
-(1, '/contracts/contrat_001.pdf'),
-(1, '/contracts/contrat_002.pdf'),
-(1, '/contracts/contrat_003.pdf'),
-(3, '/contracts/contrat_004_stage.pdf'),
-(1, '/contracts/contrat_005.pdf'),
-(1, '/contracts/contrat_006.pdf'),
-(2, '/contracts/contrat_007_cdd.pdf'),
-(1, '/contracts/contrat_008.pdf'),
-(1, '/contracts/contrat_009.pdf'),
-(2, '/contracts/contrat_010_cdd.pdf');
-
--- =========================
--- 6. EMPLOYÉS
--- =========================
-
-INSERT INTO employes (id_personne, id_contrat, id_departement, poste, date_embauche, nombre_conge, salaire_base) VALUES
--- RH Manager - Responsable validation niveau 1
-(1, 1, 1, 'HR Manager', '2018-03-01', 25, 1200000.00),
--- Développeuse Senior - Responsable IT, validation niveau 2
-(2, 2, 2, 'Développeuse Senior', '2020-06-15', 18, 900000.00),
--- Opérateur - Employé normal
-(3, 3, 3, 'Opérateur Logistique', '2019-01-05', 20, 800000.00),
--- Stagiaire - Pas de congés payés
-(4, 4, 2, 'Stagiaire Développement', '2025-09-01', 0, 200000.00),
--- Analyste - Employée enceinte
-(5, 5, 3, 'Analyste de Données', '2022-02-01', 18, 700000.00),
--- Technicien - A dépassé ses congés
-(6, 6, 2, 'Technicien Support', '2017-11-10', 5, 600000.00),
--- Comptable
-(7, 7, 4, 'Comptable', '2019-05-20', 20, 750000.00),
--- Marketing Specialist
-(8, 8, 5, 'Marketing Specialist', '2021-07-11', 22, 950000.00),
--- Commercial Senior
-(9, 9, 6, 'Commercial Senior', '2018-09-30', 25, 1100000.00),
--- Développeuse Junior
-(10, 10, 2, 'Développeuse Junior', '2023-01-05', 15, 650000.00);
-
--- =========================
--- 7. ADMINS
--- =========================
-
-INSERT INTO admins (id_employe, nom, mdp, date_affiliation) VALUES
-(1, 'admin_andry', '123', '2018-03-01 08:00:00'),  -- HR Manager
-(2, 'admin_mialy', '123', '2020-06-15 08:00:00'),  -- Dev Senior
-(9, 'admin_faly', '123', '2018-09-30 08:00:00');   -- Commercial Senior
-
--- =========================
--- 8. DONNÉES CONNEXION EMPLOYÉS
--- =========================
-
--- Connexion employés (mdp crypté en SHA256 - tous valent "123")
-INSERT INTO connexEmployes (idEmploye, mdp) VALUES
-(1, 'a665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27ae3'),
-(2, 'a665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27ae3'),
-(3, 'a665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27ae3'),
-(4, 'a665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27ae3'),
-(5, 'a665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27ae3'),
-(6, 'a665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27ae3'),
-(7, 'a665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27ae3'),
-(8, 'a665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27ae3'),
-(9, 'a665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27ae3'),
-(10, 'a665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27ae3');
-
--- =========================
--- 9. HORAIRES ET POINTAGE
--- =========================
-
--- Horaires des employés (du lundi au vendredi)
-INSERT INTO horaires_employe (id_employe, jour_semaine, debut_travail, fin_travail) VALUES
--- RH Manager
-(1, 1, '08:00:00', '17:00:00'),
-(1, 2, '08:00:00', '17:00:00'),
-(1, 3, '08:00:00', '17:00:00'),
-(1, 4, '08:00:00', '17:00:00'),
-(1, 5, '08:00:00', '17:00:00'),
--- Développeuse Senior
-(2, 1, '08:30:00', '17:30:00'),
-(2, 2, '08:30:00', '17:30:00'),
-(2, 3, '08:30:00', '17:30:00'),
-(2, 4, '08:30:00', '17:30:00'),
-(2, 5, '08:30:00', '17:30:00'),
--- Opérateur Logistique
-(3, 1, '07:00:00', '16:00:00'),
-(3, 2, '07:00:00', '16:00:00'),
-(3, 3, '07:00:00', '16:00:00'),
-(3, 4, '07:00:00', '16:00:00'),
-(3, 5, '07:00:00', '16:00:00');
-
--- Pointage journalier (données pour novembre 2025)
-INSERT INTO pointage_journalier (id_employe, date_pointage, retard, heures_supp, pause, heures_travaillees) VALUES
--- Développeuse Senior - ponctuelle
-(2, '2025-11-10', '00:00:00', '01:30:00', '01:00:00', '08:30:00'),
-(2, '2025-11-11', '00:00:00', '00:45:00', '01:00:00', '08:45:00'),
--- Opérateur - quelques retards
-(3, '2025-11-10', '00:15:00', '00:00:00', '01:00:00', '07:45:00'),
-(3, '2025-11-11', '00:30:00', '00:00:00', '01:00:00', '07:30:00');
-
--- Pointage des connexions
-INSERT INTO pointage (id_employe, connexion, deconnexion, duree_session) VALUES
-(2, '2025-11-10 08:28:00', '2025-11-10 17:35:00', '09:07:00'),
-(2, '2025-11-11 08:25:00', '2025-11-11 17:40:00', '09:15:00'),
-(3, '2025-11-10 07:12:00', '2025-11-10 16:05:00', '08:53:00');
-
--- Heures supplémentaires
-INSERT INTO heures_supplementaire (id_employe, nombre_heure_effectue, mois, annee, numero_semaine) VALUES
-(2, 4.50, 11, 2025, 45),
-(2, 3.25, 11, 2025, 46),
-(3, 2.00, 11, 2025, 45);
-
--- Historique heures supplémentaires
-INSERT INTO heures_supplementaire_historique (id_heure_supp, nombre_heure_effectue, mois, annee, numero_semaine) VALUES
-(1, 4.50, 11, 2025, 45),
-(2, 3.25, 11, 2025, 46);
-
--- =========================
--- 10. GESTION DES CONGÉS - CORRIGÉ
--- =========================
-
--- Demande de congés (CORRIGÉ : caractères UTF8 uniquement)
-INSERT INTO conge_demande (description, id_employe, date_demande, date_debut, date_fin, niveau_validation, id_type_conge) VALUES
--- Scénario 1: Congé annuel classique - EN ATTENTE (0 validation sur 2 requises)
-('Congé annuel fin d''annee (Noel et Nouvel An)', 2, '2025-11-01 09:00:00', '2025-12-20 00:00:00', '2025-12-31 23:59:59', 2, 1),
--- Scénario 2: Congé maladie - PARTIELLEMENT VALIDÉ (1 validation sur 2)
-('Congé maladie suite a grippe severe', 3, '2025-11-10 08:15:00', '2025-11-25 08:00:00', '2025-11-29 17:00:00', 2, 2),
--- Scénario 3: Congé maternité - COMPLÈTEMENT VALIDÉ (2 validations)
-('Congé maternité - Date prevue accouchement: 15 mars', 5, '2025-02-15 09:00:00', '2025-03-01 00:00:00', '2025-06-06 23:59:59', 2, 3),
--- Scénario 4: Congé sans solde - EN ATTENTE
-('Congé sans solde pour raisons personnelles', 7, '2025-11-05 10:00:00', '2025-12-01 00:00:00', '2025-12-15 23:59:59', 2, 5),
--- Scénario 5: Congé paternité - COMPLÈTEMENT VALIDÉ
-('Congé paternité - Naissance de mon fils', 9, '2025-10-01 08:00:00', '2025-10-15 00:00:00', '2025-10-25 23:59:59', 2, 4),
--- Scénario 6: Congé formation - PARTIELLEMENT VALIDÉ
-('Formation Python avancee et Machine Learning', 10, '2025-11-01 09:00:00', '2025-12-10 08:00:00', '2025-12-15 17:00:00', 2, 6),
--- Scénario 7: Congé annuel court - EN ATTENTE
-('Congé pour mariage familial', 8, '2025-11-12 09:00:00', '2025-12-05 00:00:00', '2025-12-07 23:59:59', 2, 1),
--- Scénario 8: Congé annuel - REFUSÉ (dépassement) - CORRIGÉ : pas de caractères spéciaux
-('Congé long - Voyage a l etranger', 6, '2025-10-01 10:00:00', '2025-11-01 00:00:00', '2025-11-30 23:59:59', 0, 1);
-
--- Historique validations congés (CORRIGÉ : IDs de demande valides)
-INSERT INTO conge_historique_validation (id_demande, id_employe, date_validation) VALUES
--- Validation 1 pour congé maladie (id_demande=2)
-(2, 1, '2025-11-10 10:30:00'),
--- Validations complètes pour congé maternité (id_demande=3)
-(3, 1, '2025-02-15 14:00:00'),
-(3, 2, '2025-02-15 16:00:00'),
--- Validations complètes pour congé paternité (id_demande=5)
-(5, 1, '2025-10-01 11:00:00'),
-(5, 2, '2025-10-01 15:00:00'),
--- Validation 1 pour congé formation (id_demande=6)
-(6, 1, '2025-11-01 14:00:00');
-
--- Absences enregistrées
-INSERT INTO abscence (id_employe, debut, fin, est_autorise, justificatif) VALUES
--- Absence maternité (validée et appliquée)
-(5, '2025-03-01 00:00:00', '2025-06-06 23:59:59', TRUE, 'Certificat medical de grossesse + Acte de naissance'),
--- Absence paternité (validée et appliquée)
-(9, '2025-10-15 00:00:00', '2025-10-25 23:59:59', TRUE, 'Acte de naissance de l''enfant'),
--- Absence maladie récente (en cours de validation)
-(3, '2025-11-25 08:00:00', '2025-11-29 17:00:00', TRUE, 'Certificat medical - Grippe severe'),
--- Absence non justifiée passée
-(6, '2025-08-05 08:00:00', '2025-08-06 17:00:00', FALSE, NULL);
-
--- Suivi congés/absences (CORRIGÉ : IDs de demande valides)
-INSERT INTO abscence_conge_suivi (id_demande, id_abscence, id_type, id_employe, nombre_conge, annee, penalite_appliquee, id_type_penalite) VALUES
--- Suivi congé maternité (déduit 0 jours car non deductible_sur_conge)
-(3, 1, 3, 5, 0, 2025, FALSE, NULL),
--- Suivi congé paternité (déduit 0 jours car non deductible_sur_conge)
-(5, 2, 4, 9, 0, 2025, FALSE, NULL),
--- Absence non justifiée avec pénalité
-(NULL, 4, 2, 6, 2, 2025, TRUE, 2);
-
--- Historique congés
-INSERT INTO conge_historique (nombres_abscence_attribue, id_employe) VALUES
-(98, 5),  -- Congé maternité validé
-(10, 9),  -- Congé paternité validé
-(2, 6);   -- Absence non justifiée enregistrée
-
--- Solde de congés par type
-INSERT INTO conge_solde (id_employe, id_type_conge, solde, annee) VALUES
--- Congés annuels 2025
-(1, 1, 25, 2025),
-(2, 1, 18, 2025),
-(3, 1, 20, 2025),
-(4, 1, 0, 2025),
-(5, 1, 18, 2025),
-(6, 1, 5, 2025),
--- Congés maladie 2025
-(1, 2, 15, 2025),
-(2, 2, 15, 2025),
-(3, 2, 15, 2025);
-
--- =========================
--- 11. GESTION DE PAIE
--- =========================
-
--- Données de paie
-INSERT INTO salaire_historique (salaire, id_employe) VALUES
-(1200000.00, 1),
-(900000.00, 2),
-(800000.00, 3),
-(200000.00, 4),
-(700000.00, 5),
-(600000.00, 6),
-(750000.00, 7),
-(950000.00, 8),
-(1100000.00, 9),
-(650000.00, 10);
-
--- Primes attribuées
-INSERT INTO prime (id_type_prime, pourcentage, id_employe, date_creation) VALUES
-(1, 10.00, 2, '2025-11-01 00:00:00'),  -- Prime performance dev senior
-(2, 5.00, 1, '2025-11-01 00:00:00'),   -- Prime ancienneté RH
-(3, 3.00, 3, '2025-11-01 00:00:00');   -- Prime transport opérateur
-
--- Préavis
-INSERT INTO preavis (id_employe, date_debut_preavis, date_fin_preavis, est_termine) VALUES
-(6, '2025-12-01', '2025-12-31', false);
-
--- =========================
--- 12. RECRUTEMENT
--- =========================
-
--- Annonces de recrutement
+-- Annonces
 INSERT INTO annonces (id_profil, titre, date_publication, date_expiration, nombre_poste, lien) VALUES
-(1, 'Développeur Full Stack Senior', '2025-11-01', '2025-12-15', 2, '/recrutement/dev-fullstack-1125'),
-(1, 'Développeur Frontend', '2025-11-10', '2025-12-31', 1, '/recrutement/dev-frontend-1125');
+(1, 'Recherche Directeur General', '2024-01-15', '2024-02-15', 1, 'aufildespages.com/emploi/directeur'),
+(2, 'Poste de Comptable', '2024-01-20', '2024-02-20', 2, 'aufildespages.com/emploi/comptable'),
+(3, 'Responsable Stock', '2024-01-25', '2024-02-25', 1, 'aufildespages.com/emploi/stock'),
+(4, 'Vendeur Experimente', '2024-02-01', '2024-03-01', 3, 'aufildespages.com/emploi/vendeur'),
+(5, 'Assistant RH', '2024-02-05', '2024-03-05', 1, 'aufildespages.com/emploi/rh');
+
+-- Questions
+INSERT INTO questions (question, id_profil, note) VALUES
+('Comment gerez-vous un conflit entre collaborateurs ?', 1, 10.0),
+('Quelles sont les principales declarations fiscales ?', 2, 8.5),
+('Comment optimiser la gestion des stocks ?', 3, 9.0),
+('Comment fidéliser un client mecontent ?', 4, 7.5),
+('Quelle est la procedure de recrutement standard ?', 5, 8.0);
+
+-- Réponses questions
+INSERT INTO reponses_question (id_question, reponse, est_correct) VALUES
+(1, 'J organise une mediation pour comprendre les positions', TRUE),
+(1, 'J ignore le conflit', FALSE),
+(2, 'TVA, impot sur les societes, declarations sociales', TRUE),
+(2, 'Seulement la TVA', FALSE),
+(3, 'Mise en place de la methode ABC et rotation des stocks', TRUE),
+(3, 'Commander plus de produits', FALSE);
 
 -- Candidats
 INSERT INTO candidats (id_personne, id_annonce, id_profil, cv_url, poste, id_utilisateur) VALUES
-(4, 1, 1, '/cv/candidat_rajaona.pdf', 'Développeur Full Stack', 2),
-(6, 1, 1, '/cv/candidat_randria.pdf', 'Développeur Full Stack', NULL);
+(1, 1, 1, 'cv_jean.pdf', 'Directeur', 1),
+(2, 2, 2, 'cv_marie.pdf', 'Comptable', 2),
+(3, 3, 3, 'cv_paul.pdf', 'Responsable Stock', 3),
+(4, 4, 4, 'cv_lova.pdf', 'Vendeur', 4),
+(5, 5, 5, 'cv_hery.pdf', 'Assistant RH', 5);
 
--- Tests des candidats
+-- Tests
 INSERT INTO tests (id_candidat, id_annonce, score_test, date_test) VALUES
-(1, 1, 85.50, '2025-11-15'),
-(2, 1, 72.00, '2025-11-16');
+(1, 1, 85.5, '2024-02-10'),
+(2, 2, 92.0, '2024-02-12'),
+(3, 3, 78.5, '2024-02-15'),
+(4, 4, 88.0, '2024-02-18'),
+(5, 5, 91.5, '2024-02-20');
 
--- Responsables entretien
-INSERT INTO responsable_entretien (id_profil, id_employe, ordre_passage) VALUES
-(1, 2, 1),  -- Développeuse Senior en premier
-(1, 1, 2);  -- RH Manager en second
-
--- Planning entretien
-INSERT INTO planning_entretien (id_candidat, id_responsable, date_heure_entretien, score_entretien, etat, id_appreciation) VALUES
-(1, 1, '2025-11-20 14:00:00', 88.00, 5, 4),  -- Excellent
-(1, 2, '2025-11-21 10:00:00', 92.00, 5, 5),  -- Excellent
-(2, 1, '2025-11-22 14:00:00', 75.00, 5, 3);  -- Bon
-
--- Disponibilité entretien
-INSERT INTO disponibilite_entretien (id_responsable, heure_debut, heure_fin, jour, est_valide) VALUES
-(1, '09:00:00', '12:00:00', 1, true),
-(1, '14:00:00', '17:00:00', 1, true),
-(2, '10:00:00', '12:00:00', 2, true),
-(2, '14:00:00', '16:00:00', 2, true);
-
--- Historique de validation
-INSERT INTO historique_validation (id_employe, id_candidat, date_heure_validation, id_etat) VALUES
-(1, 1, '2025-11-25 09:30:00', 2),  -- Candidat 1 validé par RH
-(2, 1, '2025-11-25 14:15:00', 2);  -- Candidat 1 validé par Tech
-
--- CV candidats
-INSERT INTO cv_candidats (id_candidat, competences, skills, loisirs, id_diplome, filiere, experience_pro, certifications, langues, date_deposition) VALUES
-(1, 'Développement web, DevOps, Architecture logicielle', 'JavaScript, React, Node.js, Python, Docker', 'Lecture, Sport, Voyages', 4, 'Informatique', '5 ans en développement fullstack', 'AWS Certified, Scrum Master', 'Français, Anglais, Malagasy', '2025-11-14 10:00:00');
+-- CV Candidats
+INSERT INTO cv_candidats (id_candidat, competences, skills, loisirs, id_diplome, filiere, experience_pro, date_deposition) VALUES
+(1, 'Gestion, Strategie', 'Leadership', 'Golf', 5, 'Management', '10 ans direction', '2024-01-20'),
+(2, 'Comptabilite, Audit', 'Sage, Excel', 'Strategie', 4, 'Finance', '5 ans comptabilite', '2024-01-22'),
+(3, 'Logistique, Stock', 'ERP, Organisation', 'Sport', 3, 'Logistique', '7 ans logistique', '2024-01-25'),
+(4, 'Vente, Negociation', 'Communication', 'Theatre', 3, 'Commerce', '4 ans vente', '2024-01-28'),
+(5, 'RH, Recrutement', 'Organisation', 'Voyages', 4, 'Management', '3 ans RH', '2024-01-30');
 
 -- Validation CV
 INSERT INTO validation_cv (id_candidat, id_cv_candidat, id_status_validation_cv, similarite) VALUES
-(1, 1, 2, 92.50);
+(1, 1, 2, 95.5),
+(2, 2, 2, 92.0),
+(3, 3, 1, 85.0),
+(4, 4, 2, 88.5),
+(5, 5, 4, 76.0);
 
--- =========================
--- 13. PROFILS ET QUESTIONS
--- =========================
+-- Contrats
+INSERT INTO contrats (id_candidat, id_type_contrat, url_contrat) VALUES
+(1, 1, 'contrats/contrat_jean.pdf'),
+(2, 1, 'contrats/contrat_marie.pdf'),
+(3, 1, 'contrats/contrat_paul.pdf'),
+(4, 1, 'contrats/contrat_lova.pdf'),
+(5, 1, 'contrats/contrat_hery.pdf');
 
-INSERT INTO questions (question, id_profil, note) VALUES
-('Quelle est la différence entre let et var en JavaScript ?', 1, 5.00),
-('Expliquez le principe d''une API RESTful', 1, 6.00),
-('Comment optimisez-vous les requêtes SQL ?', 1, 5.50);
+-- Employés
+INSERT INTO employes (id_personne, id_contrat, id_departement, poste, date_embauche, nombre_conge, salaire_base) VALUES
+(1, 1, 1, 'Directeur General', '2020-01-15', 30, 5000000),
+(2, 2, 2, 'Comptable Principal', '2021-06-01', 25, 2000000),
+(3, 3, 3, 'Responsable Stock', '2022-03-10', 25, 1800000),
+(4, 4, 4, 'Vendeur Senior', '2022-08-22', 22, 1500000),
+(5, 5, 5, 'Assistant RH', '2023-02-14', 20, 1200000);
 
-INSERT INTO reponses_question (id_question, reponse, est_correct) VALUES
-(1, 'let a une portée de bloc tandis que var a une portée de fonction', TRUE),
-(1, 'Il n''y a aucune différence', FALSE),
-(2, 'API basée sur HTTP avec ressources, méthodes CRUD et stateless', TRUE),
-(2, 'API qui utilise uniquement GET et POST', FALSE);
+-- Admins
+INSERT INTO admins (id_employe, nom, mdp, date_affiliation) VALUES
+(1, 'admin_directeur', 'directeur123', '2020-01-15'),
+(2, 'admin_comptable', 'comptable123', '2021-06-01');
 
--- =========================
--- 14. MOBILITÉ ET ESSAIS
--- =========================
+-- Connexion Employés
+INSERT INTO connexEmployes (idEmploye, mdp) VALUES
+(1, 'emp123'),
+(2, 'emp456'),
+(3, 'emp789'),
+(4, 'emp012'),
+(5, 'emp345');
 
--- Historique de mobilité
-INSERT INTO historique_mobilite (id_candidat, id_evenement, id_profil, id_departement, date_evenement, support) VALUES
-(1, 1, 1, 2, '2025-11-25', 'Décision de promotion N°2025-11-PROM'),
-(2, 3, 1, 3, '2025-11-26', 'Mutation validée par la direction');
+-- Horaires Employés
+INSERT INTO horaires_employe (id_employe, jour_semaine, debut_travail, fin_travail) VALUES
+(1, 1, '08:00', '17:00'),
+(1, 2, '08:00', '17:00'),
+(1, 3, '08:00', '17:00'),
+(1, 4, '08:00', '17:00'),
+(1, 5, '08:00', '17:00');
 
--- Essais (périodes d'essai)
-INSERT INTO essais (id_personne, id_contrat, id_etat, date_debut, date_fin) VALUES
-(4, 4, 4, '2025-09-01', '2025-12-01'),  -- Stagiaire en période d'essai
-(10, 10, 2, '2023-01-05', '2023-04-05'); -- Développeuse junior (essai terminé)
+-- Disponibilité Employés
+INSERT INTO disponibilite_employe (id_employe, heure_debut, heure_fin) VALUES
+(1, '08:00', '12:00'),
+(1, '13:00', '17:00'),
+(2, '08:00', '12:00'),
+(2, '13:00', '17:00'),
+(3, '08:00', '12:00');
 
--- =========================
--- 15. CONFIGURATION SYSTÈME
--- =========================
+-- Pointage
+INSERT INTO pointage (id_employe, connexion, deconnexion, duree_session) VALUES
+(1, '2024-03-01 08:00:00', '2024-03-01 17:00:00', '09:00:00'),
+(2, '2024-03-01 08:05:00', '2024-03-01 16:55:00', '08:50:00'),
+(3, '2024-03-01 08:10:00', '2024-03-01 17:05:00', '08:55:00'),
+(4, '2024-03-01 07:55:00', '2024-03-01 17:10:00', '09:15:00'),
+(5, '2024-03-01 08:15:00', '2024-03-01 17:00:00', '08:45:00');
 
--- Configuration durée entretiens
+-- Pointage Journalier
+INSERT INTO pointage_journalier (id_employe, date_pointage, retard, heures_supp, pause, heures_travaillees) VALUES
+(1, '2024-03-01', '00:05:00', '00:30:00', '01:00:00', '08:00:00'),
+(2, '2024-03-01', '00:00:00', '00:15:00', '01:00:00', '08:15:00'),
+(3, '2024-03-01', '00:10:00', '00:45:00', '01:00:00', '08:35:00'),
+(4, '2024-03-01', '00:00:00', '01:00:00', '01:00:00', '09:00:00'),
+(5, '2024-03-01', '00:15:00', '00:00:00', '01:00:00', '07:45:00');
+
+-- Configuration Heures Supplémentaires
+INSERT INTO heure_supplementaire_config (nombre_premieres_heures) VALUES
+(10),
+(15),
+(20),
+(25),
+(30);
+
+-- Heures Supplémentaires
+INSERT INTO heures_supplementaire (id_employe, nombre_heure_effectue, mois, annee, numero_semaine) VALUES
+(1, 5.5, 3, 2024, 9),
+(2, 3.0, 3, 2024, 9),
+(3, 8.0, 3, 2024, 9),
+(4, 12.5, 3, 2024, 9),
+(5, 2.0, 3, 2024, 9);
+
+-- Historique Heures Supplémentaires
+INSERT INTO heures_supplementaire_historique (id_heure_supp, nombre_heure_effectue, mois, annee, numero_semaine) VALUES
+(1, 5.5, 2, 2024, 6),
+(2, 3.0, 2, 2024, 7),
+(3, 7.0, 2, 2024, 8),
+(4, 10.0, 2, 2024, 9),
+(5, 1.5, 2, 2024, 10);
+
+-- Salaires Historique
+INSERT INTO salaire_historique (salaire, id_employe) VALUES
+(5000000, 1),
+(2000000, 2),
+(1800000, 3),
+(1500000, 4),
+(1200000, 5);
+
+-- Primes
+INSERT INTO prime (id_type_prime, pourcentage, id_employe) VALUES
+(1, 10.0, 1),
+(2, 5.0, 2),
+(3, 15.0, 3),
+(4, 8.0, 4),
+(5, 12.0, 5);
+
+-- Préavis
+INSERT INTO preavis (id_employe, date_debut_preavis, date_fin_preavis) VALUES
+(3, '2024-03-01', '2024-05-01'),
+(4, '2024-04-01', '2024-06-01');
+
+-- ========================================
+-- DONNÉES SPÉCIFIQUES ABSENCES ET CONGÉS
+-- ========================================
+
+-- Absences
+INSERT INTO abscence (id_employe, debut, fin, est_autorise, justificatif) VALUES
+(2, '2024-03-05 08:00:00', '2024-03-05 17:00:00', FALSE, 'Absence non justifiee'),
+(4, '2024-03-10 08:00:00', '2024-03-10 12:00:00', TRUE, 'Rendez-vous medical'),
+(5, '2024-03-15 08:00:00', '2024-03-15 17:00:00', FALSE, 'Retard non justifie'),
+(3, '2024-03-20 13:00:00', '2024-03-20 17:00:00', TRUE, 'Demarches administratives'),
+(1, '2024-03-25 08:00:00', '2024-03-25 10:00:00', FALSE, 'Absence courte non autorisee');
+
+-- Demandes de Congé
+INSERT INTO conge_demande (description, id_employe, date_demande, date_debut, date_fin, niveau_validation, id_type_conge) VALUES
+('Conge annuel famille', 1, '2024-02-15', '2024-04-01', '2024-04-15', 2, 1),
+('Conge maladie', 2, '2024-02-20', '2024-03-10', '2024-03-12', 2, 2),
+('Conge exceptionnel mariage', 3, '2024-02-25', '2024-05-01', '2024-05-03', 1, 3),
+('Conge sans solde projet perso', 4, '2024-03-01', '2024-06-01', '2024-06-07', 2, 4),
+('Conge maternite', 5, '2024-03-05', '2024-07-01', '2024-09-28', 2, 5);
+
+-- Historique Validation Congé
+INSERT INTO conge_historique_validation (id_demande, id_employe, date_validation) VALUES
+(1, 1, '2024-02-16'),
+(2, 2, '2024-02-21'),
+(3, 1, '2024-02-26'),
+(4, 1, '2024-03-02'),
+(5, 1, '2024-03-06');
+
+-- Historique Congé
+INSERT INTO conge_historique (nombres_abscence_attribue, id_employe) VALUES
+(30, 1),
+(25, 2),
+(25, 3),
+(22, 4),
+(20, 5);
+
+-- Solde Congé
+INSERT INTO conge_solde (id_employe, id_type_conge, solde, annee) VALUES
+(1, 1, 25.0, 2024),
+(2, 1, 20.0, 2024),
+(3, 1, 18.0, 2024),
+(4, 1, 15.0, 2024),
+(5, 1, 22.0, 2024);
+
+-- Suivi Absence/Congé (soit absence, soit congé, rarement les deux)
+INSERT INTO abscence_conge_suivi (id_demande, id_abscence, id_type, id_employe, nombre_conge, annee, penalite_appliquee, id_type_penalite, dateMouvement) VALUES
+(1, NULL, 1, 1, 15, 2024, FALSE, NULL, '2024-02-16'),
+(NULL, 1, NULL, 2, 0, 2024, TRUE, 2, '2024-03-06'),
+(2, NULL, 2, 2, 3, 2024, FALSE, NULL, '2024-02-21'),
+(NULL, 3, NULL, 5, 0, 2024, TRUE, 1, '2024-03-16'),
+(3, NULL, 3, 3, 3, 2024, FALSE, NULL, '2024-02-26');
+
+-- ========================================
+-- DONNÉES COMPLÉMENTAIRES POUR LES AUTRES TABLES
+-- ========================================
+
+-- Responsables Entretien
+INSERT INTO responsable_entretien (id_profil, id_employe, ordre_passage) VALUES
+(1, 1, 1),
+(5, 5, 2),
+(1, 2, 1),
+(5, 3, 2),
+(1, 4, 1);
+
+-- Disponibilité Entretien
+INSERT INTO disponibilite_entretien (id_responsable, heure_debut, heure_fin, jour, est_valide) VALUES
+(1, '09:00', '12:00', 1, TRUE),
+(1, '14:00', '17:00', 1, TRUE),
+(2, '10:00', '12:00', 2, TRUE),
+(3, '09:00', '11:00', 3, TRUE),
+(4, '15:00', '17:00', 4, TRUE);
+
+-- Planning Entretien
+INSERT INTO planning_entretien (id_candidat, id_responsable, date_heure_entretien, score_entretien, etat, id_appreciation) VALUES
+(1, 1, '2024-02-28 10:00:00', 85.5, 2, 4),
+(2, 2, '2024-03-01 14:30:00', 92.0, 2, 5),
+(3, 3, '2024-03-05 09:00:00', 78.0, 2, 3),
+(4, 4, '2024-03-08 11:00:00', 88.5, 2, 4),
+(5, 5, '2024-03-12 15:30:00', 91.0, 2, 5);
+
+-- Configuration Entretien
 INSERT INTO config_entretien (id_departement, duree_entretien) VALUES
-(1, '00:30:00'),
+(1, '01:00:00'),
 (2, '00:45:00'),
 (3, '00:30:00'),
-(4, '01:00:00'),
-(5, '00:40:00'),
-(6, '00:30:00');
+(4, '00:45:00'),
+(5, '01:00:00');
 
--- Jours fériés 2025-2026
-INSERT INTO jour_ferie(date) VALUES
-('2025-01-01'),  -- Nouvel An
-('2025-03-29'),  -- Fête des Martyrs
-('2025-04-21'),  -- Lundi de Pâques
-('2025-05-01'),  -- Fête du Travail
-('2025-05-29'),  -- Ascension
-('2025-06-26'),  -- Fête Nationale
-('2025-08-15'),  -- Assomption
-('2025-11-01'),  -- Toussaint
-('2025-12-25'),  -- Noël
-('2026-01-01');  -- Nouvel An
+-- Historique Validation
+INSERT INTO historique_validation (id_employe, id_candidat, date_heure_validation, id_etat) VALUES
+(1, 1, '2024-02-29', 2),
+(5, 2, '2024-03-02', 2),
+(1, 3, '2024-03-06', 2),
+(5, 4, '2024-03-09', 2),
+(1, 5, '2024-03-13', 2);
 
--- Disponibilité employés
-INSERT INTO disponibilite_employe (id_employe, heure_debut, heure_fin) VALUES
-(2, '08:00:00', '18:00:00'),
-(3, '07:00:00', '17:00:00'),
-(4, '08:30:00', '17:30:00');
+-- Historique Mobilité
+INSERT INTO historique_mobilite (id_candidat, id_evenement, id_profil, id_departement, date_evenement, support) VALUES
+(1, 1, 1, 1, '2024-02-28', 'Entretien physique'),
+(2, 1, 2, 2, '2024-03-01', 'Entretien visio'),
+(3, 1, 3, 3, '2024-03-05', 'Entretien physique'),
+(4, 1, 4, 4, '2024-03-08', 'Entretien physique'),
+(5, 1, 5, 5, '2024-03-12', 'Entretien visio');
 
--- Notifications système
+-- Essais
+INSERT INTO essais (id_personne, id_contrat, id_etat, date_debut, date_fin) VALUES
+(1, 1, 4, '2020-01-15', '2020-04-15'),
+(2, 2, 5, '2021-06-01', '2021-08-01'),
+(3, 3, 5, '2022-03-10', '2022-06-10'),
+(4, 4, 5, '2022-08-22', '2022-11-22'),
+(5, 5, 4, '2023-02-14', '2023-05-14');
+
+-- Notifications
 INSERT INTO notifications (id_personne, message, date_notification) VALUES
-(2, 'Votre demande de congé a été validée', '2025-11-11 10:30:00'),
-(3, 'Rappel : Vous avez une réunion à 14h00', '2025-11-10 13:45:00'),
-(5, 'Votre contrat a été mis à jour', '2025-11-09 16:20:00');
+(1, 'Votre conge a ete approuve', '2024-02-16'),
+(2, 'Votre absence du 5 mars necessite une justification', '2024-03-06'),
+(3, 'Votre entretien est programme pour le 5 mars', '2024-02-26'),
+(4, 'Rappel : Reunion d equipe demain 10h', '2024-03-07'),
+(5, 'Votre periode d essai se termine le 14 mai', '2024-04-14');
+
+-- Insertion des données de référence
+INSERT INTO type_competence (libelle, description) VALUES
+    ('Hard Skill', 'Compétences techniques spécifiques et mesurables'),
+    ('Soft Skill', 'Compétences comportementales et relationnelles'),
+    ('Langue', 'Compétences linguistiques'),
+    ('Certification', 'Compétences certifiées par un organisme')
+ON CONFLICT DO NOTHING;
+
+INSERT INTO source_evaluation (libelle, description) VALUES
+    ('auto-evaluation', 'Evaluation par le employé lui-même'),
+    ('manager-evaluation', 'Evaluation par le manager direct'),
+    ('rh-evaluation', 'Evaluation par les ressources humaines'),
+    ('formation', 'Validation via une formation'),
+    ('certification', 'Validation par une certification'),
+    ('test-technique', 'Validation par un test technique')
+ON CONFLICT DO NOTHING;
+
+-- Données de test pour les compétences
+INSERT INTO competences (nom, description, domaine, id_type_competence) VALUES
+    ('PHP', 'Langage de programmation côté serveur', 'Développement', 1),
+    ('JavaScript', 'Langage de programmation côté client', 'Développement', 1),
+    ('SQL', 'Langage de requête structuré', 'Base de données', 1),
+    ('Gestion de projet', 'Méthodologies agiles et waterfall', 'Management', 2),
+    ('Communication', 'Communication interpersonnelle et présentations', 'Soft Skills', 2),
+    ('Anglais', 'Langue anglaise professionnelle', 'Langues', 3),
+    ('Python', 'Langage de programmation polyvalent', 'Développement', 1)
+ON CONFLICT DO NOTHING;
+
+-- -----------------------------
+-- 1) Employé-compétences (liaisons)
+-- -----------------------------
+-- On crée des compétences mesurées pour les employés (id explicites pour faciliter
+-- la référence dans l'historique). Les id_competence supposés :
+-- 1=PHP, 2=JavaScript, 3=SQL, 4=Gestion de projet, 5=Communication, 6=Anglais, 7=Python
 
 
-INSERT INTO abscence (id_employe, debut, fin, est_autorise, justificatif) VALUES
-(1, '2025-09-10 08:00:00', '2025-09-12 17:00:00', TRUE, 'Certificat médical - Consultation et repos');
+INSERT INTO employe_competences (id, id_employe, id_competence, niveau, id_source, date_mesure, valide, id_employe_validateur, date_validation) VALUES
+(1, 1, 1, 5, 2, '2024-02-01 09:00:00', TRUE, 1, '2024-02-02 10:00:00'),
+(2, 1, 6, 4, 1, '2024-02-05 11:15:00', TRUE, 1, '2024-02-06 09:30:00'),
+(3, 2, 3, 4, 2, '2024-03-02 14:00:00', TRUE, 2, '2024-03-03 10:00:00'),
+(4, 2, 5, 3, 1, '2024-03-02 14:30:00', TRUE, 2, '2024-03-04 09:45:00'),
+(5, 3, 7, 3, 6, '2024-03-05 09:00:00', FALSE, NULL, NULL),
+(6, 3, 3, 4, 2, '2024-03-06 10:30:00', TRUE, 1, '2024-03-07 08:30:00'),
+(7, 4, 4, 2, 4, '2024-03-08 16:00:00', FALSE, NULL, NULL),
+(8, 4, 5, 3, 1, '2024-03-09 09:30:00', TRUE, 4, '2024-03-10 11:00:00'),
+(9, 5, 6, 5, 5, '2024-03-10 08:45:00', TRUE, 1, '2024-03-11 09:00:00'),
+(10,5, 2, 2, 3, '2024-03-12 13:20:00', FALSE, NULL, NULL);
 
-INSERT INTO abscence (id_employe, debut, fin, est_autorise, justificatif) VALUES
-(1, '2025-11-18 08:00:00', '2025-11-18 17:00:00', FALSE, NULL);
 
-INSERT INTO abscence (id_employe, debut, fin, est_autorise, justificatif) VALUES
-(2, '2025-07-15 00:00:00', '2025-07-17 23:59:59', TRUE, 'Autorisation formation externe - Attestation fournie');
+-- -----------------------------
+-- 2) Historique des liaisons employe_competences (simuler quelques opérations)
+-- -----------------------------
+INSERT INTO employe_competences_historique (id_liaison, id_employe, id_competence, niveau, id_source, date_mesure, valide, id_employe_validateur, operation_type, operation_timestamp, id_employe_operation) VALUES
+(1, 1, 1, 5, 2, '2024-02-01 09:00:00', TRUE, 1, 'INSERT', '2024-02-01 09:01:00', 1),
+(2, 1, 6, 4, 1, '2024-02-05 11:15:00', TRUE, 1, 'INSERT', '2024-02-05 11:16:00', 1),
+(3, 2, 3, 4, 2, '2024-03-02 14:00:00', TRUE, 2, 'INSERT', '2024-03-02 14:01:00', 2),
+(4, 2, 5, 3, 1, '2024-03-02 14:30:00', TRUE, 2, 'INSERT', '2024-03-02 14:31:00', 2),
+(5, 3, 7, 3, 6, '2024-03-05 09:00:00', FALSE, NULL, 'INSERT', '2024-03-05 09:01:00', 3),
+(6, 3, 3, 4, 2, '2024-03-06 10:30:00', TRUE, 1, 'INSERT', '2024-03-06 10:31:00', 1),
+(7, 4, 4, 2, 4, '2024-03-08 16:00:00', FALSE, NULL, 'INSERT', '2024-03-08 16:01:00', 4),
+(8, 4, 5, 3, 1, '2024-03-09 09:30:00', TRUE, 4, 'INSERT', '2024-03-09 09:31:00', 4),
+(9, 5, 6, 5, 5, '2024-03-10 08:45:00', TRUE, 1, 'INSERT', '2024-03-10 08:46:00', 1),
+(10,5, 2, 2, 3, '2024-03-12 13:20:00', FALSE, NULL, 'INSERT', '2024-03-12 13:21:00', 5);
 
-INSERT INTO abscence (id_employe, debut, fin, est_autorise, justificatif) VALUES
-(2, '2025-10-08 09:00:00', '2025-10-08 17:00:00', FALSE, NULL);
 
-INSERT INTO abscence (id_employe, debut, fin, est_autorise, justificatif) VALUES
-(9, '2025-11-03 08:00:00', '2025-11-03 17:00:00', FALSE, NULL);
+-- Simuler quelques mises à jour (UPDATE) enregistrées dans l'historique
+INSERT INTO employe_competences_historique (id_liaison, id_employe, id_competence, niveau, id_source, date_mesure, valide, id_employe_validateur, operation_type, operation_timestamp, id_employe_operation) VALUES
+(3, 2, 3, 5, 2, '2024-04-01 10:00:00', TRUE, 2, 'UPDATE', '2024-04-01 10:05:00', 2),
+(6, 3, 3, 3, 2, '2024-04-10 09:00:00', TRUE, 1, 'UPDATE', '2024-04-10 09:10:00', 1);
+
+
+-- -----------------------------
+-- 3) Historique des compétences (table competences_historique)
+-- -----------------------------
+-- Simuler des opérations sur les compétences (INSERT / UPDATE / DELETE)
+INSERT INTO competences_historique (id_competence, nom, description, domaine, id_type_competence, operation_type, operation_timestamp, id_employe_operation) VALUES
+(1, 'PHP', 'Langage de programmation côté serveur (modifié: ajout frameworks)', 'Développement', 1, 'UPDATE', '2024-03-01 12:00:00', 1),
+(2, 'JavaScript', 'Langage de script côté client (ajout tests unitaires)', 'Développement', 1, 'UPDATE', '2024-03-05 15:30:00', 2),
+(8, NULL, 'Compétence temporaire supprimée lors d\'un nettoyage', NULL, NULL, 'DELETE', '2024-03-15 08:00:00', 1);
+
+
+-- -----------------------------
+-- 4) Quelques inserts complémentaires pour d'autres tables encore vides ou utiles
+-- -----------------------------
+-- Ajouter un administrateur supplémentaire (utilise l'employe 3)
+INSERT INTO admins (id_employe, nom, mdp, date_affiliation, date_fin_affiliation) VALUES
+(3, 'admin_stock', 'stock2024', '2022-03-10 08:00:00', NULL),
+(4, 'admin_vendeur', 'vendeur2024', '2022-08-22 09:00:00', '2024-12-31 23:59:59');
+
+
+-- Ajouter un enregistrement dans heure_supplementaire_config pour une date historique
+INSERT INTO heure_supplementaire_config (date_creation, nombre_premieres_heures) VALUES
+('2024-01-01 00:00:00', 12),
+('2024-06-01 00:00:00', 15);
+
+
+-- Ajouter des lignes de salaire_historique additionnelles
+INSERT INTO salaire_historique (salaire, date_creation, id_employe) VALUES
+(5200000, '2024-06-01 09:00:00', 1),
+(2100000, '2024-07-01 09:00:00', 2);
+
+
+-- Ajouter quelques notifications supplémentaires
+INSERT INTO notifications (id_personne, message, date_notification) VALUES
+(1, 'Nouvelle politique de conge publiee', '2024-06-01 08:00:00'),
+(3, 'Formation obligatoire : securite au travail', '2024-05-12 12:00:00');
+
+
+-- -----------------------------
+-- 5) Données pour la table competences (si besoin d'exemples plus détaillés)
+-- -----------------------------
+-- (ces inserts sont idempotents si la table contient déjà les competences mentionnees)
+INSERT INTO competences (nom, description, domaine, id_type_competence) VALUES
+('Gestion du temps', 'Priorisation, planification et respect des delais', 'Management', 2),
+('Docker', 'Conteneurisation applications', 'DevOps', 1)
+ON CONFLICT DO NOTHING;

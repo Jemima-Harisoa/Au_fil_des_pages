@@ -7,14 +7,13 @@ use Flight;
 
 class AbscenceController {
 
-
     /**
-     * Affiche la liste complète des absences (tous les employés)
+     * Affiche la liste complète des absences (tous les employés) - ADMIN SEULEMENT
      */
     public function getListeAbsence($estAutorise = null) {
-        // Vérifier les droits d'administration
-        if (!$this->estAdministrateur()) {
-            Flight::redirect('/admin');
+        // Vérifier les droits d'administration ou si c'est un employé consultant ses propres absences
+        if (!$this->estAdministrateur() && !$this->estEmploye()) {
+            Flight::redirect('/connexion-employe');
             return;
         }
 
@@ -23,10 +22,19 @@ class AbscenceController {
         }
 
         $abscenceModel = Flight::Abscence();
-        $tableau = $abscenceModel->getTableauListeAbsence($estAutorise);
+        
+        // Si c'est un employé (pas admin), on ne montre que ses propres absences
+        if ($this->estEmploye() && !$this->estAdministrateur()) {
+            $idEmploye = $this->getIdEmployeConnecte();
+            $tableau = $abscenceModel->getTableauDetailAbsence($idEmploye, $estAutorise);
+        } else {
+            // Admin voit toutes les absences
+            $tableau = $abscenceModel->getTableauListeAbsence($estAutorise);
+        }
         
         Flight::render('conge/absences_admin', [
-            'tableau' => $tableau
+            'tableau' => $tableau,
+            'estEmploye' => $this->estEmploye() && !$this->estAdministrateur()
         ]);
     }
 
@@ -39,6 +47,12 @@ class AbscenceController {
         
         if (!$justificatif) {
             Flight::halt(404, 'Justificatif non trouvé');
+            return;
+        }
+
+        // Vérifier que l'utilisateur a le droit de voir ce justificatif
+        if (!$this->peutVoirJustificatif($idAbsence)) {
+            Flight::halt(403, 'Accès non autorisé à ce justificatif');
             return;
         }
 
@@ -66,12 +80,31 @@ class AbscenceController {
     }
 
     /**
-     * Envoie une notification à un employé pour justifier son absence
+     * Vérifie si l'utilisateur peut voir le justificatif
+     */
+    private function peutVoirJustificatif($idAbsence) {
+        // Les admins peuvent tout voir
+        if ($this->estAdministrateur()) {
+            return true;
+        }
+        
+        // Les employés ne peuvent voir que leurs propres justificatifs
+        if ($this->estEmploye()) {
+            $idEmploye = $this->getIdEmployeConnecte();
+            $abscenceModel = Flight::Abscence();
+            $absence = $abscenceModel->getAbsenceById($idAbsence, $idEmploye);
+            return !empty($absence);
+        }
+        
+        return false;
+    }
+
+    /**
+     * Envoie une notification à un employé pour justifier son absence - ADMIN SEULEMENT
      */
     public function notifierEmploye() {
         // Vérifier les droits d'administration
         if (!$this->estAdministrateur()) {
-
             Flight::json([
                 'success' => false,
                 'error' => 'Accès non autorisé'
@@ -108,7 +141,6 @@ class AbscenceController {
             }
 
             // Ici, vous pouvez implémenter l'envoi d'email
-            // Exemple avec un système de notification simple
             $this->envoyerNotification($employe['email'], 'Justification d\'absence requise', $data['message']);
 
             // Loguer l'action
@@ -131,7 +163,14 @@ class AbscenceController {
      * Vérifie si l'utilisateur est administrateur
      */
     private function estAdministrateur() {
-        return isset($_SESSION['infoAdmin']['id_employe']) ;
+        return isset($_SESSION['infoAdmin']['id_employe']);
+    }
+
+    /**
+     * Vérifie si l'utilisateur est un employé connecté
+     */
+    private function estEmploye() {
+        return isset($_SESSION['employe']['id_employe']);
     }
 
     /**
@@ -160,7 +199,7 @@ class AbscenceController {
         $idEmploye = $this->getIdEmployeConnecte();
         
         if (!$idEmploye) {
-            Flight::redirect('/admin');
+            Flight::redirect('/connexion-employe');
             return;
         }
 
@@ -174,7 +213,7 @@ class AbscenceController {
         $employe = $employeModel->findByIdWithDetails($idEmploye);
         
         Flight::render('conge/liste_absence', [
-            'absences' => $absencesNonAutorisees, // Correction: pluriel
+            'absences' => $absencesNonAutorisees,
             'employe' => $employe
         ]);
     }
@@ -208,8 +247,8 @@ class AbscenceController {
         }
 
         // Afficher le formulaire de justification
-        Flight::render('conge/justification_absence', [ // Nouveau fichier pour le formulaire
-            'absence' => $absence // Singulier pour une seule absence
+        Flight::render('conge/justification_absence', [
+            'absence' => $absence
         ]);
     }
 
@@ -313,8 +352,9 @@ class AbscenceController {
 
         return ['success' => true];
     }
-        /**
-     * Upload le fichier justificatif (identique à celui des congés)
+
+    /**
+     * Upload le fichier justificatif
      */
     private function uploadJustificatif($file) {
         $dossierUpload = __DIR__ . '/../../../public/uploads/justificatifs_absence/';
@@ -354,8 +394,10 @@ class AbscenceController {
     private function getIdEmployeConnecte() {
         if (isset($_SESSION['infoAdmin']['id_employe'])) {
             return $_SESSION['infoAdmin']['id_employe'];
+        } elseif (isset($_SESSION['employe']['id_employe'])) {
+            return $_SESSION['employe']['id_employe'];
         } elseif (isset($_SESSION['utilisateur']['id_utilisateur'])) {
-            // À adapter selon votre structure
+            // À adapter selon votre structure si les utilisateurs sont liés aux employés
             return $_SESSION['utilisateur']['id_utilisateur'];
         }
         return null;
