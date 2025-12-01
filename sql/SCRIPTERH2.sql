@@ -715,8 +715,8 @@ SELECT
     s.libelle as source_evaluation,
     ec.date_mesure,
     ec.valide,
-    ev.nom as validateur_nom,
-    ev.prenom as validateur_prenom,
+    evp.nom as validateur_nom,
+    evp.prenom as validateur_prenom,
     ec.date_validation,
     -- Calcul de l'ancienneté de la compétence
     EXTRACT(YEAR FROM age(CURRENT_DATE, ec.date_mesure)) as anciennete_annees
@@ -853,4 +853,6 @@ CREATE TRIGGER employe_competence_history_tracking
     AFTER INSERT OR UPDATE OR DELETE ON employe_competences
     FOR EACH ROW
     EXECUTE FUNCTION track_employe_competence_changes();
+
+
 

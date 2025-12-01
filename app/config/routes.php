@@ -23,6 +23,7 @@ use app\controllers\conge\NotificationController;
 use app\controllers\conge\CalendrierController;
 
 use app\controllers\CompetenceController;
+use app\controllers\EmployeeCompetenceController;
 
 use app\controllers\FichePaieController;
 use flight\Engine;
@@ -340,4 +341,27 @@ $router->group('/api/competences', function($router) use ($Competence_Controller
     
     // API pour les statistiques
     $router->get('/statistiques', [$Competence_Controller, 'getStatsGlobales']);
+});
+
+
+$EmployeeCompetence_Controller = new EmployeeCompetenceController();
+
+// Routes pour les compétences des employés
+$router->group('/employees', function($router) use ($EmployeeCompetence_Controller) {
+    
+    // Vues HTML
+    $router->get('/@id/competences/form', [$EmployeeCompetence_Controller, 'showCompetenceForm']);
+    $router->get('/@id/competences/list', [$EmployeeCompetence_Controller, 'showCompetenceList']);
+
+    // Auto-évaluation des compétences
+    $router->post('/@id/competences', [$EmployeeCompetence_Controller, 'createFromEmployee']);
+    
+    // Liste des compétences d'un employé
+    $router->get('/@id/competences', [$EmployeeCompetence_Controller, 'listFromEmployee']);
+    
+    // Détail d'une compétence spécifique
+    $router->get('/@id/competences/@id_competence', [$EmployeeCompetence_Controller, 'getCompetenceDetail']);
+    
+    // Suppression d'une compétence
+    $router->delete('/@id/competences/@id_competence', [$EmployeeCompetence_Controller, 'deleteCompetence']);
 });

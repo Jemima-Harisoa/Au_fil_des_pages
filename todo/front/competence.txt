@@ -61,3 +61,34 @@ Webhook pour notifier manager quand gap > seuil.
             'estEmploye' => $this->estEmploye() && !$this->estAdministrateur()
         ];
     }
+
+Module 2 — Validation manageriale
+Fonctions
+listPendingValidations(managerId)
+
+
+validateCompetence(entryId, niveauFinal, commentaire, action)
+
+
+bulkValidate(managerId, entries[])
+
+Base
+employe_competences (valide, id_validateur), historique_validation.
+
+Affichage
+Dashboard manager : édition inline, valider/rejeter.
+
+Integration
+Mise à jour v_competence_cartographie, notification employé.
+
+Postman
+GET /api/validations/pending?managerId=..
+
+POST /api/validations/:entryId/validate
+
+Routing
+GET /api/validations/pending → ValidationController.listPending
+
+POST /api/validations/:entryId → ValidationController.validateEntry
+
+(Traitement : appliquer priorité source, recalculer agrégats sur validation, journaliser action)
