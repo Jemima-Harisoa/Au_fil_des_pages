@@ -1,21 +1,18 @@
 <?php
+use app\controllers\DocumentsController;
 use app\controllers\WelcomeController;
 use app\controllers\ConnexionController;
 use app\controllers\AnnoncesController;
 use app\controllers\EmployeController;
-
-
 use app\controllers\TestController;
-
 use app\controllers\migration\MigrationController;
-
 use app\controllers\cvController;
-
 use app\controllers\MessagerieController;
 use app\controllers\PlanningEntretienController;
 use app\controllers\ApiPlanningEntretienController;
 use app\controllers\MobiliteHistoriqueController;
 use app\controllers\PointageController;
+
 
 use flight\Engine;
 use flight\net\Router;
@@ -34,7 +31,9 @@ $welcomeController = new WelcomeController();
 $ConnexionController = new ConnexionController();
 $employeController = new EmployeController();
 $MobiliteHistoriqueController = new MobiliteHistoriqueController();
+$DocumentsController = new DocumentsController();
 
+$router -> get('/documents', [$DocumentsController, 'redirectDocuments']);
 $router -> get('/MobiliteHistorique', [$MobiliteHistoriqueController, 'redirectEmploye']);
 $router-> get('/employeList', [ $employeController, 'redirectEmploye' ]);
 $router-> get('/employeDetails/@id', [ $employeController, 'redirectEmployeDetails' ]);

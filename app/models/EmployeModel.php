@@ -107,6 +107,7 @@ class EmployeModel
     }
 
 // 
+public 
 public static function contratEnAlerte(int $id_employe): bool{
     $db = Flight::db();
     $sql = "
@@ -227,10 +228,11 @@ public static function contratEnAlerte(int $id_employe): bool{
     }
 
     // --- Méthodes BDD ---
-    public function list(): array
+    public static function list(): array
     {
+        $db = Flight::db();
         $sql = "SELECT * FROM employes";
-        $stmt = $this->db->query($sql);
+        $stmt = $db->query($sql);
         return $stmt->fetchAll(\PDO::FETCH_ASSOC);
     }
 
