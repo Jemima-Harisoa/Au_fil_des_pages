@@ -350,4 +350,279 @@ class EmployeeCompetenceController {
         }
         return null;
     }
+
+
+    /**
+     * Valide une compétence (API)
+     * POST /api/validations/:entryId/validate
+     */
+    public function validateCompetence($entryId) {
+        // Vérifier que l'utilisateur est administrateur
+        if (!$this->estAdministrateur()) {
+            Flight::json([
+                'success' => false,
+                'error' => 'Accès non autorisé'
+            ], 403);
+            return;
+        }
+        
+        $managerId = $this->getIdEmployeConnecte();
+        $data = Flight::request()->data;
+        
+        // Validation des données
+        if (empty($data['action'])) {
+            Flight::json([
+                'success' => false,
+                'error' => 'Action manquante'
+            ], 400);
+            return;
+        }
+        
+        $action = $data['action']; // 'valide', 'rejete', 'ajuste'
+        
+        // Pour 'valide' et 'ajuste', vérifier le niveau
+        if ($action !== 'rejete') {
+            if (empty($data['niveauFinal'])) {
+                Flight::json([
+                    'success' => false,
+                    'error' => 'niveauFinal manquant pour cette action'
+                ], 400);
+                return;
+            }
+            
+            $niveauFinal = (int)$data['niveauFinal'];
+            if ($niveauFinal < 1 || $niveauFinal > 5) {
+                Flight::json([
+                    'success' => false,
+                    'error' => 'Le niveau doit être compris entre 1 et 5'
+                ], 400);
+                return;
+            }
+        } else {
+            $niveauFinal = 0; // Non utilisé pour rejete
+        }
+        
+        $employeModel = Flight::Employe();
+        
+        try {
+            $success = $employeModel->validateCompetence($entryId, $niveauFinal, $action, $managerId);
+            
+            if ($success) {
+                Flight::json([
+                    'success' => true,
+                    'message' => "Action $action effectuée avec succès",
+                    'data' => [
+                        'entryId' => $entryId,
+                        'action' => $action,
+                        'validateur' => $managerId
+                    ]
+                ]);
+            } else {
+                Flight::json([
+                    'success' => false,
+                    'error' => 'Aucune modification effectuée'
+                ], 404);
+            }
+            
+        } catch (\Exception $e) {
+            Flight::json([
+                'success' => false,
+                'error' => 'Erreur serveur: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Ajoute une compétence observée par le manager (API)
+     * POST /api/employees/:id/competences/manager
+     */
+    public function addManagerCompetence($id_employe) {
+        // Vérifier que l'utilisateur est administrateur
+        if (!$this->estAdministrateur()) {
+            Flight::json([
+                'success' => false,
+                'error' => 'Accès non autorisé'
+            ], 403);
+            return;
+        }
+        
+        // Vérifier que l'employé existe
+        if (!$this->employeExiste($id_employe)) {
+            Flight::json([
+                'success' => false,
+                'error' => 'Employé non trouvé'
+            ], 404);
+            return;
+        }
+        
+        $managerId = $this->getIdEmployeConnecte();
+        $data = Flight::request()->data;
+        
+        // Validation des données
+        if (empty($data['id_competence']) || empty($data['niveau'])) {
+            Flight::json([
+                'success' => false,
+                'error' => 'Données manquantes: id_competence et niveau sont requis'
+            ], 400);
+            return;
+        }
+        
+        $id_competence = (int)$data['id_competence'];
+        $niveau = (int)$data['niveau'];
+        
+        if ($niveau < 1 || $niveau > 5) {
+            Flight::json([
+                'success' => false,
+                'error' => 'Le niveau doit être compris entre 1 et 5'
+            ], 400);
+            return;
+        }
+        
+        $employeModel = Flight::Employe();
+        
+        try {
+            $success = $employeModel->addManagerObservedCompetence(
+                $id_employe,
+                $id_competence,
+                $niveau,
+                $managerId
+            );
+            
+            if ($success) {
+                Flight::json([
+                    'success' => true,
+                    'message' => 'Compétence ajoutée avec succès',
+                    'data' => [
+                        'id_employe' => $id_employe,
+                        'id_competence' => $id_competence,
+                        'niveau' => $niveau,
+                        'valide' => true,
+                        'validateur' => $managerId
+                    ]
+                ], 201);
+            } else {
+                Flight::json([
+                    'success' => false,
+                    'error' => 'Erreur lors de l\'ajout de la compétence'
+                ], 500);
+            }
+            
+        } catch (\Exception $e) {
+            Flight::json([
+                'success' => false,
+                'error' => 'Erreur serveur: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Valide plusieurs compétences en une fois (API)
+     * POST /api/validations/bulk-validate
+     */
+    public function bulkValidate() {
+        // Vérifier que l'utilisateur est administrateur
+        if (!$this->estAdministrateur()) {
+            Flight::json([
+                'success' => false,
+                'error' => 'Accès non autorisé'
+            ], 403);
+            return;
+        }
+        
+        $managerId = $this->getIdEmployeConnecte();
+        $data = Flight::request()->data;
+        
+        if (empty($data['entries']) || !is_array($data['entries'])) {
+            Flight::json([
+                'success' => false,
+                'error' => 'Données manquantes: entries (tableau) est requis'
+            ], 400);
+            return;
+        }
+        
+        $employeModel = Flight::Employe();
+        
+        try {
+            $results = $employeModel->bulkValidateCompetences($managerId, $data['entries']);
+            
+            Flight::json([
+                'success' => true,
+                'message' => 'Validation en masse effectuée',
+                'data' => $results,
+                'count' => count($results)
+            ]);
+            
+        } catch (\Exception $e) {
+            Flight::json([
+                'success' => false,
+                'error' => 'Erreur serveur: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Affiche le dashboard de validation managériale
+     * GET /validations/dashboard
+     */
+    public function showValidationDashboard() {
+        // Vérifier que l'utilisateur est administrateur/manager
+        if (!$this->estAdministrateur()) {
+            echo '<div class="alert alert-danger">Accès non autorisé</div>';
+            return;
+        }
+        
+        $managerId = $this->getIdEmployeConnecte();
+        $employeModel = Flight::Employe();
+        
+        try {
+            $pendingValidations = $employeModel->getPendingValidations();
+            $competences = $employeModel->getAvailableCompetences();
+            $niveaux = $employeModel->getNiveauLibelles();
+            
+            // Afficher la vue
+            Flight::render('validationDashboard', [
+                'pendingValidations' => $pendingValidations,
+                'competences' => $competences,
+                'niveaux' => $niveaux,
+                'managerId' => $managerId,
+                'getCouleurNiveau' => [$this, 'getCouleurNiveau']
+            ]);
+            
+        } catch (\Exception $e) {
+            echo '<div class="alert alert-danger">Erreur: ' . htmlspecialchars($e->getMessage()) . '</div>';
+        }
+    }
+
+    /**
+     * Liste les auto-évaluations en attente de validation (API)
+     * GET /api/validations/pending
+     */
+    public function listPendingValidations() {
+        // Vérifier que l'utilisateur est administrateur
+        if (!$this->estAdministrateur()) {
+            Flight::json([
+                'success' => false,
+                'error' => 'Accès non autorisé'
+            ], 403);
+            return;
+        }
+        
+        $employeModel = Flight::Employe();
+        
+        try {
+            $pending = $employeModel->getPendingValidations();
+            
+            Flight::json([
+                'success' => true,
+                'data' => $pending,
+                'count' => count($pending)
+            ]);
+            
+        } catch (\Exception $e) {
+            Flight::json([
+                'success' => false,
+                'error' => 'Erreur serveur: ' . $e->getMessage()
+            ], 500);
+        }
+    }
 }

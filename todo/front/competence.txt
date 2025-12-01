@@ -92,3 +92,38 @@ GET /api/validations/pending → ValidationController.listPending
 POST /api/validations/:entryId → ValidationController.validateEntry
 
 (Traitement : appliquer priorité source, recalculer agrégats sur validation, journaliser action)
+
+
+On va faire Cartographie des compétences de l’entreprise maintenant: 
+Comment ça marche ?
+L’ERP va contenir une base de données centralisée qui répertorie :
+Toutes les compétences nécessaires aux métiers de l’entreprise
+ → ex : Java, leadership, comptabilité, management, logistique, PowerBI…
+Le niveau requis pour chaque compétence
+ → ex : Débutant, Intermédiaire, Avancé, Expert
+Les compétences de chaque employé
+ → déclarées par l’employé
+ → validées par le manager
+ → ou évaluées par des tests / entretiens
+Résultat dans l’ERP:
+une matrice des compétences (employés vs compétences)
+les compétences manquantes dans l’entreprise
+les forces disponibles (experts internes)
+les équipes les plus adaptées à certains projets
+
+Pour constitue le heatmap je voudrais utilise heatmap.js 
+l'idee c'est sur un interface on montre les competence :  softskill et hardskill
+pour chauque employe  a chaque ligne on peut acceder au detail => de la on montre 
+un graphe de repartition pour montrer les point fort et faible de l'employe 
+
+INSERT INTO employe_competences 
+                    (id_employe, id_competence, niveau, id_source, date_mesure, valide) 
+                    VALUES (1, 2, 3, 2, now(), false)
+                    ON CONFLICT (id_employe, id_competence) 
+                    DO UPDATE SET 
+                        niveau = EXCLUDED.niveau,
+                        id_source = EXCLUDED.id_source,
+                        date_mesure = EXCLUDED.date_mesure,
+                        valide = EXCLUDED.valide,
+                        id_employe_validateur = NULL,
+                        date_validation = NULL

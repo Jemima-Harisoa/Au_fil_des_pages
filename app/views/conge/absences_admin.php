@@ -512,3 +512,495 @@ $(document).ready(function() {
 <?php
 Flight::render("footer", ['extra_js' => '']);
 ?>
+
+<script>
+// ============================
+// FILTRAGE TABLEAU ABSENCES UNIFIÉ
+// ============================
+
+class UnifiedAbsenceFilter {
+    constructor(tableId) {
+        this.table = document.getElementById(tableId);
+        if (!this.table) {
+            console.error(`Table avec l'ID "${tableId}" non trouvée`);
+            return;
+        }
+        
+        // Mappage des colonnes avec les filtres
+        this.columnMap = {
+            'employeFilter': 0,      // Employé
+            'posteFilter': 1,        // Poste
+            'periodeFilter': 2,      // Période
+            'joursPrisFilter': 3,    // Jours pris
+            'descriptionFilter': 4,   // Description
+            'justificatifFilter': 5,  // Justification
+            'penaliteFilter': 6      // Pénalité
+        };
+        
+        this.init();
+        this.setupEventListeners();
+    }
+    
+    init() {
+        // Ajouter le CSS pour les lignes masquées
+        this.addStyles();
+        
+        // Créer l'affichage du statut des filtres
+        this.createFilterStatus();
+    }
+    
+    addStyles() {
+        if (!document.querySelector('#absence-filter-styles')) {
+            const style = document.createElement('style');
+            style.id = 'absence-filter-styles';
+            style.textContent = `
+                .hidden-row {
+                    display: none;
+                }
+                .filter-status {
+                    font-size: 0.875rem;
+                    color: #6c757d;
+                    margin-top: 0.5rem;
+                    padding: 5px 10px;
+                    background: #f8f9fc;
+                    border-radius: 4px;
+                    display: inline-block;
+                }
+                .filters-container .row {
+                    margin-bottom: 10px;
+                }
+                .filter-active {
+                    border-color: #4e73df !important;
+                    background-color: #f8f9fc;
+                }
+            `;
+            document.head.appendChild(style);
+        }
+    }
+    
+    createFilterStatus() {
+        // Créer l'élément de statut s'il n'existe pas
+        let statusDiv = this.table.parentNode.querySelector('.filter-status');
+        if (!statusDiv) {
+            statusDiv = document.createElement('div');
+            statusDiv.className = 'filter-status';
+            this.table.parentNode.insertBefore(statusDiv, this.table.nextSibling);
+        }
+        this.updateStatus();
+    }
+    
+    setupEventListeners() {
+        // Écouter les événements sur tous les filtres
+        for (const filterId in this.columnMap) {
+            const filterElement = document.getElementById(filterId);
+            if (filterElement) {
+                if (filterElement.type === 'text' || filterElement.tagName === 'INPUT') {
+                    filterElement.addEventListener('input', () => this.applyFilters());
+                } else if (filterElement.tagName === 'SELECT') {
+                    filterElement.addEventListener('change', () => this.applyFilters());
+                }
+                
+                // Ajouter une classe quand le filtre est actif
+                filterElement.addEventListener('input', () => this.updateFilterState(filterElement));
+                filterElement.addEventListener('change', () => this.updateFilterState(filterElement));
+            }
+        }
+        
+        // Bouton de réinitialisation
+        const resetBtn = document.getElementById('resetFilters');
+        if (resetBtn) {
+            resetBtn.addEventListener('click', () => this.resetFilters());
+        }
+    }
+    
+    updateFilterState(element) {
+        if (element.value && element.value !== '') {
+            element.classList.add('filter-active');
+        } else {
+            element.classList.remove('filter-active');
+        }
+    }
+    
+    applyFilters() {
+        const tbody = this.table.querySelector('tbody');
+        if (!tbody) return;
+        
+        const rows = tbody.querySelectorAll('tr');
+        let anyFilterActive = false;
+        
+        // Récupérer toutes les valeurs de filtres
+        const filterValues = {};
+        for (const filterId in this.columnMap) {
+            const element = document.getElementById(filterId);
+            if (element) {
+                filterValues[filterId] = element.value;
+                if (element.value && element.value !== '') {
+                    anyFilterActive = true;
+                }
+            }
+        }
+        
+        rows.forEach(row => {
+            let showRow = true;
+            const cells = row.querySelectorAll('td');
+            
+            // Vérifier chaque filtre
+            for (const filterId in this.columnMap) {
+                if (!showRow) break; // Si la ligne est déjà masquée, on arrête
+                
+                const filterValue = filterValues[filterId];
+                const columnIndex = this.columnMap[filterId];
+                
+                if (filterValue && filterValue !== '' && cells[columnIndex]) {
+                    const cellValue = cells[columnIndex].textContent.toLowerCase().trim();
+                    const filterLower = filterValue.toLowerCase();
+                    
+                    // Traitement spécial pour les jours pris
+                    if (filterId === 'joursPrisFilter') {
+                        const jours = parseInt(cellValue) || 0;
+                        switch(filterValue) {
+                            case '1':
+                                if (jours !== 1) showRow = false;
+                                break;
+                            case '2-4':
+                                if (jours < 2 || jours > 4) showRow = false;
+                                break;
+                            case '5+':
+                                if (jours < 5) showRow = false;
+                                break;
+                        }
+                    }
+                    // Traitement pour les sélecteurs (valeur exacte)
+                    else if (filterId === 'justificatifFilter' || filterId === 'penaliteFilter') {
+                        if (cellValue !== filterLower) {
+                            showRow = false;
+                        }
+                    }
+                    // Traitement pour les champs texte (recherche partielle)
+                    else {
+                        if (!cellValue.includes(filterLower)) {
+                            showRow = false;
+                        }
+                    }
+                }
+            }
+            
+            if (showRow) {
+                row.classList.remove('hidden-row');
+            } else {
+                row.classList.add('hidden-row');
+            }
+        });
+        
+        this.updateStatus();
+    }
+    
+    updateStatus() {
+        const tbody = this.table.querySelector('tbody');
+        if (!tbody) return;
+        
+        const visibleRows = tbody.querySelectorAll('tr:not(.hidden-row)').length;
+        const totalRows = tbody.querySelectorAll('tr').length;
+        
+        let statusDiv = this.table.parentNode.querySelector('.filter-status');
+        if (statusDiv) {
+            if (visibleRows === totalRows) {
+                statusDiv.textContent = `${totalRows} lignes affichées`;
+            } else {
+                statusDiv.textContent = `${visibleRows} sur ${totalRows} lignes affichées (${Math.round((visibleRows/totalRows)*100)}%)`;
+            }
+        }
+    }
+    
+    resetFilters() {
+        // Réinitialiser tous les champs de filtre
+        for (const filterId in this.columnMap) {
+            const element = document.getElementById(filterId);
+            if (element) {
+                if (element.type === 'text' || element.tagName === 'INPUT') {
+                    element.value = '';
+                } else if (element.tagName === 'SELECT') {
+                    element.selectedIndex = 0;
+                }
+                element.classList.remove('filter-active');
+            }
+        }
+        
+        // Afficher toutes les lignes
+        const tbody = this.table.querySelector('tbody');
+        if (tbody) {
+            tbody.querySelectorAll('tr').forEach(row => {
+                row.classList.remove('hidden-row');
+            });
+        }
+        
+        this.updateStatus();
+        
+        // Afficher un message temporaire
+        this.showResetMessage();
+    }
+    
+    showResetMessage() {
+        // Créer un message temporaire
+        const message = document.createElement('div');
+        message.className = 'alert alert-info alert-dismissible fade show';
+        message.style.position = 'fixed';
+        message.style.top = '20px';
+        message.style.right = '20px';
+        message.style.zIndex = '10000';
+        message.innerHTML = `
+            Filtres réinitialisés
+            <button type="button" class="close" data-dismiss="alert">
+                <span>&times;</span>
+            </button>
+        `;
+        
+        document.body.appendChild(message);
+        
+        // Supprimer automatiquement après 3 secondes
+        setTimeout(() => {
+            if (message.parentNode) {
+                message.remove();
+            }
+        }, 3000);
+    }
+    
+    // Méthode pour obtenir les filtres actifs
+    getActiveFilters() {
+        const active = [];
+        for (const filterId in this.columnMap) {
+            const element = document.getElementById(filterId);
+            if (element && element.value && element.value !== '') {
+                active.push({
+                    id: filterId,
+                    value: element.value,
+                    column: this.columnMap[filterId]
+                });
+            }
+        }
+        return active;
+    }
+}
+
+// ============================
+// FILTRAGE DÉTAIL ABSENCES
+// ============================
+
+class DetailAbsenceFilter {
+    constructor(tableId) {
+        this.table = document.getElementById(tableId);
+        if (!this.table) return;
+        
+        this.columnMap = {
+            'detail_periodeFilter': 0,
+            'detail_joursPrisFilter': 1,
+            'detail_descriptionFilter': 2,
+            'detail_justificatifFilter': 3,
+            'detail_penaliteFilter': 4
+        };
+        
+        this.setupEventListeners();
+    }
+    
+    setupEventListeners() {
+        // Filtre période
+        const periodeFilter = document.getElementById('detail_periodeFilter') || document.querySelector('[name="periodeFilter"]');
+        if (periodeFilter) {
+            periodeFilter.addEventListener('input', () => this.applyFilters());
+        }
+        
+        // Filtre jours pris
+        const joursPrisFilter = document.getElementById('detail_joursPrisFilter') || document.querySelector('[name="joursPrisFilter"]');
+        if (joursPrisFilter) {
+            joursPrisFilter.addEventListener('change', () => this.applyFilters());
+        }
+        
+        // Filtre description
+        const descriptionFilter = document.getElementById('detail_descriptionFilter') || document.querySelector('[name="descriptionFilter"]');
+        if (descriptionFilter) {
+            descriptionFilter.addEventListener('input', () => this.applyFilters());
+        }
+        
+        // Filtre justification
+        const justificatifFilter = document.getElementById('detail_justificatifFilter') || document.querySelector('[name="justificatifFilter"]');
+        if (justificatifFilter) {
+            justificatifFilter.addEventListener('change', () => this.applyFilters());
+        }
+        
+        // Filtre pénalité
+        const penaliteFilter = document.getElementById('detail_penaliteFilter') || document.querySelector('[name="penaliteFilter"]');
+        if (penaliteFilter) {
+            penaliteFilter.addEventListener('change', () => this.applyFilters());
+        }
+        
+        // Bouton réinitialiser
+        const resetBtn = document.getElementById('detail_resetFilters') || document.querySelector('[name="resetFilters"]');
+        if (resetBtn) {
+            resetBtn.addEventListener('click', () => this.resetFilters());
+        }
+    }
+    
+    applyFilters() {
+        const tbody = this.table.querySelector('tbody');
+        if (!tbody) return;
+        
+        const rows = tbody.querySelectorAll('tr');
+        
+        // Récupérer les valeurs des filtres
+        const periodeValue = this.getFilterValue('periodeFilter')?.toLowerCase() || '';
+        const joursPrisValue = this.getFilterValue('joursPrisFilter') || '';
+        const descriptionValue = this.getFilterValue('descriptionFilter')?.toLowerCase() || '';
+        const justificatifValue = this.getFilterValue('justificatifFilter') || '';
+        const penaliteValue = this.getFilterValue('penaliteFilter') || '';
+        
+        rows.forEach(row => {
+            if (row.cells.length < 5) return;
+            
+            const periode = row.cells[0].textContent.toLowerCase();
+            const joursPris = parseInt(row.cells[1].textContent) || 0;
+            const description = row.cells[2].textContent.toLowerCase();
+            const justificatif = row.cells[3].textContent;
+            const penalite = row.cells[4].textContent;
+            
+            let showRow = true;
+            
+            // Filtre période
+            if (periodeValue && !periode.includes(periodeValue)) {
+                showRow = false;
+            }
+            
+            // Filtre jours pris
+            if (joursPrisValue === '1' && joursPris !== 1) {
+                showRow = false;
+            } else if (joursPrisValue === '2-4' && (joursPris < 2 || joursPris > 4)) {
+                showRow = false;
+            } else if (joursPrisValue === '5+' && joursPris < 5) {
+                showRow = false;
+            }
+            
+            // Filtre description
+            if (descriptionValue && !description.includes(descriptionValue)) {
+                showRow = false;
+            }
+            
+            // Filtre justification
+            if (justificatifValue && justificatif !== justificatifValue) {
+                showRow = false;
+            }
+            
+            // Filtre pénalité
+            if (penaliteValue && penalite !== penaliteValue) {
+                showRow = false;
+            }
+            
+            if (showRow) {
+                row.classList.remove('hidden-row');
+            } else {
+                row.classList.add('hidden-row');
+            }
+        });
+        
+        this.updateStatus();
+    }
+    
+    getFilterValue(filterName) {
+        const element = document.getElementById(`detail_${filterName}`) || 
+                       document.querySelector(`[name="${filterName}"]`) ||
+                       document.getElementById(filterName);
+        return element ? element.value : '';
+    }
+    
+    resetFilters() {
+        // Réinitialiser tous les champs
+        const filters = ['periodeFilter', 'joursPrisFilter', 'descriptionFilter', 'justificatifFilter', 'penaliteFilter'];
+        
+        filters.forEach(filterName => {
+            const element = document.getElementById(`detail_${filterName}`) || 
+                           document.querySelector(`[name="${filterName}"]`) ||
+                           document.getElementById(filterName);
+            if (element) {
+                if (element.type === 'select-one') {
+                    element.selectedIndex = 0;
+                } else {
+                    element.value = '';
+                }
+            }
+        });
+        
+        // Afficher toutes les lignes
+        const tbody = this.table.querySelector('tbody');
+        if (tbody) {
+            tbody.querySelectorAll('tr').forEach(row => {
+                row.classList.remove('hidden-row');
+            });
+        }
+        
+        this.updateStatus();
+    }
+    
+    updateStatus() {
+        const tbody = this.table.querySelector('tbody');
+        if (!tbody) return;
+        
+        const visibleRows = tbody.querySelectorAll('tr:not(.hidden-row)').length;
+        const totalRows = tbody.querySelectorAll('tr').length;
+        
+        let statusDiv = this.table.parentNode.querySelector('.filter-status');
+        if (!statusDiv) {
+            statusDiv = document.createElement('div');
+            statusDiv.className = 'filter-status mt-2 text-muted small';
+            this.table.parentNode.insertBefore(statusDiv, this.table.nextSibling);
+        }
+        
+        statusDiv.textContent = `${visibleRows} sur ${totalRows} lignes affichées`;
+    }
+}
+
+// ============================
+// INITIALISATION
+// ============================
+
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialiser le filtre pour la table principale des absences
+    const mainTable = document.getElementById('listeAbsencesTable');
+    if (mainTable) {
+        window.absenceFilter = new UnifiedAbsenceFilter('listeAbsencesTable');
+        console.log('Filtre principal initialisé');
+    }
+    
+    // Initialiser le filtre pour le détail des absences
+    const detailTable = document.getElementById('detailAbsencesTable');
+    if (detailTable) {
+        window.detailAbsenceFilter = new DetailAbsenceFilter('detailAbsencesTable');
+        console.log('Filtre détail initialisé');
+    }
+    
+    // Supprimer les anciens écouteurs jQuery pour éviter les conflits
+    const oldScript = document.querySelector('script[src*="jquery"]');
+    if (oldScript) {
+        console.log('jQuery détecté, suppression des anciens écouteurs');
+        // Vous pouvez ajouter ici la suppression des écouteurs jQuery si nécessaire
+    }
+});
+
+// Fonctions utilitaires
+function getFilteredRowsCount(tableId) {
+    const table = document.getElementById(tableId);
+    if (!table) return 0;
+    
+    const tbody = table.querySelector('tbody');
+    if (!tbody) return 0;
+    
+    return tbody.querySelectorAll('tr:not(.hidden-row)').length;
+}
+
+function getTotalRowsCount(tableId) {
+    const table = document.getElementById(tableId);
+    if (!table) return 0;
+    
+    const tbody = table.querySelector('tbody');
+    if (!tbody) return 0;
+    
+    return tbody.querySelectorAll('tr').length;
+}
+</script>

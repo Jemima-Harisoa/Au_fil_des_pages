@@ -447,7 +447,6 @@ INSERT INTO abscence_conge_suivi (id_demande, id_abscence, id_type, id_employe, 
 (NULL, 3, NULL, 5, 0, 2024, TRUE, 1, '2024-03-16'),
 (3, NULL, 3, 3, 3, 2024, FALSE, NULL, '2024-02-26');
 
--- Responsables entretien (après profils et employes)
 -- CORRECTION: L'employe 5 n'existe pas (nous n'avons que 4 employés)
 INSERT INTO responsable_entretien (id_profil, id_employe, ordre_passage) VALUES
 (1, 1, 1),  -- Vendeur senior evalue en 1er

@@ -343,7 +343,6 @@ $router->group('/api/competences', function($router) use ($Competence_Controller
     $router->get('/statistiques', [$Competence_Controller, 'getStatsGlobales']);
 });
 
-
 $EmployeeCompetence_Controller = new EmployeeCompetenceController();
 
 // Routes pour les compétences des employés
@@ -352,7 +351,7 @@ $router->group('/employees', function($router) use ($EmployeeCompetence_Controll
     // Vues HTML
     $router->get('/@id/competences/form', [$EmployeeCompetence_Controller, 'showCompetenceForm']);
     $router->get('/@id/competences/list', [$EmployeeCompetence_Controller, 'showCompetenceList']);
-
+    
     // Auto-évaluation des compétences
     $router->post('/@id/competences', [$EmployeeCompetence_Controller, 'createFromEmployee']);
     
@@ -364,4 +363,27 @@ $router->group('/employees', function($router) use ($EmployeeCompetence_Controll
     
     // Suppression d'une compétence
     $router->delete('/@id/competences/@id_competence', [$EmployeeCompetence_Controller, 'deleteCompetence']);
+    
+    // Ajout d'une compétence par le manager
+    $router->post('/@id/competences/manager', [$EmployeeCompetence_Controller, 'addManagerCompetence']);
+});
+
+// Routes pour la validation managériale
+$router->group('/validations', function($router) use ($EmployeeCompetence_Controller) {
+    
+    // Vue HTML du dashboard manager
+    $router->get('/dashboard', [$EmployeeCompetence_Controller, 'showValidationDashboard']);
+});
+
+// Routes API pour la validation managériale
+$router->group('/api/validations', function($router) use ($EmployeeCompetence_Controller) {
+    
+    // Liste des validations en attente
+    $router->get('/pending', [$EmployeeCompetence_Controller, 'listPendingValidations']);
+    
+    // Validation d'une compétence
+    $router->post('/@entryId/validate', [$EmployeeCompetence_Controller, 'validateCompetence']);
+    
+    // Validation en masse
+    $router->post('/bulk-validate', [$EmployeeCompetence_Controller, 'bulkValidate']);
 });

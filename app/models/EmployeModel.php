@@ -657,14 +657,14 @@ class EmployeModel
                         ec.date_mesure,
                         ec.valide,
                         ec.date_validation,
-                        ev.nom as validateur_nom,
-                        ev.prenom as validateur_prenom
+                        ep.nom as validateur_nom,
+                        ep.prenom as validateur_prenom
                     FROM employe_competences ec
                     JOIN competences c ON ec.id_competence = c.id_competence
                     LEFT JOIN type_competence tc ON c.id_type_competence = tc.id_type_competence
                     JOIN niveau_competence_libelle ncl ON ec.niveau = ncl.niveau
                     LEFT JOIN employes ev ON ec.id_employe_validateur = ev.id_employe
-                    LEFT JOIN personnes evp ON ev.id_personne = evp.id_personne
+                    LEFT JOIN personnes ep ON ev.id_personne = ep.id_personne
                     WHERE ec.id_employe = :id_employe 
                       AND ec.id_source = :id_source
                     ORDER BY c.domaine, c.nom";
@@ -680,36 +680,6 @@ class EmployeModel
         } catch (PDOException $e) {
             error_log("Erreur lors du listing des auto-évaluations: " . $e->getMessage());
             return [];
-        }
-    }
-
-    /**
-     * Récupérer l'ID de la source "Auto-évaluation"
-     * 
-     * @return int
-     */
-    private function getAutoEvaluationSourceId(): int
-    {
-        try {
-            $sql = "SELECT id_source FROM source_evaluation WHERE libelle = 'Auto-évaluation'";
-            $stmt = $this->db->query($sql);
-            $result = $stmt->fetch(PDO::FETCH_ASSOC);
-
-            if ($result) {
-                return (int)$result['id_source'];
-            }
-
-            $sql = "INSERT INTO source_evaluation (libelle, description) 
-                    VALUES ('Auto-évaluation', 'Évaluation réalisée par l\\'employé lui-même') 
-                    RETURNING id_source";
-            $stmt = $this->db->query($sql);
-            $result = $stmt->fetch(PDO::FETCH_ASSOC);
-
-            return (int)$result['id_source'];
-
-        } catch (PDOException $e) {
-            error_log("Erreur lors de la récupération de la source auto-évaluation: " . $e->getMessage());
-            return 1;
         }
     }
 
@@ -846,5 +816,224 @@ class EmployeModel
             error_log("Erreur lors de la suppression de compétence: " . $e->getMessage());
             return false;
         }
+    }
+
+
+    /**
+     * Récupère les auto-évaluations en attente de validation
+     * 
+     * @return array
+     */
+    public function getPendingValidations(): array
+    {
+        try {
+            $id_source_auto = $this->getAutoEvaluationSourceId();
+            
+            $sql = "SELECT 
+                        ec.id as entry_id,
+                        ec.id_employe,
+                        e.poste as employe_poste,
+                        p.nom as employe_nom,
+                        p.prenom as employe_prenom,
+                        d.nom as departement_nom,
+                        ec.id_competence,
+                        c.nom as competence_nom,
+                        c.description as competence_description,
+                        c.domaine,
+                        tc.libelle as type_competence,
+                        ec.niveau as niveau_auto,
+                        ncl.libelle as niveau_libelle,
+                        ncl.couleur as niveau_couleur,
+                        ec.date_mesure,
+                        ec.valide,
+                        ec.id_employe_validateur,
+                        evp.nom as validateur_nom,
+                        evp.prenom as validateur_prenom
+                    FROM employe_competences ec
+                    JOIN employes e ON ec.id_employe = e.id_employe
+                    JOIN personnes p ON e.id_personne = p.id_personne
+                    LEFT JOIN departements d ON e.id_departement = d.id_departement
+                    JOIN competences c ON ec.id_competence = c.id_competence
+                    LEFT JOIN type_competence tc ON c.id_type_competence = tc.id_type_competence
+                    LEFT JOIN niveau_competence_libelle ncl ON ec.niveau = ncl.niveau
+                    LEFT JOIN employes ev ON ec.id_employe_validateur = ev.id_employe
+                    LEFT JOIN personnes evp ON ev.id_personne = evp.id_personne
+                    WHERE ec.valide = false
+                    AND ec.id_source = 1
+                    ORDER BY ec.date_mesure DESC, e.id_employe";
+            
+            $stmt = $this->db->prepare($sql);
+            $stmt->execute(['id_source_auto' => $id_source_auto]);
+            
+            return $stmt->fetchAll(PDO::FETCH_ASSOC);
+            
+        } catch (\Exception $e) {
+            error_log("Erreur lors de la récupération des validations en attente: " . $e->getMessage());
+            return [];
+        }
+    }
+
+
+    /**
+     * Valide une compétence avec ajustement de niveau
+     * 
+     * @param int $entryId ID de l'entrée dans employe_competences
+     * @param int $niveauFinal Niveau final validé
+     * @param string $action 'valide', 'rejete', 'ajuste'
+     * @param int $managerId
+     * @return bool
+     */
+    public function validateCompetence(int $entryId, int $niveauFinal, string $action, int $managerId): bool
+    {
+        try {
+            // Pour 'rejete', on supprime l'entrée
+            if ($action === 'rejete') {
+                $sql = "DELETE FROM employe_competences WHERE id = :entryId";
+                $stmt = $this->db->prepare($sql);
+                return $stmt->execute(['entryId' => $entryId]);
+            }
+            
+            // Pour 'valide' et 'ajuste', on met à jour avec validation
+            $sql = "UPDATE employe_competences 
+                    SET valide = true, 
+                        id_employe_validateur = :managerId, 
+                        date_validation = NOW(), 
+                        niveau = :niveauFinal 
+                    WHERE id = :entryId";
+            
+            $stmt = $this->db->prepare($sql);
+            return $stmt->execute([
+                'managerId' => $managerId,
+                'niveauFinal' => $niveauFinal,
+                'entryId' => $entryId
+            ]);
+            
+        } catch (\Exception $e) {
+            error_log("Erreur lors de la validation de compétence: " . $e->getMessage());
+            return false;
+        }
+    }
+
+
+    /**
+     * Valide plusieurs compétences en une fois
+     * 
+     * @param int $managerId
+     * @param array $entries Tableau d'entrées à valider
+     * @return array Résultats de chaque validation
+     */
+    public function bulkValidateCompetences(int $managerId, array $entries): array
+    {
+        $results = [];
+        
+        foreach ($entries as $entry) {
+            $entryId = $entry['entryId'] ?? null;
+            $niveauFinal = $entry['niveauFinal'] ?? null;
+            $action = $entry['action'] ?? 'valide';
+            
+            if (!$entryId || $niveauFinal === null) {
+                $results[] = [
+                    'entryId' => $entryId,
+                    'success' => false,
+                    'error' => 'Données manquantes'
+                ];
+                continue;
+            }
+            
+            $success = $this->validateCompetence($entryId, $niveauFinal, $action, $managerId);
+            $results[] = [
+                'entryId' => $entryId,
+                'success' => $success
+            ];
+        }
+        
+        return $results;
+    }
+
+    /**
+     * Ajoute une compétence observée par le manager (non auto-évaluée)
+     * 
+     * @param int $id_employe
+     * @param int $id_competence
+     * @param int $niveau
+     * @param int $managerId
+     * @return bool
+     */
+    public function addManagerObservedCompetence(int $id_employe, int $id_competence, int $niveau, int $managerId): bool
+    {
+        try {
+            // ID source pour observation manager
+            $id_source_manager = $this->getManagerObservationSourceId();
+            
+            // Insérer ou mettre à jour la compétence (valide d'emblée car observée par manager)
+            $sql = "INSERT INTO employe_competences 
+                    (id_employe, id_competence, niveau, id_source, date_mesure, valide, id_employe_validateur, date_validation) 
+                    VALUES (:id_employe, :id_competence, :niveau, :id_source, NOW(), true, :managerId, NOW())
+                    ON CONFLICT (id_employe, id_competence) 
+                    DO UPDATE SET 
+                        niveau = EXCLUDED.niveau,
+                        id_source = EXCLUDED.id_source,
+                        valide = EXCLUDED.valide,
+                        id_employe_validateur = EXCLUDED.id_employe_validateur,
+                        date_validation = EXCLUDED.date_validation";
+            
+            $stmt = $this->db->prepare($sql);
+            return $stmt->execute([
+                'id_employe' => $id_employe,
+                'id_competence' => $id_competence,
+                'niveau' => $niveau,
+                'id_source' => $id_source_manager,
+                'managerId' => $managerId
+            ]);
+            
+        } catch (\Exception $e) {
+            error_log("Erreur lors de l'ajout de compétence observée: " . $e->getMessage());
+            return false;
+        }
+    }
+    /**
+     * Récupère l'ID de la source "observation manager"
+     * 
+     * @return int
+     */
+    private function getManagerObservationSourceId(): int
+    {
+        return $this->getOrCreateSource('manager-evaluation', 'Compétence observée et validée par le manager');
+    }
+    /**
+     * Récupère l'ID de la source "auto-évaluation"
+     * 
+     * @return int
+     */
+    private function getAutoEvaluationSourceId(): int
+    {
+        return $this->getOrCreateSource('auto-evaluation', 'Évaluation réalisée par l\'employé lui-même');
+    }
+
+    /**
+     * Récupère ou crée une source d'évaluation
+     */
+    private function getOrCreateSource($libelle, $description): int
+    {
+        $sql = "SELECT id_source FROM source_evaluation WHERE libelle = :libelle";
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute(['libelle' => $libelle]);
+        $result = $stmt->fetch(PDO::FETCH_ASSOC);
+        
+        if ($result) {
+            return (int)$result['id_source'];
+        }
+        
+        $sql = "INSERT INTO source_evaluation (libelle, description) 
+                VALUES (:libelle, :description) 
+                RETURNING id_source";
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute([
+            'libelle' => $libelle,
+            'description' => $description
+        ]);
+        
+        $result = $stmt->fetch(PDO::FETCH_ASSOC);
+        return (int)$result['id_source'];
     }
 }

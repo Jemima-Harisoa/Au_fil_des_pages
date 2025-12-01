@@ -636,7 +636,7 @@ class AbscenceModel
                                         <option value="5+">5+ jours</option>
                                     </select>
                                 </div>
-                                <div class="col-md-2">
+                                <div class="col-md-3">
                                     <label for="descriptionFilter" class="small font-weight-bold">Description</label>
                                     <input type="text" class="form-control form-control-sm" id="descriptionFilter" placeholder="Filtrer description">
                                 </div>
@@ -649,7 +649,7 @@ class AbscenceModel
                                         <option value="Familial">Familial</option>
                                     </select>
                                 </div>
-                                <div class="col-md-3">
+                                <div class="col-md-2">
                                     <label for="penaliteFilter" class="small font-weight-bold">Pénalité</label>
                                     <select class="form-control form-control-sm" id="penaliteFilter">
                                         <option value="">Toutes</option>
@@ -682,14 +682,14 @@ class AbscenceModel
                                     </tfoot>
                                     <tbody>';
 
-            if (empty($absences)) {
-                $html .= '
+        if (empty($absences)) {
+            $html .= '
                                         <tr>
                                             <td colspan="5" class="text-center">Aucune absence trouvée</td>
                                         </tr>';
-            } else {
-                foreach ($absences as $absence) {
-                    $html .= '
+        } else {
+            foreach ($absences as $absence) {
+                $html .= '
                                         <tr>
                                             <td>' . htmlspecialchars($absence['periode']) . '</td>
                                             <td>' . htmlspecialchars($absence['jours_pris']) . '</td>
@@ -697,10 +697,10 @@ class AbscenceModel
                                             <td>' . htmlspecialchars($absence['justificatif'] ?? 'Aucune') . '</td>
                                             <td>' . htmlspecialchars($absence['penalite']) . '</td>
                                         </tr>';
-                }
             }
+        }
 
-            $html .= '
+        $html .= '
                                     </tbody>
                                 </table>
                             </div>
