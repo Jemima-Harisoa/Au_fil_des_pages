@@ -55,6 +55,7 @@
     </style>
 </head>
 <body class="bg-gray-50 text-gray-800 min-h-screen">
+<a href="/accueilG">Accueil</a>
 
     <div class="container mx-auto px-4 py-8 max-w-7xl">
         <h1 class="text-3xl font-bold text-gray-900 mb-8">Liste des Employés</h1>

@@ -107,6 +107,14 @@ if(!empty($_SESSION['messagerie'])) {
                     <span>Accueil</span></a>
             </li>
 
+                        <!-- Divider -->
+            <hr class="sidebar-divider">
+            <li class="nav-item">
+                <a class="nav-link" href="/employeList">
+                    <i class="fas fa-fw fa-tachometer-alt"></i>
+                    <span>Gestion employe</span></a>
+            </li>
+
             <!-- Divider -->
             <hr class="sidebar-divider">
 
