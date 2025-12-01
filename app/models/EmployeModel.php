@@ -106,11 +106,21 @@ class EmployeModel
         $this->date_embauche = $date;
     }
 
-// 
-public 
-public static function contratEnAlerte(int $id_employe): bool{
-    $db = Flight::db();
-    $sql = "
+    // 
+    public static function getJoinedEmployePersonnes()
+    {
+        $db = Flight::db();
+        $sql = "SELECT *
+            FROM personnes p
+            JOIN employes e ON p.id_personne = e.id_personne;";
+        $stmt = $db->query($sql);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+    
+    public static function contratEnAlerte(int $id_employe): bool
+    {
+        $db = Flight::db();
+        $sql = "
         SELECT EXISTS (
             SELECT 1 
             FROM contrats c
@@ -123,11 +133,11 @@ public static function contratEnAlerte(int $id_employe): bool{
               AND c.date_fin <= CURRENT_DATE + INTERVAL '30 days'
         )
     ";
-    $stmt = $db->prepare($sql);
-    $stmt->execute([':id_employe' => $id_employe]);
-    return $stmt->fetchColumn(); // Directement true ou false
-}
-// 
+        $stmt = $db->prepare($sql);
+        $stmt->execute([':id_employe' => $id_employe]);
+        return $stmt->fetchColumn(); // Directement true ou false
+    }
+    // 
 
 
     public static function getEmployerHistoriqueMouvement($idEmploye)

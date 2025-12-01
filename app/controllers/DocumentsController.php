@@ -10,7 +10,8 @@ class DocumentsController {
     }
     
     public function redirectDocuments() {
-        $data = EmployeModel::list();
+        $data[0] = EmployeModel::list();
+        $data[1] = EmployeModel::getJoinedEmployePersonnes();
         Flight::render('Documents/documentsOption', ['data' => $data]);
     }
 }
