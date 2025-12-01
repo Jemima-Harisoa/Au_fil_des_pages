@@ -733,33 +733,47 @@ LEFT JOIN personnes evp ON ev.id_personne = evp.id_personne;
 
 -- Vue pour le tableau de bord des compétences
 CREATE OR REPLACE VIEW v_tableau_bord_competences AS
-SELECT 
+WITH stats_employe AS (
+    SELECT
+        e.id_employe,
+        COUNT(ec.id_competence) as nb_competences,
+        COUNT(CASE WHEN ec.valide = true THEN 1 END) as nb_competences_validees,
+        ROUND(AVG(ec.niveau)::numeric, 2) as niveau_moyen,
+        ROUND(AVG(ec.niveau)::numeric, 0) as niveau_moyen_arrondi,
+        COUNT(CASE WHEN ec.niveau >= 4 THEN 1 END) as nb_competences_expert,
+        COUNT(CASE WHEN tc.libelle = 'Hard Skill' THEN 1 END) as nb_hard_skills,
+        COUNT(CASE WHEN tc.libelle = 'Soft Skill' THEN 1 END) as nb_soft_skills,
+        MAX(ec.date_mesure) as derniere_mise_a_jour
+    FROM employes e
+    LEFT JOIN employe_competences ec ON e.id_employe = ec.id_employe
+    LEFT JOIN competences c ON ec.id_competence = c.id_competence
+    LEFT JOIN type_competence tc ON c.id_type_competence = tc.id_type_competence
+    GROUP BY e.id_employe
+)
+SELECT
     e.id_employe,
     p.nom,
     p.prenom,
     d.nom as departement,
     e.poste,
-    COUNT(ec.id_competence) as nb_competences,
-    COUNT(CASE WHEN ec.valide = true THEN 1 END) as nb_competences_validees,
-    ROUND(AVG(ec.niveau)::numeric, 2) as niveau_moyen,
+    COALESCE(se.nb_competences, 0) as nb_competences,
+    COALESCE(se.nb_competences_validees, 0) as nb_competences_validees,
+    COALESCE(se.niveau_moyen, 0) as niveau_moyen,
     ncl.libelle as libelle_niveau_moyen,
-    COUNT(CASE WHEN ec.niveau >= 4 THEN 1 END) as nb_competences_expert,
-    COUNT(CASE WHEN tc.libelle = 'Hard Skill' THEN 1 END) as nb_hard_skills,
-    COUNT(CASE WHEN tc.libelle = 'Soft Skill' THEN 1 END) as nb_soft_skills,
-    MAX(ec.date_mesure) as derniere_mise_a_jour
+    COALESCE(se.nb_competences_expert, 0) as nb_competences_expert,
+    COALESCE(se.nb_hard_skills, 0) as nb_hard_skills,
+    COALESCE(se.nb_soft_skills, 0) as nb_soft_skills,
+    se.derniere_mise_a_jour
 FROM employes e
 JOIN personnes p ON e.id_personne = p.id_personne
 LEFT JOIN departements d ON e.id_departement = d.id_departement
-LEFT JOIN employe_competences ec ON e.id_employe = ec.id_employe
-LEFT JOIN competences c ON ec.id_competence = c.id_competence
-LEFT JOIN type_competence tc ON c.id_type_competence = tc.id_type_competence
+LEFT JOIN stats_employe se ON e.id_employe = se.id_employe
 LEFT JOIN niveau_competence_libelle ncl ON 
-    CASE 
-        WHEN ROUND(AVG(ec.niveau)::numeric, 0) BETWEEN 1 AND 5 THEN ROUND(AVG(ec.niveau)::numeric, 0)
+    CASE
+        WHEN se.niveau_moyen_arrondi BETWEEN 1 AND 5 THEN se.niveau_moyen_arrondi
         ELSE 1
-    END = ncl.niveau
-GROUP BY e.id_employe, p.nom, p.prenom, d.nom, e.poste, ncl.libelle;
-
+    END = ncl.niveau;
+    
 -- Les fonctions trigger et triggers restent identiques...
 -- Fonctions trigger pour mettre à jour updated_at
 CREATE OR REPLACE FUNCTION update_competence_timestamp()
