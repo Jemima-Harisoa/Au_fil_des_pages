@@ -44,6 +44,7 @@ CREATE TABLE pointage (
 );
 
 CREATE TABLE horaires_employe (
+    id_horaires_employe serial primary key,
     id_employe INT NOT NULL REFERENCES employes(id_employe),
     jour_semaine INT NOT NULL,           -- 1 = lundi ... 7 = dimanche
     debut_travail TIME NOT NULL,
@@ -534,24 +535,25 @@ CREATE TABLE heure_supplementaire_config (
     nombre_premieres_heures INT NOT NULL
 );
 
-CREATE TABLE heures_supplementaire (
+CREATE TABLE heure_supplementaire (
     id SERIAL PRIMARY KEY,
     id_employe INT NOT NULL REFERENCES employes(id_employe) ON DELETE CASCADE,
-    nombre_heure_effectue NUMERIC(5,2) NOT NULL,
+    date_heure_debut TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    heure_effectue INTERVAL,
     mois INT NOT NULL CHECK (mois >= 1 AND mois <= 12),
     annee INT NOT NULL,
-    numero_semaine INT NOT NULL CHECK (numero_semaine >= 1 AND numero_semaine <= 52),
-    date_enregistrement TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    numero_semaine INT NOT NULL CHECK (numero_semaine >= 1 AND numero_semaine <= 52)
 );
 
-CREATE TABLE heures_supplementaire_historique (
+CREATE TABLE heure_supplementaire_historique (
     id SERIAL PRIMARY KEY,
-    id_heure_supp INT NOT NULL REFERENCES heures_supplementaire(id) ON DELETE CASCADE,
-    nombre_heure_effectue NUMERIC(5,2) NOT NULL,
+    id_heure_supplementaire int not null references heure_supplementaire(id),
+    id_employe INT NOT NULL REFERENCES employes(id_employe) ON DELETE CASCADE,
+    date_heure_debut TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    heure_effectue INTERVAL,
     mois INT NOT NULL CHECK (mois >= 1 AND mois <= 12),
     annee INT NOT NULL,
-    numero_semaine INT NOT NULL CHECK (numero_semaine >= 1 AND numero_semaine <= 53),
-    date_creation TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    numero_semaine INT NOT NULL CHECK (numero_semaine >= 1 AND numero_semaine <= 52)
 );
 
 CREATE TABLE salaire_historique (

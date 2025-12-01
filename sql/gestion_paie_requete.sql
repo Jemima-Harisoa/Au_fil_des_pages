@@ -17,7 +17,17 @@ FROM v_employes_essais
 );
 
 
-SELECT * FROM heure_supplementaire 
-                    WHERE id_employe = 4
-                      AND EXTRACT(MONTH FROM date_enregistrement) = 11
-                      AND EXTRACT(YEAR FROM date_enregistrement) = 2025;
+create or replace view v_heure_supp as(
+	select 
+		id ,
+		id_employe,
+		date_heure_debut,
+		heure_effectue,
+		date_heure_debut+heure_effectue as date_heure_fin,
+		mois,
+		annee,
+		numero_semaine
+	from 
+		heure_supplementaire
+	
+)

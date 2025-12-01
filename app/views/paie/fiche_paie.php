@@ -90,6 +90,14 @@
 </style>
 <body>
     <h1 class="h1">Fiche de paie Novembre 2025</h1>
+    <h1><?= $data["type_majoration"] ?></h1>
+    <?=
+    "exces: ".$data["heure_de_nuit_avec_ou_sans_exces"]["exces"]->format("H:i:s")." | ".
+    "nombre_heure_exces: ".$data["heure_de_nuit_avec_ou_sans_exces"]["nombre_heure_exces"]."</br>".
+    "nuit: ".$data["heure_de_nuit_avec_ou_sans_exces"]["heure_de_nuit"]->format("H:i:s")." | ".
+    "nombre_heure_exces: ".$data["heure_de_nuit_avec_ou_sans_exces"]["nombre_heure_de_nuit"]."</br>"
+    ;
+    ?>
     <div class="main-container">
         <div>
             <p><strong>Nom et prenoms:</strong> <?= $data["employe"]["nom"] . " ". $data["employe"]["prenom"]?></p>
@@ -166,10 +174,7 @@
             <td colspan="3" class="td-style-commun-libelle"><strong>Total des retenus</strong></td>
             <td class="td-style-commun-nombre"> <?= $data["somme_retenus"]; ?></td>
         </tr>
-        <tr>
-            <td colspan="3" class="td-style-commun-libelle"><strong>Autres idemnites </strong></td>
-            <td class="td-style-commun-nombre"> <?= $data["somme_montant_heure_supplementaire"]; ?></td>
-        </tr>
+   
         <tr>
             <td colspan="3" class="td-style-commun-libelle"><strong>Net à payer</strong></td>
             <td class="td-style-commun-nombre"><?= $data["net_a_payer"]; ?></td>

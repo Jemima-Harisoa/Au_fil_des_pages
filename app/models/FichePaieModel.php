@@ -135,8 +135,6 @@ class FichePaieModel extends Query {
         }
         return $result;
     }
-
-
      public static function calculerHeureSupplementaire($id_employe,$date){
         $heures_supplementaires = Flight::HeureSupplementaire()->getByIdEmployeAndDate($id_employe,$date);
         $hsConfRecent =  HeureSupplementaireConfigModel::getConfRecent();
