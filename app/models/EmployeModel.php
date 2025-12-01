@@ -106,33 +106,80 @@ class EmployeModel
         $this->date_embauche = $date;
     }
 
-    public static function getEmployerHistoriqueMouvement($idEmploye){
+// 
+public static function contratEnAlerte(int $id_employe): bool{
+    $db = Flight::db();
+    $sql = "
+        SELECT EXISTS (
+            SELECT 1 
+            FROM contrats c
+            JOIN candidats ca ON c.id_candidat = ca.id_candidat
+            JOIN employes e   ON ca.id_personne = e.id_personne
+            JOIN type_contrats tc ON c.id_type_contrat = tc.id_type_contrat
+            WHERE e.id_employe = :id_employe
+              AND c.date_fin IS NOT NULL
+              AND tc.nom != 'CDI'
+              AND c.date_fin <= CURRENT_DATE + INTERVAL '30 days'
+        )
+    ";
+    $stmt = $db->prepare($sql);
+    $stmt->execute([':id_employe' => $id_employe]);
+    return $stmt->fetchColumn(); // Directement true ou false
+}
+// 
+
+
+    public static function getEmployerHistoriqueMouvement($idEmploye)
+    {
         $db = Flight::db();
         $sql = "
-            SELECT 
-                hm.date_evenement                                      AS Date,
-                ev.nom_evenement                                       AS Event,
-                CONCAT('Mobilité vers ', COALESCE(p.titre, ''), ' au département ', COALESCE(d.nom, '')) AS Details,
-                hm.support                                             AS Support,
-                COALESCE(p.titre, 'Non renseigné')                     AS Post
-            FROM employes e
-                JOIN personnes per      ON e.id_personne = per.id_personne
-                JOIN candidats c        ON c.id_personne = per.id_personne
-                JOIN historique_mobilite hm ON hm.id_candidat = c.id_candidat
-                LEFT JOIN evenements ev ON hm.id_evenement = ev.id_evenement
-                LEFT JOIN profils p     ON hm.id_profil = p.id_profil
-                LEFT JOIN departements d ON hm.id_departement = d.id_departement
-            WHERE e.id_employe = :idEmploye
-            ORDER BY hm.date_evenement DESC
-        ";
+    SELECT
+        hm.date_evenement                                          AS \"dateEvenement\",
+        COALESCE(ev.nom_evenement, 'Événement inconnu')            AS \"typeEvenement\",
+        hm.support                                                 AS \"support\",
+        
+        COALESCE(
+            p.titre,
+            CASE 
+                WHEN ev.nom_evenement = 'Embauche' THEN 'Embauche initiale'
+                WHEN ev.nom_evenement = 'Promotion' THEN 'Nouveau poste'
+                ELSE 'Poste non précisé'
+            END
+        )                                                          AS \"posteCible\",
+        
+        COALESCE(d.nom, 'Non précisé')                             AS \"departementCible\",
+        
+        CASE 
+            WHEN ev.nom_evenement = 'Embauche'      
+                THEN 'Embauche en tant que ' || COALESCE(p.titre, 'collaborateur')
+            WHEN ev.nom_evenement = 'Promotion'     
+                THEN 'Promotion → ' || COALESCE(p.titre, 'nouveau poste')
+            WHEN ev.nom_evenement = 'Mutation'      
+                THEN 'Mobilité → ' || COALESCE(d.nom, 'nouveau département') 
+                     || CASE WHEN p.titre IS NOT NULL THEN ' ('||p.titre||')' ELSE '' END
+            WHEN ev.nom_evenement = 'Démission'     THEN 'Démission'
+            WHEN ev.nom_evenement = 'Licenciement'  THEN 'Licenciement'
+            WHEN ev.nom_evenement = 'Fin de CDD'    THEN 'Fin de contrat CDD'
+            ELSE COALESCE(ev.nom_evenement, 'Événement')
+        END                                                        AS \"libelleComplet\"
+
+    FROM historique_mobilite hm
+    LEFT JOIN evenements ev        ON hm.id_evenement = ev.id_evenement
+    LEFT JOIN profils p            ON hm.id_profil = p.id_profil
+    LEFT JOIN departements d       ON hm.id_departement = d.id_departement
+    JOIN employes e                ON hm.id_employe = e.id_employe
+    WHERE hm.id_employe = :idEmploye
+    ORDER BY hm.date_evenement DESC
+";
         $stmt = $db->prepare($sql);
         $stmt->execute(['idEmploye' => $idEmploye]);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
-    
-    public static function listeEmployerV2(){
+
+    public static function listeEmployerV2()
+    {
         $db = Flight::db();
-       $sql = "
+        $sql = "
         SELECT
             e.id_employe,
             p.nom AS Nom,
@@ -188,8 +235,9 @@ class EmployeModel
     }
 
     // Méthode pour récupérer les employés avec les informations liées
-   public function listWithDetails(): array {
-    $sql = "SELECT e.id_employe,
+    public function listWithDetails(): array
+    {
+        $sql = "SELECT e.id_employe,
                    e.id_personne,
                    e.id_contrat,
                    e.id_departement,
@@ -208,9 +256,9 @@ class EmployeModel
             JOIN personnes p ON e.id_personne = p.id_personne
             JOIN connexEmployes c ON e.id_employe = c.idemploye";
 
-    $stmt = $this->db->query($sql);
-    return $stmt->fetchAll(\PDO::FETCH_ASSOC);
-}
+        $stmt = $this->db->query($sql);
+        return $stmt->fetchAll(\PDO::FETCH_ASSOC);
+    }
 
     public function save($data)
     {
@@ -248,10 +296,10 @@ class EmployeModel
         return $stmt->fetch(PDO::FETCH_ASSOC);
     }
     public static function getEmployesWithDetails(int $idEmploye): array
-{
-    $db = Flight::db();
+    {
+        $db = Flight::db();
 
-    $sql = "
+        $sql = "
         SELECT 
             e.id_employe,
             e.id_personne,
@@ -282,18 +330,18 @@ class EmployeModel
         LIMIT 1
     ";
 
-    try {
-        $stmt = $db->prepare($sql);
-        $stmt->execute([':idEmploye' => $idEmploye]);
-        $result = $stmt->fetch(PDO::FETCH_ASSOC);
+        try {
+            $stmt = $db->prepare($sql);
+            $stmt->execute([':idEmploye' => $idEmploye]);
+            $result = $stmt->fetch(PDO::FETCH_ASSOC);
 
-        // Retourne un tableau vide si rien trouvé
-        return $result ?: [];
-    } catch (PDOException $e) {
-        error_log("Erreur dans getEmployesWithDetails($idEmploye) : " . $e->getMessage());
-        return [];
+            // Retourne un tableau vide si rien trouvé
+            return $result ?: [];
+        } catch (PDOException $e) {
+            error_log("Erreur dans getEmployesWithDetails($idEmploye) : " . $e->getMessage());
+            return [];
+        }
     }
-}
 
     // Mettre à jour un employé
     public function updateById($id, $data)

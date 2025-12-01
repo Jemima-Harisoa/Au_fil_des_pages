@@ -15,6 +15,7 @@ use app\controllers\cvController;
 use app\controllers\MessagerieController;
 use app\controllers\PlanningEntretienController;
 use app\controllers\ApiPlanningEntretienController;
+use app\controllers\MobiliteHistoriqueController;
 use app\controllers\PointageController;
 
 use app\controllers\conge\CongeController;
@@ -41,7 +42,9 @@ use flight\net\Router;
 $welcomeController = new WelcomeController();
 $ConnexionController = new ConnexionController();
 $employeController = new EmployeController();
+$MobiliteHistoriqueController = new MobiliteHistoriqueController();
 
+$router -> get('/MobiliteHistorique', [$MobiliteHistoriqueController, 'redirectEmploye']);
 $router-> get('/employeList', [ $employeController, 'redirectEmploye' ]);
 $router-> get('/employeDetails/@id', [ $employeController, 'redirectEmployeDetails' ]);
 

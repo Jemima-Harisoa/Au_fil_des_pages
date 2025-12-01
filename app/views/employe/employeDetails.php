@@ -1,7 +1,9 @@
 <?php
+
+use app\models\EmployeModel;
 // Récupération des données passées par le contrôleur
-$data = $data ?? []; // Données de l'employé
-$historiqueMouvement = $historiqueMouvement ?? []; // Historique réel depuis la BDD
+$data = $data ?? [];
+$historiqueMouvement = $historiqueMouvement ?? [];
 
 // Fonction pour formater la date
 function formatDate($dateStr) {
@@ -9,15 +11,17 @@ function formatDate($dateStr) {
 }
 
 // Calcul de l'âge
-$dateNaissance = new DateTime($data['date_naissance'] ?? 'now');
+$dateNaissance = $data['date_naissance'] ? new DateTime($data['date_naissance']) : null;
 $aujourd = new DateTime();
-$age_annees = $dateNaissance->diff($aujourd)->y;
+$age_annees = $dateNaissance ? $dateNaissance->diff($aujourd)->y : '—';
 
 // Calcul de l'ancienneté
-$dateEmbauche = new DateTime($data['date_embauche'] ?? 'now');
-$interval = $dateEmbauche->diff($aujourd);
-$anciennete_annees = $interval->y;
-$anciennete_jours = $interval->days;
+$dateEmbauche = $data['date_embauche'] ? new DateTime($data['date_embauche']) : null;
+$anciennete_annees = $dateEmbauche ? $dateEmbauche->diff($aujourd)->y : '—';
+$anciennete_jours = $dateEmbauche ? $dateEmbauche->diff($aujourd)->days : '—';
+
+// ALERTE FIN DE CONTRAT (30 jours)
+$enAlerteContrat = !empty($data['id_employe']) && EmployeModel::contratEnAlerte((int)$data['id_employe']);
 ?>
 
 <!DOCTYPE html>
@@ -25,26 +29,68 @@ $anciennete_jours = $interval->days;
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fiche Employé - <?= htmlspecialchars($data['nom_personne'] . ' ' . $data['prenom']) ?></title>
+    <title>Fiche Employé - <?= htmlspecialchars($data['nom_personne'] ?? '') . ' ' . htmlspecialchars($data['prenom'] ?? '') ?></title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         body { font-family: 'Inter', sans-serif; }
+        .pulse-alert { animation: pulse 2s infinite; }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.7; } }
     </style>
 </head>
-
 <body class="bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 min-h-screen py-10 px-4">
-<div class="max-w-6xl mx-auto">
+<div class="max-w-7xl mx-auto">
+
+    <!-- ALERTE FIN DE CONTRAT - TRÈS VISIBLE -->
+    <?php if ($enAlerteContrat): ?>
+        <div class="bg-red-50 border-l-8 border-red-600 rounded-r-2xl p-8 mb-8 shadow-2xl pulse-alert">
+            <div class="flex flex-col md:flex-row items-center justify-between gap-6">
+                <div class="flex items-center gap-6">
+                    <div class="text-red-600">
+                        <i class="fas fa-exclamation-triangle text-6xl"></i>
+                    </div>
+                    <div>
+                        <h2 class="text-3xl font-bold text-red-800 mb-2">
+                            ALERTE : FIN DE CONTRAT PROCHE
+                        </h2>
+                        <p class="text-xl text-red-700 font-medium">
+                            Le contrat de cet employé expire dans moins de 30 jours ou est déjà expiré.
+                        </p>
+                        <p class="text-red-600 mt-2">
+                            Action urgente requise !
+                        </p>
+                    </div>
+                </div>
+                <div class="flex flex-col gap-3">
+                    <a href="renouveler_contrat.php?id=<?= $data['id_employe'] ?>"
+                       class="bg-red-600 hover:bg-red-700 text-white font-bold text-lg px-8 py-4 rounded-xl shadow-lg transform hover:scale-105 transition flex items-center gap-3 pulse-alert">
+                        <i class="fas fa-file-contract text-2xl"></i>
+                        Renouveler le contrat maintenant
+                    </a>
+                    <a href="modifier_employe.php?id=<?= $data['id_employe'] ?>#contrat"
+                       class="text-red-700 underline hover:text-red-900 text-sm">
+                        → Modifier les dates du contrat
+                    </a>
+                </div>
+            </div>
+        </div>
+    <?php endif; ?>
 
     <!-- En-tête -->
-    <div class="bg-white rounded-t-2xl shadow-xl p-6 border-b-4 border-blue-500">
+    <div class="bg-white rounded-t-2xl shadow-xl p-6 border-b-4 <?= $enAlerteContrat ? 'border-red-600' : 'border-blue-500' ?>">
         <div class="flex items-center justify-between">
             <h1 class="text-3xl font-bold text-gray-800 flex items-center gap-3">
+                <i class="fas fa-user-tie"></i>
                 Fiche Employé
+                <?php if ($enAlerteContrat): ?>
+                    <span class="ml-4 inline-flex items-center gap-2 text-red-600 font-bold">
+                        <i class="fas fa-bell animate-pulse"></i> CONTRAT EN ALERTE
+                    </span>
+                <?php endif; ?>
             </h1>
-            <span class="bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-4 py-1.5 rounded-full text-sm font-semibold shadow">
-                ID: <?= $data['id_employe'] ?>
+            <span class="bg-gradient-to-r <?= $enAlerteContrat ? 'from-red-600 to-red-700' : 'from-blue-600 to-indigo-600' ?> text-white px-6 py-2 rounded-full text-lg font-bold shadow-lg">
+                ID: <?= $data['id_employe'] ?? '—' ?>
             </span>
         </div>
     </div>
@@ -54,19 +100,27 @@ $anciennete_jours = $interval->days;
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-10">
             <!-- Photo + Nom -->
             <div class="flex flex-col items-center text-center">
-                <div class="w-48 h-48 rounded-2xl overflow-hidden shadow-xl border-4 border-white mb-4 bg-gradient-to-br from-blue-100 to-indigo-200">
-                    <?php if (!empty($data['lien_image']) && file_exists($data['lien_image'])): ?>
-                        <img src="<?= htmlspecialchars($data['lien_image']) ?>" alt="Photo" class="w-full h-full object-cover">
-                    <?php else: ?>
-                        <div class="w-full h-full flex items-center justify-center">
-                            <i class="fas fa-user text-7xl text-blue-400"></i>
+                <div class="relative">
+                    <div class="w-48 h-48 rounded-2xl overflow-hidden shadow-2xl border-4 border-white mb-4 bg-gradient-to-br from-blue-100 to-indigo-200">
+                        <?php if (!empty($data['lien_image']) && file_exists($data['lien_image'])): ?>
+                            <img src="<?= htmlspecialchars($data['lien_image']) ?>" alt="Photo" class="w-full h-full object-cover">
+                        <?php else: ?>
+                            <div class="w-full h-full flex items-center justify-center">
+                                <i class="fas fa-user text-7xl text-blue-400"></i>
+                            </div>
+                        <?php endif; ?>
+                    </div>
+                    <?php if ($enAlerteContrat): ?>
+                        <div class="absolute -top-2 -right-2 bg-red-600 text-white rounded-full p-3 shadow-xl animate-pulse">
+                            <i class="fas fa-exclamation text-xl"></i>
                         </div>
                     <?php endif; ?>
                 </div>
-                <h2 class="text-2xl font-bold text-gray-800"><?= htmlspecialchars($data['nom_personne']) ?></h2>
-                <p class="text-lg text-gray-600"><?= htmlspecialchars($data['prenom']) ?></p>
-                <div class="mt-2 inline-flex items-center gap-2 bg-blue-100 text-blue-700 px-4 py-1.5 rounded-full text-sm font-semibold">
-                    <?= htmlspecialchars($data['poste']) ?>
+                <h2 class="text-2xl font-bold text-gray-800"><?= htmlspecialchars($data['nom_personne'] ?? '') ?></h2>
+                <p class="text-lg text-gray-600"><?= htmlspecialchars($data['prenom'] ?? '') ?></p>
+                <div class="mt-2 inline-flex items-center gap-2 <?= $enAlerteContrat ? 'bg-red-100 text-red-700' : 'bg-blue-100 text-blue-700' ?> px-6 py-2 rounded-full text-sm font-bold">
+                    <i class="fas fa-briefcase"></i>
+                    <?= htmlspecialchars($data['poste'] ?? 'Non renseigné') ?>
                 </div>
             </div>
 
@@ -76,44 +130,52 @@ $anciennete_jours = $interval->days;
                     <div>
                         <label class="flex items-center text-sm font-semibold text-gray-600 mb-1">Âge</label>
                         <p class="text-lg font-medium text-gray-900">
-                            <?= $age_annees ?> an<?= $age_annees > 1 ? 's' : '' ?>
-                            <span class="text-sm text-gray-500 block">Né(e) le <?= formatDate($data['date_naissance']) ?></span>
+                            <?= is_numeric($age_annees) ? $age_annees . ' an' . ($age_annees > 1 ? 's' : '') : '—' ?>
+                            <span class="text-sm text-gray-500 block">Né(e) le <?= formatDate($data['date_naissance'] ?? '') ?></span>
                         </p>
                     </div>
                     <div>
                         <label class="flex items-center text-sm font-semibold text-gray-600 mb-1">Contact</label>
                         <p class="text-lg font-medium text-gray-900">
-                            <a href="tel:<?= htmlspecialchars($data['contact']) ?>" class="hover:text-blue-600">
-                                <?= chunk_split($data['contact'], 3, ' ') ?>
-                            </a>
+                            <?= !empty($data['contact']) ? '<a href="tel:' . htmlspecialchars($data['contact']) . '" class="hover:text-blue-600">' . chunk_split(htmlspecialchars($data['contact']), 3, ' ') . '</a>' : '—' ?>
                         </p>
                     </div>
                     <div>
-                        <label class="flex items-center text-sm font-semibold text-gray-600 mb-1">Poste</label>
-                        <p class="text-lg font-medium text-gray-900"><?= htmlspecialchars($data['poste']) ?></p>
+                        <label class="flex items-center text-sm font-semibold text-gray-600 mb-1">Poste actuel</label>
+                        <p class="text-lg font-medium text-gray-900"><?= htmlspecialchars($data['poste'] ?? '—') ?></p>
                     </div>
                     <div>
                         <label class="flex items-center text-sm font-semibold text-gray-600 mb-1">Département</label>
-                        <p class="text-lg font-medium text-purple-700 bg-purple-50 px-4 py-1.5 rounded-lg inline-block">
-                            <?= htmlspecialchars($data['nom_departement']) ?>
+                        <p class="text-lg font-medium <?= $enAlerteContrat ? 'text-red-700 bg-red-50' : 'text-purple-700 bg-purple-50' ?> px-6 py-2 rounded-lg inline-block font-bold">
+                            <?= htmlspecialchars($data['nom_departement'] ?? '—') ?>
                         </p>
                     </div>
                     <div>
-                        <label class="flex items-center text-sm font-semibold text-gray-600 mb-1">Embauche</label>
-                        <p class="text-lg font-medium text-gray-900"><?= formatDate($data['date_embauche']) ?></p>
+                        <label class="flex items-center text-sm font-semibold text-gray-600 mb-1">Date d'embauche</label>
+                        <p class="text-lg font-medium text-gray-900"><?= formatDate($data['date_embauche'] ?? '') ?></p>
                     </div>
                     <div>
                         <label class="flex items-center text-sm font-semibold text-gray-600 mb-1">Ancienneté</label>
                         <p class="text-lg font-bold text-orange-600">
-                            <?= $anciennete_annees ?> an<?= $anciennete_annees > 1 ? 's' : '' ?>
-                            <span class="text-sm font-normal text-gray-500 block">(<?= $anciennete_jours ?> jour<?= $anciennete_jours > 1 ? 's' : '' ?>)</span>
+                            <?= is_numeric($anciennete_annees) ? $anciennete_annees . ' an' . ($anciennete_annees > 1 ? 's' : '') : '—' ?>
+                            <?php if (is_numeric($anciennete_jours)): ?>
+                                <span class="text-sm font-normal text-gray-500 block">(<?= $anciennete_jours ?> jour<?= $anciennete_jours > 1 ? 's' : '' ?>)</span>
+                            <?php endif; ?>
                         </p>
                     </div>
                 </div>
 
-                <div class="flex justify-end mt-8">
-                    <a href="modifier_employe.php?id=<?= $data['id_employe'] ?>"
+                <div class="flex justify-end mt-8 gap-4">
+                    <?php if ($enAlerteContrat): ?>
+                        <a href="renouveler_contrat.php?id=<?= $data['id_employe'] ?>"
+                           class="bg-red-600 hover:bg-red-700 text-white font-bold px-8 py-4 rounded-xl shadow-lg transform hover:scale-105 transition flex items-center gap-3 pulse-alert">
+                            <i class="fas fa-file-contract"></i>
+                            Renouveler le contrat
+                        </a>
+                    <?php endif; ?>
+                    <a href="modifier_employe.php?id=<?= $data['id_employe'] ?? '' ?>"
                        class="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transform hover:scale-105 transition">
+                        <i class="fas fa-edit"></i>
                         Modifier la fiche
                     </a>
                 </div>
@@ -121,7 +183,8 @@ $anciennete_jours = $interval->days;
         </div>
     </div>
 
-    <!-- === HISTORIQUE DES MOUVEMENTS (DYNAMIQUE) === -->
+    <!-- HISTORIQUE DES MOUVEMENTS (inchangé) -->
+    <!-- HISTORIQUE DES MOUVEMENTS -->
     <div class="bg-white rounded-2xl shadow-xl p-8 overflow-hidden">
         <div class="flex flex-col sm:flex-row items-center justify-between mb-6 gap-4">
             <h2 class="text-2xl font-bold text-gray-800 flex items-center gap-3">
@@ -156,40 +219,44 @@ $anciennete_jours = $interval->days;
                 <tbody class="divide-y divide-gray-200">
                     <?php if (empty($historiqueMouvement)): ?>
                         <tr>
-                            <td colspan="6" class="text-center py-8 text-gray-500">
+                            <td colspan="6" class="text-center py-12 text-gray-500">
                                 Aucun mouvement enregistré pour cet employé.
                             </td>
                         </tr>
                     <?php else: ?>
                         <?php foreach ($historiqueMouvement as $mvt): ?>
                             <tr class="hover:bg-blue-50 transition data-row"
-                                data-date="<?= formatDate($mvt['date_evenement'] ?? '') ?>"
-                                data-event="<?= htmlspecialchars($mvt['nom_evenement'] ?? '') ?>"
-                                data-detail="<?= htmlspecialchars($mvt['details'] ?? $mvt['nom_evenement'] ?? 'Mobilité interne') ?>"
-                                data-support="<?= htmlspecialchars($mvt['support'] ?? '-') ?>"
-                                data-poste="<?= htmlspecialchars($mvt['titre'] ?? $mvt['poste'] ?? 'Non renseigné') ?>">
+                                data-date="<?= formatDate($mvt['dateEvenement'] ?? '') ?>"
+                                data-event="<?= htmlspecialchars($mvt['typeEvenement'] ?? '') ?>"
+                                data-detail="<?= htmlspecialchars($mvt['libelleComplet'] ?? '') ?>"
+                                data-support="<?= htmlspecialchars($mvt['support'] ?? '') ?>"
+                                data-poste="<?= htmlspecialchars($mvt['posteCible'] ?? '') ?>">
 
-                                <td class="px-4 py-3 font-medium text-gray-900"><?= formatDate($mvt['date_evenement'] ?? '') ?></td>
+                                <td class="px-4 py-3 font-medium text-gray-900">
+                                    <?= formatDate($mvt['dateEvenement'] ?? '') ?>
+                                </td>
 
                                 <td class="px-4 py-3">
                                     <?php
-                                    $event = $mvt['nom_evenement'] ?? '';
-                                    $icon = match (strtolower($event)) {
-                                        'embauche'                  => 'fa-user-plus text-green-600',
-                                        'promotion'                 => 'fa-arrow-up text-blue-600',
-                                        'augmentation'              => 'fa-coins text-yellow-600',
-                                        'mutation', 'changement de département' => 'fa-exchange-alt text-purple-600',
-                                        default                     => 'fa-info-circle text-gray-500'
+                                    $event = strtolower($mvt['typeEvenement'] ?? '');
+                                    $icon = match (true) {
+                                        str_contains($event, 'embauche')     => 'fa-user-plus text-green-600',
+                                        str_contains($event, 'promotion')    => 'fa-trophy text-yellow-600',
+                                        str_contains($event, 'mutation')     => 'fa-exchange-alt text-purple-600',
+                                        str_contains($event, 'démission')    => 'fa-sign-out-alt text-red-600',
+                                        str_contains($event, 'licenciement') => 'fa-ban text-red-700',
+                                        str_contains($event, 'fin de cdd')   => 'fa-calendar-times text-orange-600',
+                                        default                              => 'fa-info-circle text-gray-500'
                                     };
                                     ?>
                                     <span class="flex items-center gap-2">
                                         <i class="fas <?= $icon ?>"></i>
-                                        <?= htmlspecialchars($event ?: 'Événement') ?>
+                                        <span class="font-medium"><?= htmlspecialchars($mvt['typeEvenement'] ?? 'Événement') ?></span>
                                     </span>
                                 </td>
 
-                                <td class="px-4 py-3 text-gray-600">
-                                    <?= htmlspecialchars($mvt['details'] ?? "Mobilité vers " . ($mvt['titre'] ?? '') . " (" . ($mvt['nom_departement'] ?? '') . ")") ?>
+                                <td class="px-4 py-3 text-gray-700">
+                                    <?= htmlspecialchars($mvt['libelleComplet'] ?? '—') ?>
                                 </td>
 
                                 <td class="px-4 py-3">
@@ -199,12 +266,12 @@ $anciennete_jours = $interval->days;
                                 </td>
 
                                 <td class="px-4 py-3 font-medium text-indigo-700">
-                                    <?= htmlspecialchars($mvt['titre'] ?? $mvt['poste'] ?? 'Non renseigné') ?>
+                                    <?= htmlspecialchars($mvt['posteCible'] ?? 'Non précisé') ?>
                                 </td>
 
                                 <td class="px-4 py-3 text-center">
-                                    <button onclick="alert('Détails du mouvement du <?= formatDate($mvt['date_evenement']) ?>')"
-                                            class="text-blue-600 hover:text-blue-800">
+                                    <button onclick="alert('<?= htmlspecialchars($mvt['libelleComplet'] ?? 'Détail non disponible') ?>')"
+                                            class="text-blue-600 hover:text-blue-800 font-medium">
                                         Voir
                                     </button>
                                 </td>
@@ -214,65 +281,11 @@ $anciennete_jours = $interval->days;
                 </tbody>
             </table>
 
-            <div id="noResults" class="hidden text-center py-12 text-gray-400">
+            <div id="noResults" class="hidden text-center py-12 text-gray-400 text-lg">
                 Aucun mouvement ne correspond à votre recherche.
             </div>
         </div>
     </div>
-
-    <!-- Script de filtre (inchangé) -->
-    <script>
-        const filters = {
-            date: document.getElementById('filterDate'),
-            event: document.getElementById('filterEvent'),
-            detail: document.getElementById('filterDetail'),
-            support: document.getElementById('filterSupport'),
-            poste: document.getElementById('filterPoste')
-        };
-        const rows = document.querySelectorAll('#mouvementsTable .data-row');
-        const noResults = document.getElementById('noResults');
-        const rowCount = document.getElementById('rowCount');
-
-        function applyFilters() {
-            let visible = 0;
-            const values = {
-                date: filters.date.value.trim().toLowerCase(),
-                event: filters.event.value.trim().toLowerCase(),
-                detail: filters.detail.value.trim().toLowerCase(),
-                support: filters.support.value.trim().toLowerCase(),
-                poste: filters.poste.value.trim().toLowerCase()
-            };
-
-            rows.forEach(row => {
-                const data = {
-                    date: row.dataset.date.toLowerCase(),
-                    event: row.dataset.event.toLowerCase(),
-                    detail: row.dataset.detail.toLowerCase(),
-                    support: row.dataset.support.toLowerCase(),
-                    poste: row.dataset.poste.toLowerCase()
-                };
-
-                const match = (!values.date || data.date.includes(values.date)) &&
-                              (!values.event || data.event.includes(values.event)) &&
-                              (!values.detail || data.detail.includes(values.detail)) &&
-                              (!values.support || data.support.includes(values.support)) &&
-                              (!values.poste || data.poste.includes(values.poste));
-
-                row.style.display = match ? '' : 'none';
-                if (match) visible++;
-            });
-
-            noResults.classList.toggle('hidden', visible > 0 || rows.length === 0);
-            rowCount.textContent = visible || 0;
-        }
-
-        Object.values(filters).forEach(input => {
-            input.addEventListener('input', applyFilters);
-            input.addEventListener('keyup', applyFilters);
-        });
-
-        applyFilters();
-    </script>
 </div>
 </body>
 </html>
