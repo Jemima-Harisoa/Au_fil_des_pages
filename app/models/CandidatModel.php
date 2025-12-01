@@ -54,5 +54,7 @@ class CandidatModel {
         $stmt = $this->db->query($sql);
         return $stmt->fetchAll(\PDO::FETCH_ASSOC);
     }
+
+    
     
 }

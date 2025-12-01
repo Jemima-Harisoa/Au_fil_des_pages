@@ -36,7 +36,7 @@ class NotificationController
 
             // Récupérer les informations de l'absence et de l'employé
             $absenceInfo = $this->getAbsenceInfo($idAbsence);
-            
+
             if (!$absenceInfo) {
                 error_log("Absence non trouvée pour idAbsence: " . $idAbsence);
                 Flight::json([
@@ -50,16 +50,16 @@ class NotificationController
 
             // Envoyer la notification via la messagerie interne
             $resultat = $this->envoyerNotificationMessagerie($absenceInfo);
-            
-            if ($resultat['success']) {
+
+            if (!empty($resultat['success'])) {
                 // Journaliser l'action
-                error_log("Notification envoyée à l'employé " . $absenceInfo['employe'] . 
+                error_log("Notification envoyée à l'employé " . ($absenceInfo['employe'] ?? $absenceInfo['prenom'] ?? $absenceInfo['id_employe']) .
                          " pour l'absence ID: " . $idAbsence);
-                
+
                 Flight::json([
                     'success' => true,
-                    'message' => 'Notification envoyée avec succès à ' . $absenceInfo['employe'],
-                    'employe' => $absenceInfo['employe'],
+                    'message' => 'Notification envoyée avec succès à ' . ($absenceInfo['employe'] ?? $absenceInfo['prenom'] ?? 'employé'),
+                    'employe' => $absenceInfo['id_employe'] ?? null,
                     'absence_id' => $idAbsence,
                     'type' => 'messagerie_interne'
                 ]);
@@ -67,13 +67,13 @@ class NotificationController
                 error_log("Erreur lors de l'envoi de la notification: " . $resultat['error']);
                 Flight::json([
                     'success' => false,
-                    'error' => $resultat['error']
+                    'error' => $resultat['error'] ?? 'Erreur lors de l\'envoi de la notification'
                 ], 500);
             }
 
         } catch (\Exception $e) {
             error_log("Erreur lors de l'envoi de notification: " . $e->getMessage());
-            
+
             Flight::json([
                 'success' => false,
                 'error' => 'Erreur interne: ' . $e->getMessage()
@@ -116,7 +116,7 @@ class NotificationController
             
             // Préparer le message de notification
             $message = $this->preparerMessageNotification($absenceInfo);
-            
+
             // Utiliser la messagerie entre employés pour envoyer la notification
             $messagerieModel = new MessagerieModel();
             $resultat = $messagerieModel->repondreE($idAdmin, $idEmploye, $message);
@@ -128,10 +128,10 @@ class NotificationController
                 error_log("Erreur lors de l'envoi via la messagerie");
                 return [
                     'success' => false,
-                    'error' => 'Erreur lors de l\'envoi via la messagerie'
+                    'error' => 'Erreur lors de l\'écriture du message'
                 ];
             }
-            
+
         } catch (\Exception $e) {
             error_log("Exception dans envoyerNotificationMessagerie: " . $e->getMessage());
             return [

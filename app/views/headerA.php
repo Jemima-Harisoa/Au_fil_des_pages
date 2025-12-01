@@ -164,6 +164,11 @@
                 <i class="fas fa-clock"></i>
                     <span>Pointage</span></a>
             </li>
+            <li class="nav-item">
+                <a class="nav-link" href="/dashboard/<?= $_SESSION['admin']['id_manager'] ?? 'Inconnu' ?>/manager">
+                <i class="fas fa-clock"></i> <!-- Icône horloge -->
+                    <span>Evaluation</span></a>
+            </li>
 
             <!-- Nav Item - Liste CV (Uniquement pour l'admin) -->
             <?php if(isset($_SESSION['admin'])): ?>

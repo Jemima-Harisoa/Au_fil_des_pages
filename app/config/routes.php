@@ -12,12 +12,13 @@ use app\controllers\migration\MigrationController;
 
 use app\controllers\cvController;
 
+use app\controllers\EvaluationController;
 use app\controllers\MessagerieController;
 use app\controllers\PlanningEntretienController;
 use app\controllers\ApiPlanningEntretienController;
 use app\controllers\MobiliteHistoriqueController;
 use app\controllers\PointageController;
-
+use app\models\EmployeModel;
 use app\controllers\conge\CongeController;
 use app\controllers\conge\AbscenceController;
 use app\controllers\conge\NotificationController;
@@ -25,7 +26,9 @@ use app\controllers\conge\CalendrierController;
 
 use app\controllers\CompetenceController;
 
+use app\models\EvaluationModel;
 use app\controllers\FichePaieController;
+use app\models\AdminModel;
 use flight\Engine;
 use flight\net\Router;
 //use Flight;
@@ -45,9 +48,136 @@ $employeController = new EmployeController();
 $MobiliteHistoriqueController = new MobiliteHistoriqueController();
 
 $router -> get('/MobiliteHistorique', [$MobiliteHistoriqueController, 'redirectEmploye']);
+$evaluationController = new EvaluationController();
+
+$router-> get('/evaluations', [$evaluationController, 'liste']);
+$router-> get('/evaluation/@id', [$evaluationController, 'detail']);
+$router->get('/evaluation/@id/saisie', [$evaluationController, 'saisie']);
+$router->get('/evaluation/@id/score', [$evaluationController, 'score']);
+$router->post('/evaluation/@id/save', [$evaluationController, 'saveNotes']);
+$router->get('/evaluation/@id/score', [$evaluationController, 'score']);
 $router-> get('/employeList', [ $employeController, 'redirectEmploye' ]);
 $router-> get('/employeDetails/@id', [ $employeController, 'redirectEmployeDetails' ]);
+$router->get('/employee/@id/historique', [$evaluationController, 'historique']);
+// Dashboard manager
+$router->get('/dashboard/@idManager/manager', function($idManager) {
+    try {
+        // Vérifier si l'admin est connecté
+        if (!isset($_SESSION['admin']['id_admin'])) {
+            Flight::redirect('/login');
+            return;
+        }
 
+        $adminModel = new AdminModel();
+        $evaModel = new EvaluationModel(Flight::db());
+
+        // Récupérer les détails de l'admin
+        $adminDetails = $adminModel->getDetailsPersoAdmin($_SESSION['admin']['id_admin']);
+        
+        // DEBUG - Afficher l'id_manager
+        error_log("DEBUG - ID Manager from URL: " . $idManager);
+        error_log("DEBUG - Admin Details: " . print_r($adminDetails, true));
+        
+        // Vérifier si l'admin a un manager_id
+        if (!$adminDetails || !isset($adminDetails['id_manager'])) {
+            error_log("ERREUR - Manager ID non trouvé dans adminDetails");
+            throw new Exception("Manager ID non trouvé pour cet administrateur");
+        }
+
+        error_log("DEBUG - ID Manager from DB: " . $adminDetails['id_manager']);
+
+        // Vérifier que l'ID manager dans l'URL correspond à celui de la session
+        if ($idManager != $adminDetails['id_manager']) {
+            error_log("REDIRECTION - URL: $idManager vs Session: " . $adminDetails['id_manager']);
+            Flight::redirect('/dashboard/' . $adminDetails['id_manager'] . '/manager');
+            return;
+        }
+
+        // Récupérer les données pour le dashboard
+        $summary = $evaModel->getTeamEvaluationsSummary($idManager);
+        $trend = $evaModel->getScoreTrends($idManager);
+        $urgent = $evaModel->getTeamUrgentEvaluations($idManager);
+
+        Flight::render('dashboard_manager.php', [
+            'summary' => $summary,
+            'trend'   => $trend,
+            'urgent'  => $urgent,
+            'managerId' => $idManager,
+            'adminDetails' => $adminDetails // ← Ajouté pour le debug
+        ]);
+
+    } catch (Exception $e) {
+        error_log("Erreur dashboard manager: " . $e->getMessage());
+        Flight::json([
+            'success' => false,
+            'message' => 'Erreur lors du chargement du dashboard'
+        ], 500);
+    }
+});
+$router->get('/performance_dashboard', function() {
+    $employeId = $_GET['employe'] ?? null;
+    $empModel=new EmployeModel();
+    $nom = $empModel->getEmployesWithDetails($employeId);
+    
+    $annee = $_GET['annee'] ?? date('Y');
+    $periodeA = $_GET['periodeA'] ?? null;
+    $periodeB = $_GET['periodeB'] ?? null;
+
+    $perfModel = new EvaluationModel(Flight::db());
+
+    // Performance globale
+    $performanceData = $perfModel->generatePerformance($annee, $employeId);
+
+    // Comparaison périodes si spécifiées
+    $comparison = [];
+    if($employeId && $periodeA && $periodeB){
+        $comparison = $perfModel->comparePeriods($employeId, $periodeA, $periodeB);
+    }
+
+    Flight::render('performance_generation.php', [
+        'performanceData' => $performanceData,
+        'comparison' => $comparison,
+        'employeNom' => $nom['nom_personne'] ?? 'Tous',
+        'annee' => $annee
+    ]);
+});
+$router->get('/perform', function(){
+    Flight::render('intro_performance_generation.php', []);
+});
+
+$router->get('/traiterEval', function(){
+   $db = Flight::db();
+
+    $employes = $db->query("SELECT e.id_employe, p.nom, p.prenom FROM employes e 
+                             JOIN personnes p ON e.id_personne = p.id_personne
+                             ORDER BY p.nom")->fetchAll(PDO::FETCH_ASSOC);
+
+    $periodes = $db->query("SELECT * FROM employe_evaluation_periodes ORDER BY id_periode")->fetchAll(PDO::FETCH_ASSOC);
+
+    Flight::render('formEval.php', [
+        'employes' => $employes,
+        'periodes' => $periodes
+    ]);
+});
+
+
+$router->post('/evaluation/planifier', function() {
+    $db = Flight::db();
+
+    $employe_id = Flight::request()->data->employe_id;
+    $periode_id = Flight::request()->data->periode_id;
+    $date_eval = Flight::request()->data->date_evaluation;
+    $manager_id = Flight::request()->data->manager_id ?? 1;
+
+    $stmt = $db->prepare("
+        INSERT INTO employe_evaluations 
+        (employe_id, periode_id, date_generation, date_evaluation, statut, score_total, manager_id, created_at, updated_at)
+        VALUES (?, ?, CURRENT_DATE, ?, 'PREVUE', 0, ?, NOW(), NOW())
+    ");
+    $stmt->execute([$employe_id, $periode_id, $date_eval, $manager_id]);
+
+    Flight::redirect('/evaluations'); // Retour au formulaire ou page récap
+});
 $pointageController = new PointageController();
 $router->get('/pointage', [ $pointageController, 'getAllEmployes' ]);
 // fichier routes.php ou bootstrap
