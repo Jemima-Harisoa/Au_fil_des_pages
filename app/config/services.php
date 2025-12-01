@@ -4,7 +4,7 @@ use flight\Engine;
 use flight\database\PdoWrapper;
 use flight\debug\database\PdoQueryCapture;
 use Tracy\Debugger;
-
+use app\models\conge\JustificationModel;
 use app\models\ProductModel;
 use app\models\InscriptionModel;
 use app\models\ConnexionModel;
@@ -16,7 +16,7 @@ use app\models\CandidatModel;
 use app\models\TestModel;
 use app\models\ProfilsModel;
 use app\models\PlanningEntretienModel;
-
+use app\models\SmigModel;
 use app\models\migration\PersonneModel;
 use app\models\migration\ScoringModel;
 use app\models\migration\TypeContratModel;
@@ -26,7 +26,17 @@ use app\models\migration\HistoriqueValidationModel;
 use app\models\migration\HistoriqueContratModel;
 use app\models\EmployeModel;
 use app\models\DepartementModel;
-
+use app\models\ParametreModel;
+use app\models\FichePaieModel;
+use app\models\IrsaModel;
+use app\models\HeureSupplementaireModel;
+use app\models\HeureSupplementaireConfigModel;
+use app\models\conge\AbscenceModel;
+use app\models\conge\CongeModel;
+use app\models\PrimeModel;
+use app\models\TypePrimeModel;
+use app\models\conge\CalendrierModel;
+use app\models\CompetenceModel;
 
 /** 
  * @var array $config This comes from the returned array at the bottom of the config.php file
@@ -136,4 +146,58 @@ Flight::map('Employe', function () {
 
 Flight::map('Departement', function () {
     return new DepartementModel(Flight::db());
+});
+
+
+Flight::map('Justification', function (){
+    return new JustificationModel(Flight::db());
+});
+Flight::map('Parametre', function () {
+    return new ParametreModel(Flight::db());
+});
+
+Flight::map('FichePaie', function () {
+    return new FichePaieModel(Flight::db());
+});
+
+
+Flight::map('HeureSupplementaire', function () {
+    return new HeureSupplementaireModel(Flight::db());
+});
+
+Flight::map('HeureSupplementaireConfig', function () {
+    return new HeureSupplementaireConfigModel(Flight::db());
+});
+Flight::map('Irsa', function () {
+    return new IrsaModel(Flight::db());
+});
+
+
+Flight::map('Smig', function () {
+    return new SmigModel(Flight::db());
+});
+
+Flight::map('Conge', function () {
+    return new CongeModel(Flight::db());
+});
+
+Flight::map('Abscence', function () {
+    return new AbscenceModel(Flight::db());
+});
+
+
+Flight::map('Prime', function () {
+    return new PrimeModel(Flight::db());
+});
+
+Flight::map('TypePrime', function () {
+    return new PrimeModel(Flight::db());
+});
+
+Flight::map('Calendrier', function () {
+    return new CalendrierModel(Flight::db());
+});
+
+Flight::map('Competence', function () {
+    return new CompetenceModel(Flight::db());
 });

@@ -8,7 +8,9 @@ use flight\debug\database\PdoQueryCapture;
 
 class ConfigEntretienModel {
     private $db;
-
+    public $id_config_entretien;
+    public $id_departement;
+    public $duree_entretien;
     // Constructeur
     public function __construct($db) {
         $this->db = $db;
@@ -30,7 +32,7 @@ class ConfigEntretienModel {
     public static function all() {
         $db = Flight::db();
         $stmt = $db->query("SELECT * FROM config_entretien");
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        return $stmt->fetchAll(\PDO::FETCH_ASSOC);
     }
 
     // Récupérer une configuration par ID
@@ -38,7 +40,7 @@ class ConfigEntretienModel {
         $db = Flight::db();
         $stmt = $db->prepare("SELECT * FROM config_entretien WHERE id_config_entretien = ?");
         $stmt->execute([$id]);
-        return $stmt->fetch(PDO::FETCH_ASSOC);
+        return $stmt->fetch(\PDO::FETCH_ASSOC);
     }
 
     // Optionnel : mettre à jour une configuration
@@ -75,12 +77,12 @@ class ConfigEntretienModel {
 
         try {
             if($responsable == null){
-                throw new Exception("le responsable n'a pas ete trouve");   
+                throw new \Exception("le responsable n'a pas ete trouve");   
             }
             $db = Flight::db();
             $stmt = $db->prepare($query);
             $stmt->execute([$departementResponsable["id_departement"]]);
-            return $stmt->fetch();
+            return $stmt->fetch(\PDO::FETCH_ASSOC);
         } catch (\Exception $e) {
             throw new \Exception($e->getMessage());
 

@@ -1,0 +1,15 @@
+Logic de validation des justificatif d'abscence et attribution des penalite
+Dans une page il faut lister toute les abscences independemen du type et de 
+l'employe => sous forme de tableau = placer un filtre 
+
+Dans le cas ou les abscence sont autoriser il devrais y avoir un lien vers justificatif fourni
+Dans le cas ou les abscence sont non autoriser, il faut un lier notifier l'employe  pour 
+demader un justificatif
+
+Ce qu'il faut : une fonction getListeAbscence(est_autorise) => liste toute les abscence 
+getTableauListeAbscence(est_autorise) => retourne une table semblable a getTableauDetailAbsence
+avec en plus des colone pour les information employe
+
++ fonction getJustificatif => controller et fonction dans abscenceModel pour afficher 
+montrer les justificatid (fichier dans upload -pdf, docx, excel, img) a traiter et afficher dans la 
+page web

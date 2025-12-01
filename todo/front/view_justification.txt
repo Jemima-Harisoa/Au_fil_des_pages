@@ -1,0 +1,9 @@
+Objectif
+Une interface pour afficher la liste des justificatif lie a un e abscence donne
+comment ca marche :
+=> si il y a plusieur document le tout doit etre uploader dans un repertoir commun 
+=> si il y a 1 fichier le contenu est afficher directement independament de l'extension
+=> si il s'agit d'une note ecrite alors on affiche le contenu de meme 
+
+ce qu'il faut: 
+=> 

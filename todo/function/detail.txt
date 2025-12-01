@@ -1,0 +1,93 @@
+Voici le TODO détaillé pour les fonctions de détail des congés et absences basé sur votre structure de base de données :
+
+---
+
+### 4. **Fonction `getDetailAbsence(idEmploye, estAutorise)`**
+**Objectif** : Récupérer le détail complet des absences (autorisées ou non) pour un employé.
+
+**Données à récupérer** :
+- **Période** : `debut` et `fin` (table `abscence`)
+- **Jours pris** : Calculé via `(fin - debut) + 1`
+- **Description** : `description` (table `conge_demande`)
+- **Justification** : `justificatif` (table `abscence`)
+- **Pénalité** : À calculer si `est_autorise = false` (règles métier à définir - on y reviendra plus tard) 
+
+**Tables impliquées** :
+- `abscence`
+- `abscence_conge_suivi`
+- `conge_demande`
+
+**Jointures** :
+- `abscence_conge_suivi` → `abscence` (via `id_abscence`?)
+- `abscence_conge_suivi` → `conge_demande` (via `id_demande`)
+
+---
+
+### 5. **Fonction `getCongeEnAttente(idEmploye)`**
+**Objectif** : Lister toutes les demandes de congés en attente de validation.
+
+**Données à récupérer** :
+- **Période demandée** : `debut` et `fin` (table `abscence`)
+- **Type de congé** : `nom` (table `conge_type`)
+- **Description** : `description` (table `conge_demande`)
+- **Niveau validation actuel** : `niveau_validation`
+
+**Tables impliquées** :
+- `conge_demande`
+- `abscence_conge_suivi`
+- `conge_type`
+- `abscence`
+
+---
+
+### 6. **Fonction `getHistoriqueValidation(idDemande)`**
+**Objectif** : Afficher l'historique des validations pour une demande de congé.
+
+**Données à récupérer** :
+- **Validateur** : Nom et prénom (table `personnes` via `employes`)
+- **Date validation** : `date_validation`
+- **Niveau validation** : `niveau_validation`
+
+**Tables impliquées** :
+- `conge_historique_validation`
+- `employes`
+- `personnes`
+
+---
+
+### 7. **Fonction `getSoldeCongeAnnee(idEmploye, annee)`**
+**Objectif** : Calculer le solde de congés restant pour une année donnée.
+
+**Données à récupérer** :
+- **Congés attribués** : `nombres_abscence_attribue` (table `conge_historique`)
+- **Congés consommés** : Somme des `nombre_conge` (table `abscence_conge_suivi`)
+- **Solde** : Congés attribués - Congés consommés
+
+**Tables impliquées** :
+- `conge_historique`
+- `abscence_conge_suivi`
+
+---
+
+### Observations importantes :
+1. **Liens manquants** : La table `abscence` n'est pas liée directement aux autres tables. Il faudrait probablement :
+   - Ajouter `id_abscence` dans `abscence_conge_suivi`
+   - Ou créer une table de liaison entre `abscence` et `conge_demande`
+
+2. **Champs manquants** :
+   - `debut`/`fin` manquent dans `conge_demande`
+   - `penalite` manque dans `abscence`
+
+3. **Workflow de validation** :
+   - Le champ `niveau_validation` dans `conge_demande` devrait être documenté
+   - Prévoir une table `workflow_validation` pour gérer les étapes
+
+---
+
+**Prochaines étapes** :
+- [ ] Valider la structure des tables
+- [ ] Implémenter les fonctions dans l'ordre de priorité
+- [ ] Créer les vues SQL correspondantes
+- [ ] Tester avec des données réelles
+
+Souhaitez-vous que je détaille une fonction en particulier ou que j'ajuste certaines spécifications ?

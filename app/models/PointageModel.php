@@ -60,17 +60,13 @@ class PointageModel {
         $stmt = $this->db->query($sql);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
-
-    // --------------------------------------------------------
-    // Relevé individuel avec retard, pause et heures sup
-    // --------------------------------------------------------
 public function creerReleverPresenceIndividuelle($idEmploye, $debutPeriode = null, $finPeriode = null)
 {
-    // 1️⃣ Déterminer la période à afficher
-    if (!$debutPeriode) $debutPeriode = date('Y-m-01'); // 1er du mois courant par défaut
-    if (!$finPeriode) $finPeriode = date('Y-m-t');      // dernier jour du mois
+    if (!$debutPeriode) $debutPeriode = date('Y-m-01');
+    if (!$finPeriode) $finPeriode = date('Y-m-t');
+    $aujourdhui = date('Y-m-d');
 
-    // 2️⃣ Récupérer tous les pointages de l'employé dans cette période
+    // --- 1️⃣ Récupération des sessions
     $sql = "SELECT connexion, deconnexion
             FROM pointage
             WHERE id_employe = :id
@@ -84,8 +80,9 @@ public function creerReleverPresenceIndividuelle($idEmploye, $debutPeriode = nul
     ]);
     $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-    // 3️⃣ Récupérer nom/prénom
-    $sqlPers = "SELECT p.nom, p.prenom FROM employes e
+    // --- 2️⃣ Récupération nom/prénom
+    $sqlPers = "SELECT p.nom, p.prenom
+                FROM employes e
                 LEFT JOIN personnes p ON e.id_personne = p.id_personne
                 WHERE e.id_employe = :id";
     $stmtPers = $this->db->prepare($sqlPers);
@@ -94,134 +91,211 @@ public function creerReleverPresenceIndividuelle($idEmploye, $debutPeriode = nul
     $nom = $pers['nom'] ?? '';
     $prenom = $pers['prenom'] ?? '';
 
-    // 4️⃣ Générer la liste de tous les jours de la période
+    // --- 3️⃣ Générer toutes les dates de la période
     $dates = [];
     $current = strtotime($debutPeriode);
     $end = strtotime($finPeriode);
     while ($current <= $end) {
-        $dates[date('Y-m-d', $current)] = [];
+        $dates[date('Y-m-d', $current)] = [
+            'matin' => [],
+            'apres_midi' => []
+        ];
         $current = strtotime('+1 day', $current);
     }
 
-    // 5️⃣ Organiser les sessions par jour
+    // --- 4️⃣ Dispatcher les sessions matin / après-midi
     foreach ($rows as $r) {
         $date = date('Y-m-d', strtotime($r['connexion']));
-        $dates[$date][] = [
+        $heure = intval(date('H', strtotime($r['connexion'])));
+        $session = [
             'arrivee' => date('H:i:s', strtotime($r['connexion'])),
-            'depart' => $r['deconnexion'] ? date('H:i:s', strtotime($r['deconnexion'])) : null
+            'depart'  => $r['deconnexion'] ? date('H:i:s', strtotime($r['deconnexion'])) : null
         ];
+        if ($heure < 12) {
+            $dates[$date]['matin'][] = $session;
+        } else {
+            $dates[$date]['apres_midi'][] = $session;
+        }
     }
 
-    // 6️⃣ Calcul total par jour et cumul global
+    // --- 5️⃣ Calculs par jour
     $totalWorked = $totalRetard = $totalPause = $totalSup = 0;
     $result = [];
 
-    foreach ($dates as $date => $sessions) {
-        if (empty($sessions)) {
-            // absent
-            $result[$date] = [
-                'etat' => 'Absent',
-                'sessions' => [],
-                'total_jour' => '00:00:00',
-                'retard' => '00:00:00',
-                'pause' => '00:00:00',
-                'heures_sup' => '00:00:00'
-            ];
-            continue;
+    foreach ($dates as $date => $sessionsJour) {
+        $etatJour = strtotime($date) > strtotime($aujourdhui) ? 'À venir' : 'Absent';
+        $totalSecDay = $retardDay = $pauseDay = $supDay = 0;
+        $sessionsDetail = [];
+
+        // Récupérer les horaires depuis la table pour ce jour
+        $jourSemaine = date('N', strtotime($date)); // 1 = Lundi ... 7 = Dimanche
+        $sqlHoraire = "SELECT debut_travail, fin_travail, seuil_retard
+                       FROM horaires_employe
+                       WHERE id_employe = :id AND jour_semaine = :jour
+                       ORDER BY debut_travail ASC";
+        $stmtHoraire = $this->db->prepare($sqlHoraire);
+        $stmtHoraire->execute(['id' => $idEmploye, 'jour' => $jourSemaine]);
+        $horaires = $stmtHoraire->fetchAll(PDO::FETCH_ASSOC);
+
+        // Organiser les horaires par période
+        $horairesMatin = [];
+        $horairesApresMidi = [];
+        foreach ($horaires as $h) {
+            $heureDebut = intval(date('H', strtotime($h['debut_travail'])));
+            if ($heureDebut < 12) {
+                $horairesMatin[] = $h;
+            } else {
+                $horairesApresMidi[] = $h;
+            }
         }
 
-        $prevDepart = null;
-        $totalSecDay = $retardDay = $pauseDay = $supDay = 0;
+        $prevDepartJour = null;
 
-        foreach ($sessions as $i => $s) {
-            $arrivee = strtotime($s['arrivee']);
-            $depart = $s['depart'] ? strtotime($s['depart']) : null;
+        foreach (['matin','apres_midi'] as $periode) {
+            $sess = $sessionsJour[$periode] ?? [];
+            $horairesPeriode = ($periode === 'matin') ? $horairesMatin : $horairesApresMidi;
+            $prevDepart = $prevDepartJour;
+            $totalSecPeriode = $retardPeriode = $pausePeriode = $supPeriode = 0;
 
-            // durée travail
-            if ($depart) $totalSecDay += $depart - $arrivee;
+            foreach ($sess as $i => $s) {
+                $arrivee = strtotime($date.' '.$s['arrivee']);
+                $depart  = $s['depart'] ? strtotime($date.' '.$s['depart']) : null;
 
-            // pause entre sessions
-            if ($prevDepart && $arrivee > $prevDepart) $pauseDay += $arrivee - $prevDepart;
-            $prevDepart = $depart;
+                if ($depart) $totalSecPeriode += ($depart - $arrivee);
 
-            // horaires employé
-            $jourSemaine = date('N', $arrivee);
-            $sqlHoraire = "SELECT debut_travail, fin_travail, seuil_retard
-                           FROM horaires_employe
-                           WHERE id_employe = ? AND jour_semaine = ?";
-            $stmtHoraire = $this->db->prepare($sqlHoraire);
-            $stmtHoraire->execute([$idEmploye, $jourSemaine]);
-            $horaires = $stmtHoraire->fetchAll(PDO::FETCH_ASSOC);
+                // Pause entre sessions
+                if ($prevDepart && $arrivee > $prevDepart) {
+                    $pausePeriode += $arrivee - $prevDepart;
+                }
 
-            $rSec = $sSec = 0;
-            foreach ($horaires as $h) {
-                $debut = strtotime($date.' '.$h['debut_travail']);
-                $fin = strtotime($date.' '.$h['fin_travail']);
-                $seuil = strtotime($h['seuil_retard']) - strtotime("00:00:00");
+                $rSec = $sSec = 0;
+                
+                // Calcul du retard et heures supplémentaires
+                foreach ($horairesPeriode as $h) {
+                    $hDebut = strtotime($date.' '.$h['debut_travail']);
+                    $hFin   = strtotime($date.' '.$h['fin_travail']);
+                    $seuilRetard = strtotime($h['seuil_retard']) - strtotime('00:00:00');
 
-                $rSec += max(0, $arrivee - $debut - $seuil);
-                $sSec += $depart ? max(0, $depart - $fin) : 0;
+                    // === RETARD ===
+                    // Retard = arrivée après (début + seuil)
+                    if ($arrivee > ($hDebut + $seuilRetard)) {
+                        $rSec = $arrivee - ($hDebut + $seuilRetard);
+                    }
+
+                    // === HEURES SUPPLÉMENTAIRES ===
+                    // 1. Arrivée plus tôt que l'horaire normal
+                    if ($arrivee < $hDebut) {
+                        $sSec += $hDebut - $arrivee;
+                    }
+                    
+                    // 2. Départ plus tard que l'horaire normal
+                    if ($depart && $depart > $hFin) {
+                        $sSec += $depart - $hFin;
+                    }
+                    
+                    break; // On prend le premier horaire qui correspond
+                }
+
+                $retardPeriode += $rSec;
+                $supPeriode    += $sSec;
+
+                $sess[$i]['retardSec'] = $rSec;
+                $sess[$i]['supSec']    = $sSec;
+                $sess[$i]['pauseSec']  = ($prevDepart && $arrivee > $prevDepart) ? ($arrivee - $prevDepart) : 0;
+
+                $prevDepart = $depart;
             }
 
-            $retardDay += $rSec;
-            $supDay += $sSec;
+            // Calcul de la pause entre matin et après-midi
+            if ($periode === 'matin' && !empty($sess)) {
+                $lastSession = end($sess);
+                $prevDepartJour = $lastSession['depart'] ? strtotime($date.' '.$lastSession['depart']) : null;
+            }
 
-            $sessions[$i]['retardSec'] = $rSec;
-            $sessions[$i]['supSec'] = $sSec;
-            $sessions[$i]['pauseSec'] = $prevDepart ? $arrivee - ($prevDepart - $depart + $arrivee) : 0;
+            if (!empty($sess)) $etatJour = 'Présent';
+
+            $sessionsDetail[$periode] = [
+                'sessions'   => $sess,
+                'total_jour' => gmdate('H:i:s', $totalSecPeriode),
+                'retard'     => gmdate('H:i:s', $retardPeriode),
+                'pause'      => gmdate('H:i:s', $pausePeriode),
+                'heures_sup' => gmdate('H:i:s', $supPeriode)
+            ];
+
+            $totalSecDay += $totalSecPeriode;
+            $retardDay   += $retardPeriode;
+            $pauseDay    += $pausePeriode;
+            $supDay      += $supPeriode;
         }
+
+        // Pause déjeuner entre fin du matin et début de l'après-midi
+        $pauseDejeuner = 0;
+        if (!empty($sessionsJour['matin']) && !empty($sessionsJour['apres_midi'])) {
+            $lastMatin = end($sessionsJour['matin']);
+            $firstApresMidi = $sessionsJour['apres_midi'][0];
+            
+            $finMatin = $lastMatin['depart'] ? strtotime($date.' '.$lastMatin['depart']) : null;
+            $debutApresMidi = strtotime($date.' '.$firstApresMidi['arrivee']);
+            
+            if ($finMatin && $debutApresMidi > $finMatin) {
+                $pauseDejeuner = $debutApresMidi - $finMatin;
+                $pauseDay += $pauseDejeuner;
+                $totalPause += $pauseDejeuner;
+            }
+        }
+
+        // Heures supplémentaires pour travail en dehors des horaires prévus
+        // Si l'employé travaille un jour sans horaire défini, tout est considéré comme heures sup
+        if (empty($horaires)) {
+            $supDay += $totalSecDay;
+        }
+
+        $result[$date] = [
+            'etat' => $etatJour,
+            'matin' => $sessionsDetail['matin'],
+            'apres_midi' => $sessionsDetail['apres_midi'],
+            'pause_dejeuner' => gmdate('H:i:s', $pauseDejeuner)
+        ];
 
         $totalWorked += $totalSecDay;
         $totalRetard += $retardDay;
         $totalPause += $pauseDay;
         $totalSup += $supDay;
-
-        $result[$date] = [
-            'etat' => 'Présent',
-            'sessions' => $sessions,
-            'total_jour' => gmdate('H:i:s', $totalSecDay),
-            'retard' => gmdate('H:i:s', $retardDay),
-            'pause' => gmdate('H:i:s', $pauseDay),
-            'heures_sup' => gmdate('H:i:s', $supDay)
-        ];
     }
 
     return [
-        'id_employe' => $idEmploye,
-        'nom' => $nom,
-        'prenom' => $prenom,
-        'dates' => $result,
+        'id_employe'   => $idEmploye,
+        'nom'          => $nom,
+        'prenom'       => $prenom,
+        'dates'        => $result,
         'total_heures' => gmdate('H:i:s', $totalWorked),
-        'retard' => gmdate('H:i:s', $totalRetard),
-        'pause' => gmdate('H:i:s', $totalPause),
-        'heures_supp' => gmdate('H:i:s', $totalSup),
-        'etat' => $totalWorked > 0 ? 'Présent' : 'Absent'
+        'retard'       => gmdate('H:i:s', $totalRetard),
+        'pause'        => gmdate('H:i:s', $totalPause),
+        'heures_supp'  => gmdate('H:i:s', $totalSup),
+        'etat'         => $totalWorked > 0 ? 'Présent' : 'Absent'
     ];
 }
 
-
-    // --------------------------------------------------------
-    // Relevé groupe
-    // --------------------------------------------------------
-    public function creerReleverPresenceGroupe($idDepartement = null)
-    {
-        if ($idDepartement && $idDepartement !== "all") {
-            $sql = "SELECT id_employe FROM employes WHERE id_departement = ?";
-            $stmt = $this->db->prepare($sql);
-            $stmt->execute([$idDepartement]);
-        } else {
-            $sql = "SELECT id_employe FROM employes";
-            $stmt = $this->db->query($sql);
-        }
-
-        $ids = $stmt->fetchAll(PDO::FETCH_COLUMN);
-        $result = [];
-
-        foreach ($ids as $id) {
-            $result[$id] = $this->creerReleverPresenceIndividuelle($id);
-        }
-
-        return $result;
+   public function creerReleverPresenceGroupe($idDepartement = null, $debutPeriode = null, $finPeriode = null)
+{
+    // 1️⃣ Récupérer tous les IDs des employés
+    if ($idDepartement && $idDepartement !== "all") {
+        $sql = "SELECT id_employe FROM employes WHERE id_departement = ?";
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute([$idDepartement]);
+    } else {
+        $sql = "SELECT id_employe FROM employes";
+        $stmt = $this->db->query($sql);
     }
+
+    $ids = $stmt->fetchAll(PDO::FETCH_COLUMN);
+    $result = [];
+
+    // 2️⃣ Pour chaque employé, récupérer le relevé individuel avec période
+    foreach ($ids as $id) {
+        $result[$id] = $this->creerReleverPresenceIndividuelle($id, $debutPeriode, $finPeriode);
+    }
+
+    return $result;
 }
-?>
+}

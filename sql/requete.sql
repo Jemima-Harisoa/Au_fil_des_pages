@@ -31,7 +31,7 @@ JOIN (SELECT
 ON re.id_employe = em.id_employe
 JOIN personnes per
 ON per.id_personne = em.id_personne;
-
+    
 
 --recuperer les planning_entretiens 
 SELECT pe.*,

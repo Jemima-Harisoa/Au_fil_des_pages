@@ -1,0 +1,19 @@
+#############
+##         ##
+##  fiche  ##   nombre 
+##employes ##   conge
+##         ##
+#############
+abscence
+Autorise        Non-Autorise 
+detail >        detail >
+
+Detail abscence Autorise/Non-Autorise
+Periode (date min - max) # Jour pris # Description # Justification # Penalite
+
+Detail conge
+Demande en attente de Validation 
+
+Detail abscence Autorise/Non-Autorise
+Periode (date min - max) # Jour pris # Description # Justification # Penalite
+

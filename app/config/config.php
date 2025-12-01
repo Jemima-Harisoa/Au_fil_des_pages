@@ -59,6 +59,12 @@ if (Debugger::$showBar && php_sapi_name() !== 'cli') {
 	(new TracyExtensionLoader($app));
 }
 
+// Définir le chemin absolu pour les uploads
+$uploadBasePath =  '/uploads'. $ds;
+$app->set('upload.path', $uploadBasePath);
+$app->set('upload.justificatifs_absence', $uploadBasePath . 'justificatifs_absence/');
+
+
 /* 
  * This is where you will store database credentials, api credentials
  * and other sensitive information. This file will not be tracked by git

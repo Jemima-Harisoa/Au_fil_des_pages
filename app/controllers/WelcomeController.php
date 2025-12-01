@@ -18,6 +18,9 @@ class WelcomeController {
     public function AppelAccueilU() {
         Flight::render('accueilU');
     }
+    public function AppelAccueilE() {
+        Flight::render('accueilE');
+    }
 }
 
 ?>

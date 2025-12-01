@@ -1,0 +1,62 @@
+**TODO - Description détaillée des fonctions pour le suivi des congés :**
+
+---
+
+### 1. **Fonction `getFicheEmploye(idEmploye)`**
+**Objectif** : Récupérer les informations complètes d'un employé pour afficher sa fiche personnelle et professionnelle.
+
+**Données à récupérer** :
+- **Informations personnelles** (table `personnes`) :
+  - Nom, prénom, date de naissance, contact, lien image.
+- **Informations professionnelles** (table `employes`) :
+  - Poste, date d'embauche, salaire de base.
+- **Département** (table `departements`) :
+  - Nom du département.
+- **Congés restants** :
+  - Champ `nombre_conge` (table `employes`).
+
+**Tables impliquées** :
+- `employes`
+- `personnes`
+- `departements`
+
+---
+
+### 2. **Fonction `getNombreAbsence(idEmploye)`**
+**Objectif** : Récupérer le nombre d'absences **autorisées** et **non autorisées** pour un employé.
+
+**Données à récupérer** :
+- **Absences autorisées** :
+  - Compter les enregistrements dans `abscence` où `est_autorise = true`
+- **Absences non autorisées** :
+  - Compter les enregistrements dans `abscence` où `est_autorise = false`
+
+**Tables impliquées** :
+- `abscence`
+- `abscence_conge_suivi` (pour le lien avec l'employé)
+
+**Calcul** :
+- Simple comptage des enregistrements par statut d'autorisation
+- Filtrage par `id_employe` via la table `abscence_conge_suivi`
+
+---
+
+### 3. **Fonction `getNombreConge(idEmploye)`**
+**Objectif** : Obtenir le décompte des congés pris par un employé, **groupés par type**.
+
+**Données à récupérer** :
+- **Type de congé** (table `conge_type`) :
+  - `nom` et `description` du type
+- **Nombre de congés par type** :
+  - Compter les enregistrements dans `abscence_conge_suivi` groupés par `id_type`
+
+**Tables impliquées** :
+- `abscence_conge_suivi`
+- `conge_type`
+- `employes`
+
+**Calcul** :
+- `COUNT(*)` groupé par `id_type` et `id_employe`
+- Jointure avec `conge_type` pour récupérer les noms des types
+
+---

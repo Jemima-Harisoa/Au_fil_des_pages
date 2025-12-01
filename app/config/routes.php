@@ -3,6 +3,7 @@ use app\controllers\WelcomeController;
 use app\controllers\ConnexionController;
 use app\controllers\AnnoncesController;
 use app\controllers\EmployeController;
+use app\controllers\conge\JustificatifController;
 
 
 use app\controllers\TestController;
@@ -16,6 +17,14 @@ use app\controllers\PlanningEntretienController;
 use app\controllers\ApiPlanningEntretienController;
 use app\controllers\PointageController;
 
+use app\controllers\conge\CongeController;
+use app\controllers\conge\AbscenceController;
+use app\controllers\conge\NotificationController;
+use app\controllers\conge\CalendrierController;
+
+use app\controllers\CompetenceController;
+
+use app\controllers\FichePaieController;
 use flight\Engine;
 use flight\net\Router;
 //use Flight;
@@ -40,12 +49,12 @@ $pointageController = new PointageController();
 $router->get('/pointage', [ $pointageController, 'getAllEmployes' ]);
 // fichier routes.php ou bootstrap
 
+// Relève individuelle AVEC période
+Flight::route('GET /presence/individuelle/@idEmploye', [$pointageController, 'releverPresenceIndividuelle']);
 
-// Relève individuelle
-Flight::route('POST /presence/individuelle/@idEmploye', [$pointageController, 'releverPresenceIndividuelle']);
+// Relève groupe AVEC période
+Flight::route('GET /presence/groupe/@dept', [$pointageController, 'releverPresenceGroupe']);
 
-// Relève par groupe
-Flight::route('POST /presence/groupe/@dept', [$pointageController, 'releverPresenceGroupe']);
 $router->get('/employe', [ $ConnexionController, 'AppelLoginE' ]);
 
 $ConnexionController = new ConnexionController();
@@ -182,6 +191,10 @@ Flight::route('GET /messagerie/markAsRead/@id_candidat/@id_annonce', [Messagerie
 Flight::route('GET /messagerie/sse', [MessagerieController::class, 'sseNotifications']);
 Flight::route('GET /messagerie/refreshSession', [MessagerieController::class, 'refreshConversation']);
 
+
+Flight::route('GET /messagerieE/@id_employe/@partenaire_id', [MessagerieController::class, 'showMessagerieE']);
+Flight::route('POST /messagerieE/send', [MessagerieController::class, 'sendMessageE']);
+
 $planning_entretien_controller = new PlanningEntretienController();
 $router->get('/planning-entretien',[$planning_entretien_controller,'showPageEntretien']);
 
@@ -212,6 +225,119 @@ $router->group( "/migration" , function($router) use ($Migration_Controller){
 // Route pour SSE
 Flight::route('GET /messagerie/sse', [MessagerieController::class, 'sseNotifications']);
 
-?>
+
+$fiche_paie_controller = new FichePaieController();
+
+$router->group( "/fiche_paie" , function($router) use ($fiche_paie_controller){
+		// route vers la page de formulaire
+		$router->get("/affichage", [$fiche_paie_controller,'renderFichePaie']);
+		// route vers la liste des fiche de paie d'un candidat
+		$router->get("/liste", [$fiche_paie_controller , 'renderListeFichePaie']); 
+	}
+);
+$Conge_Controller = new CongeController();
+$Calendrier_Controller = new CalendrierController();
+
+// Routes de gestion des congés et absences
+$router->group('/conge', function($router) use ($Conge_Controller, $Calendrier_Controller) {
+    
+    // Route principale - fiche employé complète
+    $router->get('/fiche/@idEmploye', [$Conge_Controller, 'getFicheEmploye']);
+    
+    // Route API pour voir les détails des absences (tous types)
+    $router->get('/fiche/@idEmploye(/@estAutorise)', [$Conge_Controller, 'getDetailAbsences']);
+    $router->get('/fiche/@idEmploye/type/@idType', [$Conge_Controller, 'getDetailConges']);
+    $router->get('/demande', [$Conge_Controller, 'getDemandeConge']);
+    $router->post('/demande', [$Conge_Controller, 'submitDemande']);
+
+    // Routes pour la validation des congés
+    $router->get('/validation', [$Conge_Controller, 'getInterfaceValidation']);
+    $router->post('/validation/@id_demande', [$Conge_Controller, 'postValidation']);
+    $router->get('/estimation-deduction', [$Conge_Controller, 'getEstimationDeduction']);
+    
+    // Route par défaut
+    $router->get('/', [$Conge_Controller, 'getListeEmployes']);
+
+    // Routes pour le calendrier des congés
+    $router->get('/calendrier', [$Calendrier_Controller, 'index']);
+    $router->get('/calendrier/data', [$Calendrier_Controller, 'getData']);
+});
+
+// Routes de gestion des justifications d'absences
+$Abscence_Controller = new AbscenceController();
+$Justificatif_Controller = new JustificatifController();
+$Notification_Controller = new NotificationController();
+
+$router->group('/absence', function($router) use ($Abscence_Controller,$Justificatif_Controller, $Notification_Controller ) {
+    // Afficher les absences à justifier
+    $router->get('/justifier', [$Abscence_Controller, 'getListeAbsencesAJustifier']);
+    
+    // Afficher le formulaire de justification pour une absence spécifique
+    $router->get('/justifier/@idAbsence', [$Abscence_Controller, 'getJustifierAbsence']);
+    
+    // Traiter la soumission du formulaire de justification
+    $router->post('/justifier/submit', [$Abscence_Controller, 'submitJustification']);
+
+    // Liste des abscences
+    $router->get('/liste(/@estAutorise)', [$Abscence_Controller, 'getListeAbsence']);
+
+    $router->get('/', function(){
+        Flight::redirect('/absence/justifications');
+    });
+
+    // Routes pour les justificatifs
+    $router->get('/justificatif/view/@id', [$Justificatif_Controller, 'viewJustificatif']);
+    $router->get('/justificatif/download/@id', [$Justificatif_Controller, 'downloadJustificatif']);
+
+    $router->get('/notifier/@idAbsence', [$Notification_Controller, 'notifierAbsences'] );
+    $router->get('/notifier/tous', [$Notification_Controller, 'notifierAbsencesLot'] );
+});
 
 
+
+$Competence_Controller = new CompetenceController();
+
+// Routes de gestion des compétences
+$router->group('/competences', function($router) use ($Competence_Controller) {
+    
+    // Route principale - liste des compétences avec pagination, filtres et tri
+    $router->get('/liste', [$Competence_Controller, 'getListeCompetences']);
+    
+    // Routes pour les détails d'une compétence spécifique
+    $router->get('/details/@idCompetence', [$Competence_Controller, 'getDetailsCompetence']);
+    
+    // Routes pour l'export des compétences
+    $router->get('/export', [$Competence_Controller, 'exportCompetences']);
+    
+    // Routes pour la recherche et le filtrage
+    $router->get('/recherche', [$Competence_Controller, 'searchCompetences']);
+    $router->get('/filtres', [$Competence_Controller, 'filterCompetences']);
+    
+    // Route pour les statistiques globales
+    $router->get('/statistiques', [$Competence_Controller, 'getStatsGlobales']);
+    
+    // Route par défaut - redirige vers la liste
+    $router->get('/', [$Competence_Controller, 'getListeCompetences']);
+});
+
+// Alternative: routes API pour les appels AJAX
+$router->group('/api/competences', function($router) use ($Competence_Controller) {
+    
+    // API pour la liste des compétences (retour JSON)
+    $router->get('/liste', [$Competence_Controller, 'getListeCompetences']);
+    
+    // API pour les détails d'une compétence
+    $router->get('/details/@idCompetence', [$Competence_Controller, 'getDetailsCompetence']);
+    
+    // API pour l'export
+    $router->get('/export', [$Competence_Controller, 'exportCompetences']);
+    
+    // API pour la recherche (autocomplétion)
+    $router->get('/recherche', [$Competence_Controller, 'searchCompetences']);
+    
+    // API pour le filtrage avancé
+    $router->get('/filtres', [$Competence_Controller, 'filterCompetences']);
+    
+    // API pour les statistiques
+    $router->get('/statistiques', [$Competence_Controller, 'getStatsGlobales']);
+});

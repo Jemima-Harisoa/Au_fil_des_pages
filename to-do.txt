@@ -1,22 +1,114 @@
-Module entretien(automatique)
-Base:
-	-planning entretien:5 min
-	-disponibilite employé: 5 min
-	-jour_ferie: 5min
-	-config_entretien:5min
-Fonction:
-	-assignationEntretien(liste_candidats_selectionnes)15min
-	-configurerDureeEntretien(id_annonce)10min
-	-upateAllEntretien()20min
-	-getAllTempsDisponibles(id_emloye)10min
-	-reporterEntretien(id_entretien,id_employe,nouvelle_date_entretien)30min
-	-rejeterEntretien(id_entretien,id_employe)10min
-	-getEntretiensPresDate(date)10min
-	-checkJourFerie(date_entretien)5min
-	-getDureeEntretien(id_departement)10min
-	-getEntretienPlanifies()15min
+B.Abscences et conge(jemima)	"suivi des soldes de conges/workflow de demande et validation hierarchie
+"	headerA	Front	suivi des conge
+		suivi de conge	Front	"div (recherche)(meme que CV)
+div (aprecu CV):
+-anarana
+-sary
+-postactuel
+(meme que gestion employe)
+-nombre de conge(abscence autorise sans justificatifs)
+-abscence(autorise (avec justificatif lien details ), non autorise ))"
+			Back	"getNombreConge(id_employe, date)
+getNombreAbscence(id_employe , date)"
+			Base	"employe
+conge_historique
+conge"
+			Integration	lien details vers justificatifs(ex : jemima/justificatifs)
+		suivi des demandes de validations	Front	meme que contrat(special jemima)(NB: nombre conge employe update)
+	alertes automatiques pour conges non valides ou abscences repetes	page alerte	Front	tableau de retards , et notification
+		pop up	Front	"message automatique 
+information de retards repetes (quand ... , par defaut 3 jours)
+reception vers l'employer
+"
+			Base	abscences
+			Back	"getAbscenceRepeter(date)
+messagerieAutomatique
+"
+			Integration	apparition du popup au clique du div
+	demande de conge	demande-conge-form	Front	"input datetime debut 
+input datetime fin
+input text(descritption)
+finput file(justificatif)"
+			Back	"upload()
+2 sem apres demande au plus tot ilay date angatahana
+"
+			Base	conge-demande
+			Integration	enregistrement de demande et dossier
+	justification d'abscene	justification-abscence	Front	"input datetime debut 
+input datetime fin
+input text(descritption)
+finput file(justificatif)"
+			Back	upload()
+			Base	abscence
+	integration avec le calendrier de l'entreprise	calendrier	Front	"forme calendrier(table)
+liste au clique"
+			Base	"historique -conge
+employe
+jour ferier
+"
 
-Integration:
-	-
-	-
-	-
+
+Gestion des compétences(jemima)	
+Cartographie des compétences de l’entreprise	
+cartographie_competences	
+Front	
+"Liste des compétences
+
+Barre de recherche
+
+Filtre par département / par niveau
+
+Bouton Ajouter compétence
+
+Popup Modifier compétence
+
+Tableau Compétences → Employés
+
+Indicateur du niveau moyen
+
+Bouton Exporter CSV / PDF"
+Back
+"getCompetenceList() : Retourne toutes les compétences + stats.
+searchCompetences(keyword): Recherche par nom ou domaine.
+filterCompetences(departement, niveau_min) : Filtre pour la cartographie.
+createCompetence(nom, description, domaine): Ajout d’une nouvelle compétence.
+updateCompetence(id_competence, data): Mise à jour d’une compétence existante.
+deleteCompetence(id_competence): Suppression (si nécessaire).
+getCompetenceEmployees(id_competence): Liste des employés possédant cette compétence + niveau.
+exportCompetences(format): CSV ou PDF."
+base
+competences , employe_competences,v_competence_cartographie
+profil_matching	
+Front	
+"Champ sélection employé
+Champ sélection poste
+Affichage compétences requises du poste
+Affichage compétences possédées
+Indicateur de matching (%)
+
+Liste des manques
+Bouton Voir formations recommandées"
+Back	
+"getEmployeeCompetences(id_employe): Retourne compétences + niveaux.
+getPosteCompetences(id_poste): Retourne compétences requises + niveaux minimums.
+calculateMatching(id_employe, id_poste): Retourne % de matching + liste des compétences manquantes.
+getRecommendedTraining(missingCompetences[]): Retourne formations associées."
+base
+postes;competences;competences_postes
+
+suggestion_formations	
+Front	
+"Liste des compétences manquantes
+
+Niveau actuel vs niveau attendu
+
+Liste des formations proposées
+
+Bouton 
+“Ajouter au plan de formation”"
+Back	
+"getMissingCompetences(id_employe, id_poste):Renvoie les compétences où niveau_employé < niveau_min.
+getFormationsByCompetence(id_competence):Renvoie les formations liées.
+assignTrainingToEmployee(id_employe, id_formation):Ajoute une formation au plan."
+base
+formations;employe_formations

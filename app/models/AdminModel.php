@@ -20,7 +20,7 @@ class AdminModel {
     public function getDetailsPersoAdmin($idAdmin)
     {
         $stmt = $this->db->prepare(" 
-        SELECT personnes.id_personne ,personnes.nom ,personnes.prenom ,personnes.date_naissance,personnes.contact ,personnes.lien_image      
+        SELECT employes.id_employe, personnes.id_personne ,personnes.nom ,personnes.prenom ,personnes.date_naissance,personnes.contact ,personnes.lien_image      
             FROM admins 
             JOIN employes 
                 ON admins.id_employe=employes.id_employe 

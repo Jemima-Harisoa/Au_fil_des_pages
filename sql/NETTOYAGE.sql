@@ -8,7 +8,7 @@ BEGIN
    -- Truncate toutes les tables avec remise à zéro des identifiants
     TRUNCATE TABLE 
         historique_validation,
-        disponibilite_employe,
+        disponibilite_entretien,
         employes,
         essais,
         contrats,

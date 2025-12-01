@@ -9,7 +9,6 @@ INSERT INTO departements (nom) VALUES
   ('Comptabilite'),
   ('Stock'),
   ('Vente');
-
 -- Personnes
 INSERT INTO personnes (nom, prenom, date_naissance, contact, lien_image) VALUES
   ('Rakoto', 'Jean', '1985-03-12', '0341234567', 'images/jean.jpg'),
@@ -185,7 +184,7 @@ INSERT INTO reponses_question (id_question, reponse, est_correct) VALUES
 (13, 'Comparer revenus et depenses, calculer marge', TRUE),
 (13, 'Se baser uniquement sur l instinct', FALSE),
 (13, 'Consulter des rumeurs de marche', FALSE),
-(14, 'Offrir un service de qualite et un suivi', TRUE),
+(14, 'Offrir un service de qualite un suivi', TRUE),
 (14, 'Augmenter les prix sans raison', FALSE),
 (14, 'Eviter tout contact apres la vente', FALSE),
 (15, 'Attribuer selon competences et suivre l avancement', TRUE),
@@ -378,3 +377,25 @@ INSERT INTO jour_ferie("date") VALUES
 ('2025-12-25'), -- Noël
 ('2025-02-20'); -- Noël
 
+-----test pointage
+INSERT INTO personnes ( nom, prenom, date_naissance, contact, lien_image) VALUES
+('Rakoto', 'Jean', '1985-03-15', '0341234567', 'images/jean.jpg'),
+( 'Rasoanaivo', 'Claire', '1990-07-22', '0349876543', 'images/claire.jpg');
+INSERT INTO employes ( id_personne, id_contrat, id_departement, poste, date_embauche, nombre_conge, salaire_base) VALUES
+( 1, 1, 1, 'Caissier', '2023-05-01', 20, 1500.5),
+( 2, 2, 2, 'Magasinier', '2024-01-15', 15, 1800.75);
+INSERT INTO connexEmployes (idemploye, mdp) VALUES
+(1, 'azerty123'),
+(2, 'mdpCompta2023');
+INSERT INTO pointage ( id_employe, connexion, deconnexion) VALUES
+(1, '2025-11-17 08:05:00', '2025-11-17 12:00:00'),
+( 1, '2025-11-17 12:45:00', '2025-11-17 17:00:00'),
+( 1, '2025-11-19 13:00:00', '2025-11-19 18:00:00'),
+( 1, '2025-11-20 08:00:00', '2025-11-20 16:30:00');
+INSERT INTO horaires_employe (id_employe, jour_semaine, debut_travail, fin_travail, seuil_retard) VALUES 
+(1, 1, '08:00:00', '12:00:00', '00:05:00'),
+(1, 1, '13:00:00', '17:00:00', '00:05:00');
+
+INSERT INTO pointage ( id_employe, connexion, deconnexion)
+VALUES
+(1, '2025-11-21 08:10:00', '2025-11-21 12:45:00');
