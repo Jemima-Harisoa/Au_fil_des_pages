@@ -68,6 +68,10 @@
             background: #e98f53ff;
             color: white;
         }
+        .btn-pdf {
+            background: #e98f53ff;
+            color: white;
+        }
     .td-style-commun-libelle{
         border-right: 0px !important; text-align: left;
     }
@@ -177,8 +181,8 @@
     <div>
         <p>Mode de paiement: espèce</p>
     </div>    
-    <button class="btn btn-pdf">
-        <i class="fa-solid fa-file-pdf"></i> Export PDF
+    <button class="btn btn-primary">
+        <i class="fa-solid fa-file-pdf"></i> Exporter PDF
     </button>
 </body>
 </html>

@@ -227,6 +227,7 @@ $router->group( "/fiche_paie" , function($router) use ($fiche_paie_controller){
 		$router->get("/affichage", [$fiche_paie_controller,'renderFichePaie']);
 		// route vers la liste des fiche de paie d'un candidat
 		$router->get("/liste", [$fiche_paie_controller , 'renderListeFichePaie']); 
+        $router->get("/exporter", [ExportController::class, 'generatePDF']);
 	}
 );
 $Conge_Controller = new CongeController();

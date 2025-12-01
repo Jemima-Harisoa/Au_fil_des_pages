@@ -46,6 +46,8 @@ class FichePaieController{
             "montant_imposable"=>FichePaieModel::formaterMilier($montantImposable),
             "net_a_payer"=> FichePaieModel::formaterMilier($salaireBrute - FichePaieModel::sommeRetenus($retenus))
         ];
+        // stocker temporairement
+        Flight::set('fiche_data', $data);
         return Flight::render("paie/fiche_paie",["data"=>$data]);
     }
     public function renderListeFichePaie(){

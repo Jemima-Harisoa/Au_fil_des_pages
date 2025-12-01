@@ -28,22 +28,10 @@ class HeureSupplementaireModel extends Query {
      * @return int id inséré
      * @throws Exception
      */
-    public function construct($db){
-        $this->db = $db;
-    }
-
-        /**
-        /**
-     * Enregistre une nouvelle ligne
-     * @param array $parametres
-     * @return int id inséré
-     * @throws Exception
-     */
     public static function save($parametres) {
         try {
             self::handleException($parametres);
             $sql = "INSERT INTO heure_supplementaire 
-                (id_employe, heure_effectue, mois, annee, numero_semaine)
                 (id_employe, heure_effectue, mois, annee, numero_semaine)
                 VALUES (?, ?, ?, ?, ?)
                 RETURNING id";
@@ -153,6 +141,7 @@ class HeureSupplementaireModel extends Query {
     }
     public static function handleException(array $parametres):void {
         if(empty($parametres['id_employe'])){
+                throw new Exception("l'id employe est obligatoire");
                 throw new Exception("l'id employe est obligatoire");
             }
             else if(empty($parametres['heure_effectue'])){
@@ -359,6 +348,7 @@ class HeureSupplementaireModel extends Query {
         if($sommeHeures->getDateTime() == new \DateTime("00:00:00")){
             return 0;
         }
+            }
     }
     public function hasHeureDeNuit($hs){
         if(empty($hs)){
@@ -366,22 +356,18 @@ class HeureSupplementaireModel extends Query {
         }
         $dhDebut = new \DateTime($hs["date_heure_debut"]);
         $dhDebutClone = clone $dhDebut;
-        $dhFin = new \DateTime($hs["date_heure_fin"]);;
+        $dhFin = new \DateTime($hs["date_heure_fin"]);
         $dhTempo = DateModel::ajouterJours($dhDebutClone,1);
         $dhInf = new \DateTime($dhDebut->format("Y-m-d")." 22:00:00");
         $dhSup = new \DateTime($dhTempo->format("Y-m-d")."05:00:00");
-        if($dhDebut< $dhInf){
-            error_log("tokony hankto io".($dhDebut< $dhInf)?"True":"False");
-            if($dhFin> $dhSup || $dhFin<= $dhSup){
-                error_log("energy");
-                return true;
-            }
+        if($dhDebut < $dhInf && $dhFin < $dhInf){
             
+            return false;
         }
-        else {
-            return true;
+        if($dhDebut >= $dhInf && $dhFin >= $dhInf){
+            return false;
         }
-        return false;
+        return true;
     }
     public function getAllByIdEmployeAndSemaineDate(int $idEmploye,string $date){
         $query = "select * 
@@ -415,6 +401,7 @@ class HeureSupplementaireModel extends Query {
         $dmDhFin = new DateModel($dhFin->format("Y-m-d H:i:s"));
 
         $diferenceIntervalleExces = null;
+
         $diferenceIntervalleDeNuit = null;
         $resultats = [
             "exces"=>new \DateTime($dhDebut->format("Y-m-d")."00:00:00"),
@@ -424,6 +411,7 @@ class HeureSupplementaireModel extends Query {
         ];
         if($this->hasHeureDeNuit($hs)){
             if($dhDebut < $dhInf){
+                
                 $differenceIntervalleExces = $dmInf->differenceIntervalle($dmDhDebut)->format("%H:%i:%s");
                  $resultats["exces"] = (new DateModel($resultats["exces"]->format("Y-m-d H:i:s")))->addInterval($differenceIntervalleExces);
                 $resultats["nombre_heure_exces"]++;
@@ -434,7 +422,7 @@ class HeureSupplementaireModel extends Query {
                         {
                             $differenceIntervalleNuit = $dmSup->differenceIntervalle($dmInf)->format("%H:%i:%s");
                             $differenceIntervalleExces = $dmDhFin->differenceIntervalle($dmSup)->format("%H:%i:%s");
-                            $resultats["heure_de_nuit"] = new DateModel($resultats["heure_de_nuit"]->format("Y-m-d H:i:s"))->addInterval($differenceIntervalleNuit);
+                            $resultats["heure_de_nuit"] = (new DateModel($resultats["heure_de_nuit"]->format("Y-m-d H:i:s")))->addInterval($differenceIntervalleNuit);
                             $resultats["exces"] = (new DateModel($resultats["exces"]->format("Y-m-d H:i:s")))->addInterval($differenceIntervalleExces);
                             $resultats["nombre_heure_de_nuit"]++;
                             $resultats["nombre_heure_exces"]++;
@@ -452,7 +440,6 @@ class HeureSupplementaireModel extends Query {
                 if($dhFin <= $dhSup){
                     $differenceIntervalleNuit = $dmDhDebut->differenceIntervalle($dmDhFin)->format("%H:%i:%s");
                     $resultats["heure_de_nuit"] = (new DateModel($resultats["heure_de_nuit"]->format("Y-m-d H:i:s")))->addInterval($differenceIntervalleNuit);
-                    echo"masoso";
                     $resultats["nombre_heure_de_nuit"] ++;
                 }
                 else{
@@ -477,6 +464,43 @@ class HeureSupplementaireModel extends Query {
             return true;
         }
         return false;
+    }
+    
+    public function getTypeMajoration($heureSupplementaire):int {
+        $idEmploye = $heureSupplementaire["id_employe"];
+        $date_heure_debut = new \DateTime($heureSupplementaire["date_heure_debut"]);
+        $dateStr =  $date_heure_debut->format("Y-m-d H:i:s");
+        $moisDateStr = date("m",strtotime($dateStr));
+        $anneeDateStr = date("Y",strtotime($dateStr));
+        $listeHsSemaine = $this->getAllByIdEmployeAndSemaineDate($idEmploye,$dateStr);
+        $dateTempo = new DateModel($listeHsSemaine[0]["heure_effectue"]);
+        $sommeHeures = count($listeHsSemaine) == 1 ? new DateModel($dateTempo->format("H:i:s")): new DateModel("00:00:00");
+        
+        $moisDate = 0;
+        $anneeDate = 0;
+        
+        foreach($listeHsSemaine as $hs){
+            $moisDate = date("m",strtotime($hs["date_heure_debut"]));
+            $anneeDate = date("Y",strtotime($hs["date_heure_debut"]));
+            if($hs["date_heure_debut"] == $dateStr){
+                if($sommeHeures->getDateTime() >= new \DateTime("00:00:00") && $sommeHeures->getDateTime() <= new \DateTime("08:00:00")){
+                    return 1;
+                }
+                else if($sommeHeures->getDateTime() > new \DateTime("08:00:00") && $sommeHeures->getDateTime() <= new \DateTime("20:00:00")){
+                    return 2;
+                }
+                else if($sommeHeures->getDateTime() > new \DateTime("20:00:00")){
+                    return 0;
+                }
+            }
+
+            if($moisDate == $anneeDateStr && $anneeDate == $anneeDateStr){
+                $sommeHeures = DateModel::addInterval($hs["heureEffectue"]);
+            }
+        }
+        if($sommeHeures->getDateTime() == new \DateTime("00:00:00")){
+            return 0;
+        }
     }
     
 }
