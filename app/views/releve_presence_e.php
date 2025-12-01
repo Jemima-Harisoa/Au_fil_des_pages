@@ -28,7 +28,6 @@
 
 <label class="mr-2">Au :</label>
 <input type="date" id="finPeriode" class="form-control mr-2" value="2025-12-20">
-        <input type="date" id="finPeriode" class="form-control mr-2">
         <button type="button" class="btn btn-sm btn-info" onclick="releverPresenceIndAvecPeriode(<?= $allPresence['id_employe'] ?>)">
             Voir le pointage
         </button>
