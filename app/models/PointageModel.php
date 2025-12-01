@@ -60,6 +60,7 @@ class PointageModel {
         $stmt = $this->db->query($sql);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
+
 public function creerReleverPresenceIndividuelle($idEmploye, $debutPeriode = null, $finPeriode = null)
 {
     if (!$debutPeriode) $debutPeriode = date('Y-m-01');
@@ -143,9 +144,10 @@ public function creerReleverPresenceIndividuelle($idEmploye, $debutPeriode = nul
                        WHERE id_employe = :id AND jour_semaine = :jour
                        ORDER BY debut_travail ASC";
         $stmtHoraire = $this->db->prepare($sqlHoraire);
+
         $stmtHoraire->execute(['id' => $idEmploye, 'jour' => $jourSemaine]);
         $horaires = $stmtHoraire->fetchAll(PDO::FETCH_ASSOC);
-
+        echo count($horaires);
         // Organiser les horaires par période
         $horairesMatin = [];
         $horairesApresMidi = [];
@@ -192,11 +194,12 @@ public function creerReleverPresenceIndividuelle($idEmploye, $debutPeriode = nul
                         $hFin   = strtotime($date.' '.$h['fin_travail']);
                         $seuilRetard = strtotime($h['seuil_retard']) - strtotime('00:00:00');
 
+                    
                         // === RETARD CORRIGÉ ===
                         // Ne calculer le retard QUE si l'arrivée est pendant les heures normales
                         // Si arrivée avant le début ou après la fin → pas de retard, juste heures sup
                         if ($arrivee >= $hDebut && $arrivee <= $hFin) {
-                            if ($arrivee > ($hDebut + $seuilRetard)) {
+                            if ($arrivee > ($hDebut + $seuilRetard)) { 
                                 $rSec = $arrivee - ($hDebut + $seuilRetard);
                             }
                         }
@@ -221,7 +224,6 @@ public function creerReleverPresenceIndividuelle($idEmploye, $debutPeriode = nul
                                 $sSec += $depart - $hFin;
                             }
                         }
-                        
                         break;
                     }
                 } else {
@@ -309,7 +311,9 @@ public function creerReleverPresenceIndividuelle($idEmploye, $debutPeriode = nul
         'retard'       => gmdate('H:i:s', $totalRetard),
         'pause'        => gmdate('H:i:s', $totalPause),
         'heures_supp'  => gmdate('H:i:s', $totalSup),
-        'etat'         => $totalWorked > 0 ? 'Présent' : 'Absent'
+        'etat'         => $totalWorked > 0 ? 'Présent' : 'Absent',
+        'debut'        =>$debutPeriode,
+        'fin'          =>$finPeriode
     ];
 }
 

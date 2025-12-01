@@ -8,20 +8,31 @@ INSERT INTO departements (nom) VALUES
   ('Direction'),
   ('Comptabilite'),
   ('Stock'),
-  ('Vente');
+  ('Vente'),
+  ('Ressources Humaines');
 -- Personnes
 INSERT INTO personnes (nom, prenom, date_naissance, contact, lien_image) VALUES
   ('Rakoto', 'Jean', '1985-03-12', '0341234567', 'images/jean.jpg'),
   ('Rasoanaivo', 'Marie', '1990-07-25', '0342345678', 'images/marie.jpg'),
   ('Randriamahenina', 'Paul', '1988-11-02', '0343456789', 'images/paul.jpg'),
   ('Andriantsitoha', 'Lova', '1995-01-15', '0344567890', 'images/lova.jpg'),
-  ('Rakotondrazaka', 'Hery', '1992-05-30', '0345678901', 'images/hery.jpg');
+  ('Rakotondrazaka', 'Hery', '1992-05-30', '0345678901', 'images/hery.jpg'),
+  ('Ramanantsoa',     'Tiana', '1987-09-20', '0346789012', 'images/tiana.jpg');
 
 -- Employes
-INSERT INTO employes (id_personne, id_contrat, id_departement, poste, date_embauche) VALUES
-  (1, NULL, 1, 'Directeur', '2020-01-15'),  
-  (2, NULL, 2, 'Comptable', '2021-06-01');
-
+  -- (1, NULL, 1, 'Directeur', '2020-01-15'),  
+  -- (2, NULL, 2, 'Comptable', '2021-06-01');
+INSERT INTO employes 
+(id_personne, id_contrat, id_departement, poste, date_embauche, nombre_conge, salaire_base) VALUES
+(
+  6,          -- id_personne ajouté plus haut
+  2,          -- id_contrat créé ou existant
+  5,          -- département RH
+  'Responsable RH',
+  '2023-01-15',
+  30,         -- solde congé initial
+  850000      -- salaire de base (exemple)
+);
 -- Admins
 INSERT INTO admins (id_employe, nom, mdp) VALUES
   (1, 'RD', 'mdp1'),
@@ -36,6 +47,29 @@ INSERT INTO type_contrats (nom) VALUES
  ('Interim'),
  ('Alternance'),
  ('Consultant');
+ 
+
+INSERT INTO contrats (id_candidat, id_type_contrat, url_contrat) VALUES
+(null, 1, 'contrats/jean_cdi.pdf'),   -- CDI
+(null, 2, 'contrats/marie_cdd.pdf'),  -- CDD
+(null, 1, 'contrats/paul_cdi.pdf'),   -- CDI
+(null, 1, 'contrats/lova_cdi.pdf'),   -- CDI
+(null, 2, 'contrats/hery_cdd.pdf'),   -- CDD
+(null, 1, 'contrats/tiana_cdi.pdf');  -- CDI RH
+
+
+INSERT INTO employes (
+    id_employe, id_personne, id_contrat, id_departement,
+    poste, date_embauche, nombre_conge, salaire_base
+) VALUES
+(1, 1, 1, 1, 'Directeur Général', '2015-02-01', 30, 1500000),
+(2, 2, 2, 2, 'Comptable Principal', '2018-06-15', 30, 800000),
+(3, 3, 3, 3, 'Responsable Stock', '2020-01-10', 30, 600000),
+(4, 4, 4, 4, 'Commercial', '2021-07-20', 30, 500000),
+(5, 5, 5, 4, 'Caissier', '2022-11-01', 30, 450000),
+(6, 6, 6, 5, 'Responsable RH', '2023-01-15', 30, 850000);
+
+
 
 -- Diplomes
 INSERT INTO diplomes (nom, niveau) VALUES
@@ -387,6 +421,119 @@ INSERT INTO employes ( id_personne, id_contrat, id_departement, poste, date_emba
 INSERT INTO connexEmployes (idemploye, mdp) VALUES
 (1, 'azerty123'),
 (2, 'mdpCompta2023');
+
+--valisoa no nanao a'ito e
+
+
+INSERT INTO employes (
+    id_employe, id_personne, id_contrat, id_departement,
+    poste, date_embauche, nombre_conge, salaire_base
+) VALUES
+(1, 1, 1, 1, 'Directeur Général', '2015-02-01', 30, 1500000),
+(2, 2, 2, 2, 'Comptable Principal', '2018-06-15', 30, 800000),
+(3, 3, 3, 3, 'Responsable Stock', '2020-01-10', 30, 600000),
+(4, 4, 4, 4, 'Commercial', '2021-07-20', 30, 500000),
+(5, 5, 5, 4, 'Caissier', '2022-11-01', 30, 450000),
+(6, 6, 6, 5, 'Responsable RH', '2023-01-15', 30, 850000);
+ 
+INSERT INTO connexEmployes (idEmploye, mdp) VALUES
+(1, 'Jean123!'),
+(2, 'Marie123!'),
+(3, 'Paul123!'),
+(4, 'Lova123!'),
+(5, 'Hery123!'),
+(6, 'Tiana123!');
+
+-- Employé 1 : Jean Rakoto
+INSERT INTO horaires_employe (id_employe, jour_semaine, debut_travail, fin_travail)
+VALUES
+-- Lundi
+(1, 1, '08:00:00', '12:00:00'),
+(1, 1, '13:00:00', '17:00:00'),
+-- Mardi
+(1, 2, '08:15:00', '12:15:00'),
+(1, 2, '13:15:00', '17:15:00'),
+-- Mercredi
+(1, 3, '08:00:00', '12:00:00'),
+(1, 3, '13:00:00', '17:00:00'),
+-- Jeudi
+(1, 4, '08:30:00', '12:30:00'),
+(1, 4, '13:30:00', '17:30:00'),
+-- Vendredi
+(1, 5, '08:00:00', '12:00:00'),
+(1, 5, '13:00:00', '17:00:00');
+
+-- Employé 2 : Marie Rasoanaivo
+INSERT INTO horaires_employe (id_employe, jour_semaine, debut_travail, fin_travail)
+VALUES
+(2, 1, '08:30:00', '12:30:00'),
+(2, 1, '13:30:00', '17:30:00'),
+(2, 2, '08:00:00', '12:00:00'),
+(2, 2, '13:00:00', '17:00:00'),
+(2, 3, '08:15:00', '12:15:00'),
+(2, 3, '13:15:00', '17:15:00'),
+(2, 4, '08:00:00', '12:00:00'),
+(2, 4, '13:00:00', '17:00:00'),
+(2, 5, '08:45:00', '12:45:00'),
+(2, 5, '13:45:00', '17:45:00');
+
+-- Employé 3 : Paul Randriamahenina
+INSERT INTO horaires_employe (id_employe, jour_semaine, debut_travail, fin_travail)
+VALUES
+(3, 1, '08:00:00', '12:00:00'),
+(3, 1, '13:00:00', '17:00:00'),
+(3, 2, '08:10:00', '12:10:00'),
+(3, 2, '13:10:00', '17:10:00'),
+(3, 3, '08:00:00', '12:00:00'),
+(3, 3, '13:00:00', '17:00:00'),
+(3, 4, '08:20:00', '12:20:00'),
+(3, 4, '13:20:00', '17:20:00'),
+(3, 5, '08:00:00', '12:00:00'),
+(3, 5, '13:00:00', '17:00:00');
+
+-- Employé 4 : Lova Andriantsitoha
+INSERT INTO horaires_employe (id_employe, jour_semaine, debut_travail, fin_travail)
+VALUES
+(4, 1, '08:00:00', '12:00:00'),
+(4, 1, '13:00:00', '17:00:00'),
+(4, 2, '08:30:00', '12:30:00'),
+(4, 2, '13:30:00', '17:30:00'),
+(4, 3, '08:00:00', '12:00:00'),
+(4, 3, '13:00:00', '17:00:00'),
+(4, 4, '08:15:00', '12:15:00'),
+(4, 4, '13:15:00', '17:15:00'),
+(4, 5, '08:00:00', '12:00:00'),
+(4, 5, '13:00:00', '17:00:00');
+
+-- Employé 5 : Hery Rakotondrazaka
+INSERT INTO horaires_employe (id_employe, jour_semaine, debut_travail, fin_travail)
+VALUES
+(5, 1, '08:00:00', '12:00:00'),
+(5, 1, '13:00:00', '17:00:00'),
+(5, 2, '08:00:00', '12:00:00'),
+(5, 2, '13:00:00', '17:00:00'),
+(5, 3, '08:30:00', '12:30:00'),
+(5, 3, '13:30:00', '17:30:00'),
+(5, 4, '08:00:00', '12:00:00'),
+(5, 4, '13:00:00', '17:00:00'),
+(5, 5, '08:10:00', '12:10:00'),
+(5, 5, '13:10:00', '17:10:00');
+
+-- Employé 6 : Tiana Ramanantsoa (RH)
+INSERT INTO horaires_employe (id_employe, jour_semaine, debut_travail, fin_travail)
+VALUES
+(6, 1, '08:00:00', '12:00:00'),
+(6, 1, '13:00:00', '17:00:00'),
+(6, 2, '08:00:00', '12:00:00'),
+(6, 2, '13:00:00', '17:00:00'),
+(6, 3, '08:15:00', '12:15:00'),
+(6, 3, '13:15:00', '17:15:00'),
+(6, 4, '08:00:00', '12:00:00'),
+(6, 4, '13:00:00', '17:00:00'),
+(6, 5, '08:00:00', '12:00:00'),
+(6, 5, '13:00:00', '17:00:00');
+
+
 INSERT INTO pointage ( id_employe, connexion, deconnexion) VALUES
 (1, '2025-11-17 08:05:00', '2025-11-17 12:00:00'),
 ( 1, '2025-11-17 12:45:00', '2025-11-17 17:00:00'),

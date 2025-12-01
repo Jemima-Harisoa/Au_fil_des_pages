@@ -19,15 +19,47 @@ FROM v_employes_essais
 
 create or replace view v_heure_supp as(
 	select 
-		id ,
-		id_employe,
-		date_heure_debut,
-		heure_effectue,
-		date_heure_debut+heure_effectue as date_heure_fin,
-		mois,
-		annee,
-		numero_semaine
+		id_pointage,
+		p.id_employe,
+		connexion as date_heure_debut,
+		duree_session as heure_effectue,
+		deconnexion as date_heure_fin,
+		extract(month from connexion) mois,
+		extract(year from connexion)annee,
+		to_char(connexion, 'IW')numero_semaine
 	from 
-		heure_supplementaire
-	
-)
+		pointage p
+	join
+	(
+		select 
+			id_employe, 
+			jour_semaine,
+			min(debut_travail) as debut_travail_inf,
+			max(fin_travail) as fin_travail_sup
+		from 
+			horaires_employe 
+		group by 
+		id_employe,jour_semaine
+	)he
+		
+	on
+		he.id_employe = p.id_employe
+	where 
+		(
+			he.jour_semaine = extract(day from p.connexion)
+			and (
+					(
+						connexion::time <  he.debut_travail_inf
+							and 
+						deconnexion::time <=he.debut_travail_inf
+					)
+				or
+					(
+						connexion::time >=  he.fin_travail_sup
+							and 
+						deconnexion::time > he.fin_travail_sup
+					)
+			) 
+		)
+		or extract(day from connexion) >=6 
+);

@@ -235,72 +235,7 @@ class HeureSupplementaireModel extends Query {
         }
         return $results;
     }
-    public function calculerHeureDeNuitsAvecouSansExces($hs){
-        $resultats = array();
-        $dhDebut = new \DateTime($hs["date_heure_debut"]);
-        $dhDebutClone = clone $dhDebut;
-        $dhFin = new \DateTime($hs["date_heure_fin"]);
-        $dhTempo = DateModel::ajouterJours($dhDebutClone,1);
-        $dhInf = new \DateTime($dhDebut->format("Y-m-d")." 22:00:00");
-        $dhSup = new \DateTime($dhTempo->format("Y-m-d")."05:00:00");
-        $dmInf = new DateModel($dhInf->format("Y-m-d H:i:s"));
-        $dmSup = new DateModel($dhSup->format("Y-m-d H:i:s"));
-        $dmDhDebut = new DateModel($dhDebut->format("Y-m-d H:i:s"));
-        $dmDhFin = new DateModel($dhFin->format("Y-m-d H:i:s"));
 
-        $diferenceIntervalleExces = null;
-        $diferenceIntervalleDeNuit = null;
-        $resultats = [
-            "exces"=>new \DateTime($dhDebut->format("Y-m-d")."00:00:00"),
-            "heure_de_nuit"=>new \DateTime($dhDebut->format("Y-m-d")."00:00:00"),
-            "nombre_heure_de_nuit"=> 0,
-            "nombre_heure_exces"=>0
-        ];
-        if($this->hasHeureDeNuit($hs)){
-            if($dhDebut < $dhInf){
-                
-                $differenceIntervalleExces = $dmInf->differenceIntervalle($dmDhDebut)->format("%H:%i:%s");
-                 $resultats["exces"] = (new DateModel($resultats["exces"]->format("Y-m-d H:i:s")))->addInterval($differenceIntervalleExces);
-                $resultats["nombre_heure_exces"]++;
-                if($dhFin > $dhInf){
-                    if($dhFin  > $dhInf)
-                    {
-                        if($dhFin > $dhSup)
-                        {
-                            $differenceIntervalleNuit = $dmSup->differenceIntervalle($dmInf)->format("%H:%i:%s");
-                            $differenceIntervalleExces = $dmDhFin->differenceIntervalle($dmSup)->format("%H:%i:%s");
-                            $resultats["heure_de_nuit"] = (new DateModel($resultats["heure_de_nuit"]->format("Y-m-d H:i:s")))->addInterval($differenceIntervalleNuit);
-                            $resultats["exces"] = (new DateModel($resultats["exces"]->format("Y-m-d H:i:s")))->addInterval($differenceIntervalleExces);
-                            $resultats["nombre_heure_de_nuit"]++;
-                            $resultats["nombre_heure_exces"]++;
-                        }
-                        else
-                        {
-                            $differenceIntervalleNuit = $dmDhFin->differenceIntervalle($dmInf)->format("%H:%i:%s");
-                            $resultats["heure_de_nuit"] = (new DateModel($resultats["heure_de_nuit"]->format("Y-m-d H:i:s")))->addInterval($differenceIntervalleNuit);
-                            $resultats["nombre_heure_de_nuit"]++;
-                        }
-                    }
-                }
-            }
-            else{
-                if($dhFin <= $dhSup){
-                    $differenceIntervalleNuit = $dmDhDebut->differenceIntervalle($dmDhFin)->format("%H:%i:%s");
-                    $resultats["heure_de_nuit"] = (new DateModel($resultats["heure_de_nuit"]->format("Y-m-d H:i:s")))->addInterval($differenceIntervalleNuit);
-                    $resultats["nombre_heure_de_nuit"] ++;
-                }
-                else{
-                    $differenceIntervalleNuit = $dmDhDebut->differenceIntervalle($dmSup)->format("%H:%i:%s");
-                    $differenceIntervalleExces =  $dmSup->differenceIntervalle($dmDhFin)->format("%H:%i:%s");
-                    $resultats["heure_de_nuit"] = (new DateModel($resultats["heure_de_nuit"]->format("Y-m-d H:i:s")))->addInterval($differenceIntervalleNuit);
-                    $resultats["exces"] = $resultats["exces"]->addInterval($differenceIntervalleExces);
-                    $resultats["nombre_heure_de_nuit"]++;
-                    $resultats["nombre_heure_exces"]++;
-                }
-            }
-        }        
-        return $resultats;
-    }
     public function estWeekEnd($hs){
         if(empty($hs)){
             throw new \Exception("heure supplementaire non fournie pour la verification de week-end");
@@ -374,19 +309,45 @@ class HeureSupplementaireModel extends Query {
                 from 
                     heure_supplementaire where numero_semaine=:numero_semaine and id_employe=:id_employe";
         $results = array();
-        $i = 0;
-        try{
-            if(empty($idEmploye)||empty($date)){
-                throw new \Exception("idEmploye ou date non fournie pour la liste des heures sup");
+        $liste = $this->getAllByIdEmployeAndSemaineDate($id_employe,$date->format("Y-m-d H:i:s"));
+        foreach($liste as $element){
+            if($element["date_heure_debut"] < $date){
+                array_push($results,$element);
             }
-            $results = parent::query($query ,[date('W',strtotime($date)),$idEmploye]);
-            
-        }
-        catch(\Exception $e){
-            throw new \Exception("erreur".$e->getMessage());
         }
         return $results;
     }
+    public function getTauxHeureSupp($hs){
+        $date = new \DateTime($hs["date_heure_debut"]);
+        $id_employe = (int) $hs["id_employe"];
+        $employe = Flight::Employe()->findById($id_employe);
+        if(empty($employe)){
+            throw new \Exception("employe non trouvé pour le calcul du taux heure supp");
+        }
+        $heuresSuppsAnterieures = $this->getHeureSuppMemeSemaineAnterieure($id_employe,$date);
+        $totalHeureSupp= $this->sommeHeureSuppEnSeconde($heuresSuppsAnterieures);
+        $premieresSecondes = 8 * 3600;
+        $limitesSecondes = 20 * 3600;
+        $taux_seconde = (Flight::FichePaie())->getTaux("secondes",$employe["salaire_base"]);
+        $secondes_effectuees = DateModel::convertirEnSecondes((new DateModel($hs["heure_effectue"]))->format("H:i:s"));
+        echo "taux_secondes".$taux_seconde; 
+        if($secondes_effectuees <= $premieresSecondes && $secondes_effectuees >=0 ){
+            return $taux_seconde * 1.3*$secondes_effectuees;   
+        }
+        else if($secondes_effectuees >= $premieresSecondes && $totalHeureSupp <= $limitesSecondes){
+            $secondes_maj_30 = $premieresSecondes;
+            $secondes_maj_50 = $secondes_effectuees - $premieresSecondes;
+            return $taux_seconde * 1.3*$secondes_maj_30 + $taux_seconde * 1.5*$secondes_maj_50 ;
+        }
+        return 0;
+    }
+    public function sommeHeureSuppEnSeconde($listeHeuresSupp){
+        $result = 0;
+        foreach($listeHeuresSupp as $hs){
+            $dmHeureSupp = new DateModel($hs["heure_effectue"]);
+            $result +=   DateModel::convertirEnSecondes($dmHeureSupp->format("H:i:s"));
+        }
+        return $result;
     public function calculerHeureDeNuitsAvecouSansExces($hs){
         $resultats = array();
         $dhDebut = new \DateTime($hs["date_heure_debut"]);
@@ -454,17 +415,17 @@ class HeureSupplementaireModel extends Query {
         }        
         return $resultats;
     }
-    public function estWeekEnd($hs){
-        if(empty($hs)){
-            throw new \Exception("heure supplementaire non fournie pour la verification de week-end");
+    public function getHeureSupplementaireAnneeMois($id_employe,$annee,$mois){
+        if(empty($annee) || empty($mois)){
+            throw new \Exception("annee ou mois non fournie pour la liste des heures sup");
         }
-        $dhDebut = new \DateTime($hs["date_heure_debut"]);
-        $jour = DateModel::getJourChiffreDate($dhDebut);
-        if($jour ==7){
-            return true;
-        }
-        return false;
-    }
+        $results = array();
+        $dateDebutPeriode = new \DateTime($annee."-".$mois."-01 00:00:00");
+        $dateFinPeriode = new \DateTime($annee."-".$mois."-t 23:59:59");
+        $results = (new PointageModel($this->db))->creerReleverPresenceIndividuelle($id_employe,$dateDebutPeriode,$dateFinPeriode);
+        // for($results as $result){
+        //     $reuslts =         
+     }
     
     public function getTypeMajoration($heureSupplementaire):int {
         $idEmploye = $heureSupplementaire["id_employe"];

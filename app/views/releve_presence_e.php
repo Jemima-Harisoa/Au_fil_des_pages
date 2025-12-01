@@ -60,6 +60,8 @@ function afficherPointageDetail(data) {
     const totalRetard = data.retard || "00:00:00";
     const totalPause = data.pause || "00:00:00";
     const totalSup = data.heures_supp || "00:00:00";
+    const debut = data.debut || "";
+    const fin = data.fin || "";
 
     let html = `
         <h4>Pointage détaillé de ${nom} ${prenom}</h4>
@@ -88,58 +90,110 @@ function afficherPointageDetail(data) {
 
     for (const date in data.dates) {
         const dayData = data.dates[date];
+
+        // Totaux journaliers en secondes
+        let dayTotal = 0, dayRetard = 0, dayPause = 0, daySup = 0;
+
         ['matin','apres_midi'].forEach(periode => {
-            const sessData = dayData[periode];
-            const sessions = (sessData && sessData.sessions) || [];
-            const isAbsent = (!sessions || sessions.length === 0);
-            const etat = isAbsent ? (dayData.etat === 'À venir' ? 'À venir' : 'Absent') : 'Présent';
+            const periodeLabel = periode === 'matin' ? 'Matin' : 'Après-midi';
+            const sessData = dayData[periode] || {};
+            const sessions = sessData.sessions || [];
+            let etat = 'Absent';
 
-            let totalSec = 0, retardSec = 0, pauseSec = 0, supSec = 0;
-            sessions.forEach(s => {
-                totalSec += s.depart && s.arrivee ? (new Date(`1970-01-01T${s.depart}Z`).getTime()/1000 - new Date(`1970-01-01T${s.arrivee}Z`).getTime()/1000) : 0;
-                retardSec += s.retardSec || 0;
-                supSec += s.supSec || 0;
-                pauseSec += s.pauseSec || 0;
-            });
+            if (sessions.length === 0 && sessData.present === true) {
+                // Présent demi-journée mais pas de session enregistrée
+                etat = `Présent ${periodeLabel}`;
+                html += `<tr>
+                    <td>${date}</td>
+                    <td>${periodeLabel}</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>00:00:00</td>
+                    <td>00:00:00</td>
+                    <td>00:00:00</td>
+                    <td>00:00:00</td>
+                    <td>${etat}</td>
+                </tr>`;
+            } else if (sessions.length === 0) {
+                // Absent
+                html += `<tr>
+                    <td>${date}</td>
+                    <td>${periodeLabel}</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>00:00:00</td>
+                    <td>00:00:00</td>
+                    <td>00:00:00</td>
+                    <td>00:00:00</td>
+                    <td>${etat}</td>
+                </tr>`;
+            } else {
+                // Présent avec session(s)
+                etat = 'Présent';
+                sessions.forEach((s, index) => {
+                    // Convert session time
+                    const a = s.arrivee ? new Date(`1970-01-01T${s.arrivee}Z`).getTime() / 1000 : 0;
+                    const d = s.depart ? new Date(`1970-01-01T${s.depart}Z`).getTime() / 1000 : 0;
+                    let duration = d - a;
 
-            const totalStr = isAbsent ? '00:00:00' : new Date(totalSec*1000).toISOString().substr(11,8);
-            const retardStr = isAbsent ? '00:00:00' : new Date(retardSec*1000).toISOString().substr(11,8);
-            const pauseStr = isAbsent ? '00:00:00' : new Date(pauseSec*1000).toISOString().substr(11,8);
-            const supStr = isAbsent ? '00:00:00' : new Date(supSec*1000).toISOString().substr(11,8);
+                    // Cas heure de nuit (si départ < arrivée, ajouter 24h)
+                    if (duration < 0) duration += 24*3600;
 
-            const arriveeStr = sessions[0]?.arrivee || '-';
-            const departStr = sessions[0]?.depart || '-';
+                    // Totaux journaliers
+                    dayTotal += duration;
+                    dayRetard += s.retardSec || 0;
+                    dayPause += s.pauseSec || 0;
+                    daySup += s.supSec || 0;
 
-            html += `<tr>
-                <td>${date}</td>
-                <td>${periode === 'matin' ? 'Matin' : 'Après-midi'}</td>
-                <td>${arriveeStr}</td>
-                <td>${departStr}</td>
-                <td>${totalStr}</td>
-                <td>${retardStr}</td>
-                <td>${pauseStr}</td>
-                <td>${supStr}</td>
-                <td>${etat}</td>
-            </tr>`;
+                    // Convert durations to HH:MM:SS
+                    const durStr = new Date(duration * 1000).toISOString().substr(11,8);
+
+                    html += `<tr>
+                        <td>${index===0 ? date : ''}</td>
+                        <td>${index===0 ? periodeLabel : ''}</td>
+                        <td>Arrivée ${index+1}: <strong>${s.arrivee}</strong></td>
+                        <td>Départ ${index+1}: <strong>${s.depart ?? '-'}</strong></td>
+                        <td>${durStr}</td>
+                        <td>${new Date((s.retardSec||0)*1000).toISOString().substr(11,8)}</td>
+                        <td>${new Date((s.pauseSec||0)*1000).toISOString().substr(11,8)}</td>
+                        <td>${new Date((s.supSec||0)*1000).toISOString().substr(11,8)}</td>
+                        <td>${etat}</td>
+                    </tr>`;
+                });
+            }
         });
+
+        // Ligne TOTAL JOURNÉE
+        html += `<tr style="background:#dff0d8; font-weight:bold;">
+                    <td colspan="2">TOTAL JOURNÉE</td>
+                    <td colspan="2"></td>
+                    <td>${new Date(dayTotal * 1000).toISOString().substr(11,8)}</td>
+                    <td>${new Date(dayRetard * 1000).toISOString().substr(11,8)}</td>
+                    <td>${new Date(dayPause * 1000).toISOString().substr(11,8)}</td>
+                    <td>${new Date(daySup * 1000).toISOString().substr(11,8)}</td>
+                    <td></td>
+                 </tr>`;
     }
 
     html += `</tbody></table></div>`;
     modalBody.innerHTML = html;
     $('#pointageModal').modal('show');
 
-    // Export Excel
     const btnExport = document.getElementById('btnExportExcel');
     btnExport.style.display = "inline-block";
-    btnExport.onclick = () => exporterReleveCSV(data.id_employe);
+    btnExport.onclick = () => exporterReleveCSV(data.id_employe,debut,fin);
 }
 
-function exporterReleveCSV(idEmploye) {
+function exporterReleveCSV(idEmploye, debutPeriode = null, finPeriode = null) {
     if (!idEmploye || idEmploye === 0) {
         alert("Impossible d'exporter : ID de l'employé manquant !");
         return;
     }
-    window.open(`/presence/export/csv/${idEmploye}`, '_blank');
+    let url = `/presence/export/csv/${idEmploye}`;
+    if (debutPeriode && finPeriode) {
+        url += `?debut=${debutPeriode}&fin=${finPeriode}`;
+    }
+    window.open(url, '_blank');
 }
 
 function releverPresenceIndAvecPeriode(idEmploye) {
