@@ -91,3 +91,5 @@ Voici le TODO détaillé pour les fonctions de détail des congés et absences b
 - [ ] Tester avec des données réelles
 
 Souhaitez-vous que je détaille une fonction en particulier ou que j'ajuste certaines spécifications ?
+
+   id_employe,   nom,   prenom,    departement,   poste,   validateur_nom,   validateur_prenom

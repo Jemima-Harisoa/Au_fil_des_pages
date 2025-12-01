@@ -355,7 +355,7 @@ INSERT INTO conge_demande (description, id_employe, date_demande, date_debut, da
 ('Conge maladie', 2, '2024-02-20', '2024-03-10', '2024-03-12', 2, 2),
 ('Conge exceptionnel mariage', 3, '2024-02-25', '2024-05-01', '2024-05-03', 1, 3),
 ('Conge sans solde projet perso', 4, '2024-03-01', '2024-06-01', '2024-06-07', 2, 4),
-('Conge maternite', 5, '2024-03-05', '2024-07-01', '2024-09-28', 2, 5);
+('Conge maternite', 2, '2024-03-05', '2024-07-01', '2024-09-28', 2, 5);
 
 -- Historique Validation Congé
 INSERT INTO conge_historique_validation (id_demande, id_employe, date_validation) VALUES
@@ -363,7 +363,7 @@ INSERT INTO conge_historique_validation (id_demande, id_employe, date_validation
 (2, 2, '2024-02-21'),
 (3, 1, '2024-02-26'),
 (4, 1, '2024-03-02'),
-(5, 1, '2024-03-06');
+(3, 1, '2024-03-06');
 
 -- Historique Congé
 INSERT INTO conge_historique (nombres_abscence_attribue, id_employe) VALUES
@@ -371,7 +371,7 @@ INSERT INTO conge_historique (nombres_abscence_attribue, id_employe) VALUES
 (25, 2),
 (25, 3),
 (22, 4),
-(20, 5);
+(20, 1);
 
 -- Solde Congé
 INSERT INTO conge_solde (id_employe, id_type_conge, solde, annee) VALUES
@@ -502,8 +502,8 @@ INSERT INTO employe_competences (id, id_employe, id_competence, niveau, id_sourc
 (6, 3, 3, 4, 2, '2024-03-06 10:30:00', TRUE, 1, '2024-03-07 08:30:00'),
 (7, 4, 4, 2, 4, '2024-03-08 16:00:00', FALSE, NULL, NULL),
 (8, 4, 5, 3, 1, '2024-03-09 09:30:00', TRUE, 4, '2024-03-10 11:00:00'),
-(9, 5, 6, 5, 5, '2024-03-10 08:45:00', TRUE, 1, '2024-03-11 09:00:00'),
-(10,5, 2, 2, 3, '2024-03-12 13:20:00', FALSE, NULL, NULL);
+(9, 1, 6, 5, 5, '2024-03-10 08:45:00', TRUE, 1, '2024-03-11 09:00:00'),
+(10,2, 2, 2, 3, '2024-03-12 13:20:00', FALSE, NULL, NULL);
 
 
 -- -----------------------------
@@ -518,8 +518,8 @@ INSERT INTO employe_competences_historique (id_liaison, id_employe, id_competenc
 (6, 3, 3, 4, 2, '2024-03-06 10:30:00', TRUE, 1, 'INSERT', '2024-03-06 10:31:00', 1),
 (7, 4, 4, 2, 4, '2024-03-08 16:00:00', FALSE, NULL, 'INSERT', '2024-03-08 16:01:00', 4),
 (8, 4, 5, 3, 1, '2024-03-09 09:30:00', TRUE, 4, 'INSERT', '2024-03-09 09:31:00', 4),
-(9, 5, 6, 5, 5, '2024-03-10 08:45:00', TRUE, 1, 'INSERT', '2024-03-10 08:46:00', 1),
-(10,5, 2, 2, 3, '2024-03-12 13:20:00', FALSE, NULL, 'INSERT', '2024-03-12 13:21:00', 5);
+(9, 1, 6, 5, 5, '2024-03-10 08:45:00', TRUE, 1, 'INSERT', '2024-03-10 08:46:00', 1),
+(10,2, 2, 2, 3, '2024-03-12 13:20:00', FALSE, NULL, 'INSERT', '2024-03-12 13:21:00', 5);
 
 
 -- Simuler quelques mises à jour (UPDATE) enregistrées dans l'historique
@@ -535,7 +535,7 @@ INSERT INTO employe_competences_historique (id_liaison, id_employe, id_competenc
 INSERT INTO competences_historique (id_competence, nom, description, domaine, id_type_competence, operation_type, operation_timestamp, id_employe_operation) VALUES
 (1, 'PHP', 'Langage de programmation côté serveur (modifié: ajout frameworks)', 'Développement', 1, 'UPDATE', '2024-03-01 12:00:00', 1),
 (2, 'JavaScript', 'Langage de script côté client (ajout tests unitaires)', 'Développement', 1, 'UPDATE', '2024-03-05 15:30:00', 2),
-(8, NULL, 'Compétence temporaire supprimée lors d\'un nettoyage', NULL, NULL, 'DELETE', '2024-03-15 08:00:00', 1);
+(8, NULL, 'Compétence temporaire supprimée lors d un nettoyage', NULL, NULL, 'DELETE', '2024-03-15 08:00:00', 1);
 
 
 -- -----------------------------

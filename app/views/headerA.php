@@ -207,15 +207,34 @@
                 <div id="collapseGC" class="collapse" aria-labelledby="headingGC" data-parent="#accordionSidebar">
                     <div class="bg-white py-2 collapse-inner rounded">
                         <h6 class="collapse-header">Gestion des compétences:</h6>
-                        <?php if(isset($_SESSION['admin'])): ?>
-                        <a class="collapse-item" href="/competences">Liste des competences</a>
+                        
+                        <?php 
+                        // Récupérer l'ID de l'employé connecté
+                        $id_employe_connecte = $_SESSION['infoAdmin']['id_employe'] ?? ($_SESSION['employe']['id_employe'] ?? '');
+                        ?>
+                        
+                        <?php if(isset($_SESSION['infoAdmin'])): ?>
+                        <a class="collapse-item" href="/competences/liste">Liste des competences</a>
                         <?php endif; ?>
-                        <a class="collapse-item" href="/competences/details/<?= $_SESSION['infoAdmin']['id_employe'] ?? ($_SESSION['employe']['id_employe'] ?? '') ?>">
-                            Voir Mes competences
+                        
+                        <!-- Auto-évaluation des compétences -->
+                        <a class="collapse-item" href="/employees/<?= $id_employe_connecte ?>/competences/form">
+                            <i class="fas fa-user-edit fa-fw mr-2"></i>Auto-évaluation
                         </a>
-                        <?php if(isset($_SESSION['admin'])): ?>
-                        <a class="collapse-item" href="/competences/statistiques">statistiques des competences</a>
-                        <a class="collapse-item" href="/competences/cartographie">Cartographie</a>
+                        
+                        <!-- Liste des compétences auto-évaluées -->
+                        <a class="collapse-item" href="/employees/<?= $id_employe_connecte ?>/competences/list">
+                            <i class="fas fa-list-alt fa-fw mr-2"></i>Mes compétences
+                        </a>
+                        
+                        <!-- Pour admin: voir les compétences de tous les employés -->
+                        <?php if(isset($_SESSION['infoAdmin'])): ?>
+                        <a class="collapse-item" href="/competences/statistiques">
+                            <i class="fas fa-chart-bar fa-fw mr-2"></i>Statistiques
+                        </a>
+                        <a class="collapse-item" href="/competences/cartographie">
+                            <i class="fas fa-map fa-fw mr-2"></i>Cartographie
+                        </a>
                         <?php endif; ?>
                     </div>
                 </div>
