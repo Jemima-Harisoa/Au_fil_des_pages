@@ -9,7 +9,7 @@
     <meta name="description" content="">
     <meta name="author" content="">
 
-    <title><?=  $_SESSION['departement']['nom'] ?? 'Inconnu'?></title>
+    <title><?= $_SESSION['departement']['nom'] ?? 'Inconnu'?></title>
 
     <!-- Custom fonts for this template-->
     <link href="/vendor/fontawesome-free/css/all.min.css" rel="stylesheet" type="text/css">
@@ -23,7 +23,6 @@
     <!-- Custom styles for this page -->
     <link href="/vendor/datatables/dataTables.bootstrap4.min.css" rel="stylesheet">
 
-
     <!-- Styles supplémentaires -->
     <?= $extra_css ?? '' ?>
     <style>
@@ -33,48 +32,49 @@
             padding: 0.5rem 1rem !important;
         }
 
-#messageCenterSearch {
-    background: white;
-    border: 1px solid rgba(255,255,255,0.3);
-    color: #333;
-    font-size: 0.85rem;
-    padding: 0.25rem 0.5rem;
-    border-radius: 4px;
-}
+        #messageCenterSearch {
+            background: white;
+            border: 1px solid rgba(255,255,255,0.3);
+            color: #333;
+            font-size: 0.85rem;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+        }
 
-#messageCenterSearch::placeholder {
-    color: #999;
-}
+        #messageCenterSearch::placeholder {
+            color: #999;
+        }
 
-#messageCenterSearch:focus {
-    outline: none;
-    background: white;
-    border-color: white;
-    box-shadow: 0 0 0 0.2rem rgba(255,255,255,0.25);
-}
+        #messageCenterSearch:focus {
+            outline: none;
+            background: white;
+            border-color: white;
+            box-shadow: 0 0 0 0.2rem rgba(255,255,255,0.25);
+        }
 
-.message-item {
-    transition: all 0.2s;
-}
+        .message-item {
+            transition: all 0.2s;
+        }
 
-.message-item:hover {
-    background-color: #f8f9fc;
-}
+        .message-item:hover {
+            background-color: #f8f9fc;
+        }
 
         .no-results-message {
             font-style: italic;
             color: #6c757d !important;
         }
 
-.dropdown-menu {
-    max-height: 400px;
-    overflow-y: auto;
-}
+        .dropdown-menu {
+            max-height: 400px;
+            overflow-y: auto;
+        }
 
-#employeSearchResults .dropdown-item,
-#conversationsEmployeContainer .dropdown-item {
-    cursor: pointer;
-}
+        #employeSearchResults .dropdown-item,
+        #conversationsEmployeContainer .dropdown-item {
+            cursor: pointer;
+        }
+
         .hidden-by-search {
             display: none !important;
             visibility: hidden !important;
@@ -100,7 +100,7 @@
                 <div class="sidebar-brand-icon rotate-n-15">
                     <i class="fas fa-laugh-wink"></i>
                 </div>
-                <div class="sidebar-brand-text mx-3"><?=  $_SESSION['departement']['nom'] ?? 'Inconnu' ?></div>
+                <div class="sidebar-brand-text mx-3"><?= $_SESSION['departement']['nom'] ?? 'Inconnu' ?></div>
             </a>
 
             <!-- Divider -->
@@ -113,14 +113,14 @@
                     <span>Accueil</span></a>
             </li>
             <li class="nav-item">
-    <a class="nav-link" href="/relevePresenceE/<?= $_SESSION['employe']['id_employe'] ?? 'Inconnu'?>">
-        <i class="fas fa-fw fa-tachometer-alt"></i>
-        <span>Relevé de présence actuel</span>
-    </a>
-</li>
+                <a class="nav-link" href="/relevePresenceE/<?= $_SESSION['employe']['id_employe'] ?? ($_SESSION['infoAdmin']['id_employe'] ?? 'Inconnu')?>">
+                    <i class="fas fa-fw fa-tachometer-alt"></i>
+                    <span>Relevé de présence actuel</span>
+                </a>
+            </li>
 
-            <!-- Divider -->
-        
+            <!-- Annonces -->
+            <li class="nav-item">
                 <a class="nav-link" href="#" data-toggle="collapse" data-target="#collapsePages" aria-expanded="true"
                     aria-controls="collapsePages">
                     <i class="fas fa-fw fa-folder"></i>
@@ -136,29 +136,33 @@
                 </div>
             </li>
 
-            <!-- Nav Item - Pages Collapse Menu -->
+            <!-- Nav Item - Tests -->
             <li class="nav-item">
-                <a class="nav-link" href="/allTests"  aria-expanded="true"
+                <a class="nav-link" href="/allTests" aria-expanded="true"
                     aria-controls="collapsePages">
                      <i class="fas fa-fw fa-pen"></i>
                     <span>Tests</span>
                 </a>
             </li>
+            
+            <!-- Nav Item - Pointage -->
             <li class="nav-item">
                 <a class="nav-link" href="/pointage">
-                <i class="fas fa-clock"></i> <!-- Icône horloge -->
+                <i class="fas fa-clock"></i>
                     <span>Pointage</span></a>
             </li>
 
-            <!-- Nav Item - Dashboard -->
+            <!-- Nav Item - Liste CV (Uniquement pour l'admin) -->
+            <?php if(isset($_SESSION['admin'])): ?>
             <li class="nav-item">
                 <a class="nav-link" href="/listeCV">
-                <i class="fas fa-file-alt"></i> <!-- Icône document -->
+                <i class="fas fa-file-alt"></i>
                     <span>Liste CV</span></a>
             </li>
+            <?php endif; ?>
 
-    
-            <!-- Parite pour la migration -->
+            <!-- Partie RH / Migration (Uniquement pour l'admin) -->
+            <?php if(isset($_SESSION['admin'])): ?>
             <li class="nav-item">
                 <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseRH" aria-expanded="false" aria-controls="collapseRH">
                     <i class="fas fa-fw fa-briefcase"></i>
@@ -167,37 +171,54 @@
                 <div id="collapseRH" class="collapse" aria-labelledby="headingRH" data-parent="#accordionSidebar">
                     <div class="bg-white py-2 collapse-inner rounded">
                         <h6 class="collapse-header">Gestion RH:</h6>
-                        
-                        <!-- Candidats -->
                         <a class="collapse-item" href="/migration/candidats">Candidats retenus</a>
-                        
-                        <!-- Contrats -->
                         <a class="collapse-item" href="/migration/contrats">Liste des contrats</a>
                         <a class="collapse-item" href="/migration/contrat/create">Créer un contrat</a>
-                        
-                        <!-- Action -->
-                        <!-- <a class="collapse-item" href="/migration/contrat/edit">Éditer un contrat</a> -->
+                    </div>
+                </div>
+            </li>
+            <?php endif; ?>
+            
+            <!-- Nav Item - Gestion competence -->
+            <li class="nav-item">
+                <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseGC" 
+                aria-expanded="false" aria-controls="collapseGC">
+                    <i class="fas fa-fw fa-briefcase"></i>
+                    <span>Gestion competence</span>
+                </a>
+                <div id="collapseGC" class="collapse" aria-labelledby="headingGC" data-parent="#accordionSidebar">
+                    <div class="bg-white py-2 collapse-inner rounded">
+                        <h6 class="collapse-header">Gestion des compétences:</h6>
+                        <?php if(isset($_SESSION['admin'])): ?>
+                        <a class="collapse-item" href="/competences">Liste des competences</a>
+                        <?php endif; ?>
+                        <a class="collapse-item" href="/competences/details/<?= $_SESSION['infoAdmin']['id_employe'] ?? ($_SESSION['employe']['id_employe'] ?? '') ?>">
+                            Voir Mes competences
+                        </a>
+                        <?php if(isset($_SESSION['admin'])): ?>
+                        <a class="collapse-item" href="/competences/statistiques">statistiques des competences</a>
+                        <a class="collapse-item" href="/competences/cartographie">Cartographie</a>
+                        <?php endif; ?>
                     </div>
                 </div>
             </li>
 
-            <!-- Nav Item - Congés -->
-            <li class="nav-item active">
-                <a class="nav-link" href="/conge">
+            <!-- Nav Item - Congés et Absences -->
+            <li class="nav-item">
+                <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseConges" 
+                aria-expanded="false" aria-controls="collapseConges">
                     <i class="fas fa-fw fa-calendar-alt"></i>
-                    <span>Suivi Congés</span></a>
+                    <span>Congés et Absences</span>
+                </a>
+                <div id="collapseConges" class="collapse" aria-labelledby="headingConges" data-parent="#accordionSidebar">
+                    <div class="bg-white py-2 collapse-inner rounded">
+                        <h6 class="collapse-header">Gestion des congés et absences:</h6>
+                        <a class="collapse-item" href="/conge">Suivi Congés</a>
+                        <a class="collapse-item" href="/absence/liste">Suivi absences</a>
+                        <a class="collapse-item" href="/conge/demande">Demande de congé</a>
+                    </div>
+                </div>
             </li>
-            <li class="nav-item active">
-                <a class="nav-link" href="/absence/liste">
-                    <i class="fas fa-fw fa-calendar-alt"></i>
-                    <span>Suivi absences</span></a>
-            </li>
-            <li class="nav-item active">
-                <a class="nav-link" href="/conge/demande">
-                    <i class="fas fa-fw fa-calendar-alt"></i>
-                    <span>Demande de congé</span></a>
-            </li>
-
 
             <!-- Divider -->
             <hr class="sidebar-divider d-none d-md-block">
@@ -224,7 +245,6 @@
                         <i class="fa fa-bars"></i>
                     </button>
 
-
                     <!-- Topbar Navbar -->
                     <ul class="navbar-nav ml-auto">
 
@@ -242,10 +262,11 @@
                                data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                                 <i class="fas fa-envelope fa-fw"></i>
                                 <!-- Counter - Messages -->
-                                    <?php if(isset($_SESSION['nbNonLus']) && $_SESSION['nbNonLus'] > 0): ?>
-                                        <span id="unreadBadge" class="badge badge-danger badge-counter"><?= $_SESSION['nbNonLus'] ?></span>
-                                    <?php endif; ?>
-
+                                <?php 
+                                $nbNonLus = $_SESSION['nbNonLus'] ?? 0;
+                                if($nbNonLus > 0): ?>
+                                    <span id="unreadBadge" class="badge badge-danger badge-counter"><?= $nbNonLus ?></span>
+                                <?php endif; ?>
                             </a>
                             <!-- Dropdown - Messages -->    
                             <div class="dropdown-list dropdown-menu dropdown-menu-right shadow animated--grow-in"
@@ -274,29 +295,46 @@
                             </div>
                         </li>
 
-
                         <!-- Nav Item - User Information -->
                         <li class="nav-item dropdown no-arrow">
                             <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button"
                                 data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                <span class="mr-2 d-none d-lg-inline text-gray-600 small"><?= $_SESSION['infoAdmin']['nom'] ?? 'Inconnu'?> <br> <?= $_SESSION['infoAdmin']['prenom'] ?? 'Inconnu' ?></span>
+                                <span class="mr-2 d-none d-lg-inline text-gray-600 small">
+                                    <?php 
+                                    if(isset($_SESSION['infoAdmin'])) {
+                                        echo htmlspecialchars($_SESSION['infoAdmin']['nom'] ?? 'Inconnu') . ' ' . 
+                                             htmlspecialchars($_SESSION['infoAdmin']['prenom'] ?? 'Inconnu');
+                                    } elseif(isset($_SESSION['employe'])) {
+                                        echo htmlspecialchars($_SESSION['employe']['nom'] ?? 'Inconnu') . ' ' . 
+                                             htmlspecialchars($_SESSION['employe']['prenom'] ?? 'Inconnu');
+                                    } else {
+                                        echo 'Inconnu';
+                                    }
+                                    ?>
+                                </span>
                                 <img class="img-profile rounded-circle"
-
                                     src="https://cdn-icons-png.flaticon.com/512/3135/3135715.png">
-
                             </a>
                             <!-- Dropdown - User Information -->
                             <div class="dropdown-menu dropdown-menu-right shadow animated--grow-in"
                                 aria-labelledby="userDropdown">
-<form method="post" action="/deconnexionE" style="display:inline;">
-    <input type="hidden" name="Nom" value="<?= htmlspecialchars($_SESSION['employe']['prenom'] ?? 'Inconnu')  ?>">
-    <input type="hidden" name="mdp" value="<?= htmlspecialchars($_SESSION['employe']['mdp_login'] ?? 'Inconnu') ?>">
-    <button type="submit" class="dropdown-item">
-        <i class="fas fa-sign-out-alt fa-sm fa-fw mr-2 text-gray-400"></i>
-        Logout
-    </button>
-</form>
-
+                                <?php if(isset($_SESSION['employe'])): ?>
+                                <form method="post" action="/deconnexionE" style="display:inline;">
+                                    <input type="hidden" name="Nom" value="<?= htmlspecialchars($_SESSION['employe']['prenom'] ?? 'Inconnu') ?>">
+                                    <input type="hidden" name="mdp" value="<?= htmlspecialchars($_SESSION['employe']['mdp_login'] ?? 'Inconnu') ?>">
+                                    <button type="submit" class="dropdown-item">
+                                        <i class="fas fa-sign-out-alt fa-sm fa-fw mr-2 text-gray-400"></i>
+                                        Logout
+                                    </button>
+                                </form>
+                                <?php else: ?>
+                                <form method="post" action="/deconnexion" style="display:inline;">
+                                    <button type="submit" class="dropdown-item">
+                                        <i class="fas fa-sign-out-alt fa-sm fa-fw mr-2 text-gray-400"></i>
+                                        Logout
+                                    </button>
+                                </form>
+                                <?php endif; ?>
                             </div>
                         </li>
 
@@ -306,4 +344,3 @@
 
                 <div class="container-fluid">
                     <!-- Votre contenu ici -->
-                
