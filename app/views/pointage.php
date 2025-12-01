@@ -14,11 +14,13 @@
                 </option>
             <?php endforeach; ?>
         </select>
+        
+<label class="mr-2">Du :</label>
+<input type="date" id="debutPeriode" class="form-control mr-2" value="2025-11-11">
 
-        <label class="mr-2">Du :</label>
-        <input type="date" id="debutPeriode" class="form-control mr-2">
-        <label class="mr-2">Au :</label>
-        <input type="date" id="finPeriode" class="form-control mr-2">
+<label class="mr-2">Au :</label>
+<input type="date" id="finPeriode" class="form-control mr-2" value="2025-12-20">
+
 
         <button type="button" class="btn btn-sm btn-success" onclick="releverPresenceGroupeAvecPeriode()">
             Relève présence groupe

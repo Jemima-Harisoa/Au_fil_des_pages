@@ -21,10 +21,13 @@
 </div>
 
 <div class="card-body">
+
     <div class="form-inline mb-3">
-        <label class="mr-2">Du :</label>
-        <input type="date" id="debutPeriode" class="form-control mr-2">
-        <label class="mr-2">Au :</label>
+<label class="mr-2">Du :</label>
+<input type="date" id="debutPeriode" class="form-control mr-2" value="2025-11-11">
+
+<label class="mr-2">Au :</label>
+<input type="date" id="finPeriode" class="form-control mr-2" value="2025-12-20">
         <input type="date" id="finPeriode" class="form-control mr-2">
         <button type="button" class="btn btn-sm btn-info" onclick="releverPresenceIndAvecPeriode(<?= $allPresence['id_employe'] ?>)">
             Voir le pointage
