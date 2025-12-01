@@ -50,7 +50,6 @@
 </div>
 
 <script>
-
 function afficherPointageDetail(data) {
     const modalBody = document.getElementById('pointageModalBody');
     modalBody.innerHTML = '';
@@ -63,6 +62,7 @@ function afficherPointageDetail(data) {
     const totalSup = data.heures_supp || "00:00:00";
     const debut = data.debut || "";
     const fin = data.fin || "";
+
     let html = `
         <h4>Pointage détaillé de ${nom} ${prenom}</h4>
         <p>Total heures : <strong>${totalHeures}</strong></p>
@@ -89,22 +89,23 @@ function afficherPointageDetail(data) {
                     <tbody>`;
 
     for (const date in data.dates) {
-
-        // === Total par journée ===
-        let dayTotal = 0, dayRetard = 0, dayPause = 0, daySup = 0;
-
         const dayData = data.dates[date];
 
+        // Totaux journaliers en secondes
+        let dayTotal = 0, dayRetard = 0, dayPause = 0, daySup = 0;
+
         ['matin','apres_midi'].forEach(periode => {
-            const sessData = dayData[periode];
-            const sessions = (sessData && sessData.sessions) || [];
-            const isAbsent = sessions.length === 0;
-            const etat = isAbsent ? dayData.etat : 'Présent';
+            const periodeLabel = periode === 'matin' ? 'Matin' : 'Après-midi';
+            const sessData = dayData[periode] || {};
+            const sessions = sessData.sessions || [];
+            let etat = 'Absent';
 
-            if (sessions.length === 0) {
+            if (sessions.length === 0 && sessData.present === true) {
+                // Présent demi-journée mais pas de session enregistrée
+                etat = `Présent ${periodeLabel}`;
                 html += `<tr>
                     <td>${date}</td>
-                    <td>${periode === 'matin' ? 'Matin' : 'Après-midi'}</td>
+                    <td>${periodeLabel}</td>
                     <td>-</td>
                     <td>-</td>
                     <td>00:00:00</td>
@@ -113,51 +114,65 @@ function afficherPointageDetail(data) {
                     <td>00:00:00</td>
                     <td>${etat}</td>
                 </tr>`;
-                return;
+            } else if (sessions.length === 0) {
+                // Absent
+                html += `<tr>
+                    <td>${date}</td>
+                    <td>${periodeLabel}</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>00:00:00</td>
+                    <td>00:00:00</td>
+                    <td>00:00:00</td>
+                    <td>00:00:00</td>
+                    <td>${etat}</td>
+                </tr>`;
+            } else {
+                // Présent avec session(s)
+                etat = 'Présent';
+                sessions.forEach((s, index) => {
+                    // Convert session time
+                    const a = s.arrivee ? new Date(`1970-01-01T${s.arrivee}Z`).getTime() / 1000 : 0;
+                    const d = s.depart ? new Date(`1970-01-01T${s.depart}Z`).getTime() / 1000 : 0;
+                    let duration = d - a;
+
+                    // Cas heure de nuit (si départ < arrivée, ajouter 24h)
+                    if (duration < 0) duration += 24*3600;
+
+                    // Totaux journaliers
+                    dayTotal += duration;
+                    dayRetard += s.retardSec || 0;
+                    dayPause += s.pauseSec || 0;
+                    daySup += s.supSec || 0;
+
+                    // Convert durations to HH:MM:SS
+                    const durStr = new Date(duration * 1000).toISOString().substr(11,8);
+
+                    html += `<tr>
+                        <td>${index===0 ? date : ''}</td>
+                        <td>${index===0 ? periodeLabel : ''}</td>
+                        <td>Arrivée ${index+1}: <strong>${s.arrivee}</strong></td>
+                        <td>Départ ${index+1}: <strong>${s.depart ?? '-'}</strong></td>
+                        <td>${durStr}</td>
+                        <td>${new Date((s.retardSec||0)*1000).toISOString().substr(11,8)}</td>
+                        <td>${new Date((s.pauseSec||0)*1000).toISOString().substr(11,8)}</td>
+                        <td>${new Date((s.supSec||0)*1000).toISOString().substr(11,8)}</td>
+                        <td>${etat}</td>
+                    </tr>`;
+                });
             }
-
-            sessions.forEach((s, index) => {
-
-                // Convert session time
-                const a = s.arrivee ? new Date(`1970-01-01T${s.arrivee}Z`).getTime() / 1000 : 0;
-                const d = s.depart ? new Date(`1970-01-01T${s.depart}Z`).getTime() / 1000 : 0;
-                const duration = d - a;
-
-                // Add to daily totals
-                dayTotal += duration;
-                dayRetard += s.retardSec || 0;
-                dayPause += s.pauseSec || 0;
-                daySup += s.supSec || 0;
-
-                // Convert durations to HH:MM:SS
-                const durStr = new Date(duration * 1000).toISOString().substr(11,8);
-
-                html += `<tr>
-                    <td>${date}</td>
-                    <td>${periode === 'matin' ? 'Matin' : 'Après-midi'}</td>
-                    <td>Arrivée ${index + 1}: <strong>${s.arrivee}</strong></td>
-                    <td>Départ ${index + 1}: <strong>${s.depart ?? '-'}</strong></td>
-                    <td>${durStr}</td>
-                    <td>${new Date((s.retardSec||0)*1000).toISOString().substr(11,8)}</td>
-                    <td>${new Date((s.pauseSec||0)*1000).toISOString().substr(11,8)}</td>
-                    <td>${new Date((s.supSec||0)*1000).toISOString().substr(11,8)}</td>
-                    <td>${etat}</td>
-                </tr>`;
-            });
         });
 
-        // === Ajouter la ligne TOTAL JOURNÉE ===
-        html += `
-            <tr style="background:#dff0d8; font-weight:bold;">
-                <td colspan="2">TOTAL JOURNÉE</td>
-                <td colspan="2"></td>
-                <td>${new Date(dayTotal * 1000).toISOString().substr(11,8)}</td>
-                <td>${new Date(dayRetard * 1000).toISOString().substr(11,8)}</td>
-                <td>${new Date(dayPause * 1000).toISOString().substr(11,8)}</td>
-                <td>${new Date(daySup * 1000).toISOString().substr(11,8)}</td>
-                <td></td>
-            </tr>
-        `;
+        // Ligne TOTAL JOURNÉE
+        html += `<tr style="background:#dff0d8; font-weight:bold;">
+                    <td colspan="2">TOTAL JOURNÉE</td>
+                    <td colspan="2"></td>
+                    <td>${new Date(dayTotal * 1000).toISOString().substr(11,8)}</td>
+                    <td>${new Date(dayRetard * 1000).toISOString().substr(11,8)}</td>
+                    <td>${new Date(dayPause * 1000).toISOString().substr(11,8)}</td>
+                    <td>${new Date(daySup * 1000).toISOString().substr(11,8)}</td>
+                    <td></td>
+                 </tr>`;
     }
 
     html += `</tbody></table></div>`;
