@@ -211,7 +211,7 @@ INSERT INTO candidats (id_personne, poste, cv_url) VALUES
 (14, 'RH Manager', '/cv/sophie.pdf');
 
 -- CORRECTION: historique_mobilite utilise id_candidat, pas id_employe
-INSERT INTO historique_mobilite (id_candidat, id_evenement, id_profil, id_departement, date_evenement, support) VALUES
+INSERT INTO historique_mobilite (id_employe, id_evenement, id_profil, id_departement, date_evenement, support) VALUES
 (1, 1, NULL, 2, '2024-03-01', 'Embauche initiale'),
 (1, 3, 1, 2, '2025-06-15', 'Promotion Senior'),
 (2, 1, NULL, 1, '2023-06-15', 'Embauche RH');
