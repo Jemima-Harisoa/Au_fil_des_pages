@@ -730,6 +730,10 @@ ALTER TABLE historique_mobilite
 ADD CONSTRAINT fk_historique_mobilite_employe 
 FOREIGN KEY (id_employe) REFERENCES employes(id_employe);
 
+ALTER TABLE contrats 
+ADD COLUMN IF NOT EXISTS date_debut DATE,
+ADD COLUMN IF NOT EXISTS date_fin   DATE;
+
 -- =========================
 -- Misc duplicates handled
 -- =========================

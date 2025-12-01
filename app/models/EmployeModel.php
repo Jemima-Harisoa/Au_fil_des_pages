@@ -106,38 +106,71 @@ class EmployeModel
         $this->date_embauche = $date;
     }
 
+// 
+public static function contratEnAlerte(int $id_employe): bool{
+    $db = Flight::db();
+    $sql = "
+        SELECT EXISTS (
+            SELECT 1 
+            FROM contrats c
+            JOIN candidats ca ON c.id_candidat = ca.id_candidat
+            JOIN employes e   ON ca.id_personne = e.id_personne
+            JOIN type_contrats tc ON c.id_type_contrat = tc.id_type_contrat
+            WHERE e.id_employe = :id_employe
+              AND c.date_fin IS NOT NULL
+              AND tc.nom != 'CDI'
+              AND c.date_fin <= CURRENT_DATE + INTERVAL '30 days'
+        )
+    ";
+    $stmt = $db->prepare($sql);
+    $stmt->execute([':id_employe' => $id_employe]);
+    return $stmt->fetchColumn(); // Directement true ou false
+}
+// 
+
+
     public static function getEmployerHistoriqueMouvement($idEmploye)
     {
         $db = Flight::db();
         $sql = "
-            SELECT
-                hm.date_evenement                                          AS \"dateEvenement\",
-                COALESCE(ev.nom_evenement, 'Événement inconnu')            AS \"typeEvenement\",
-                COALESCE(p.titre, 'Non précisé')                           AS \"posteCible\",
-                COALESCE(d.nom, 'Non précisé')                             AS \"departementCible\",
-                hm.support                                                 AS \"support\",
-                
-                CASE 
-                    WHEN ev.nom_evenement = 'Embauche'      THEN 'Embauche'
-                    WHEN ev.nom_evenement = 'Promotion'     THEN 'Promotion → ' || COALESCE(p.titre, 'nouveau poste')
-                    WHEN ev.nom_evenement = 'Mutation'      THEN 'Mobilité → ' || COALESCE(d.nom, 'nouveau département')
-                    WHEN ev.nom_evenement = 'Démission'     THEN 'Démission'
-                    WHEN ev.nom_evenement = 'Licenciement'  THEN 'Fin de contrat'
-                    WHEN ev.nom_evenement = 'Fin de CDD'    THEN 'Fin de CDD'
-                    ELSE COALESCE(ev.nom_evenement, 'Événement')
-                END                                                        AS \"libelleComplet\"
+    SELECT
+        hm.date_evenement                                          AS \"dateEvenement\",
+        COALESCE(ev.nom_evenement, 'Événement inconnu')            AS \"typeEvenement\",
+        hm.support                                                 AS \"support\",
+        
+        COALESCE(
+            p.titre,
+            CASE 
+                WHEN ev.nom_evenement = 'Embauche' THEN 'Embauche initiale'
+                WHEN ev.nom_evenement = 'Promotion' THEN 'Nouveau poste'
+                ELSE 'Poste non précisé'
+            END
+        )                                                          AS \"posteCible\",
+        
+        COALESCE(d.nom, 'Non précisé')                             AS \"departementCible\",
+        
+        CASE 
+            WHEN ev.nom_evenement = 'Embauche'      
+                THEN 'Embauche en tant que ' || COALESCE(p.titre, 'collaborateur')
+            WHEN ev.nom_evenement = 'Promotion'     
+                THEN 'Promotion → ' || COALESCE(p.titre, 'nouveau poste')
+            WHEN ev.nom_evenement = 'Mutation'      
+                THEN 'Mobilité → ' || COALESCE(d.nom, 'nouveau département') 
+                     || CASE WHEN p.titre IS NOT NULL THEN ' ('||p.titre||')' ELSE '' END
+            WHEN ev.nom_evenement = 'Démission'     THEN 'Démission'
+            WHEN ev.nom_evenement = 'Licenciement'  THEN 'Licenciement'
+            WHEN ev.nom_evenement = 'Fin de CDD'    THEN 'Fin de contrat CDD'
+            ELSE COALESCE(ev.nom_evenement, 'Événement')
+        END                                                        AS \"libelleComplet\"
 
-            FROM historique_mobilite hm
-            LEFT JOIN evenements ev        ON hm.id_evenement = ev.id_evenement
-            LEFT JOIN profils p            ON hm.id_profil = p.id_profil
-            LEFT JOIN departements d       ON hm.id_departement = d.id_departement
-            JOIN employes e                ON hm.id_employe = e.id_employe
-            JOIN personnes per             ON e.id_personne = per.id_personne
-
-            WHERE hm.id_employe = :idEmploye        
-
-            ORDER BY hm.date_evenement DESC
-        ";
+    FROM historique_mobilite hm
+    LEFT JOIN evenements ev        ON hm.id_evenement = ev.id_evenement
+    LEFT JOIN profils p            ON hm.id_profil = p.id_profil
+    LEFT JOIN departements d       ON hm.id_departement = d.id_departement
+    JOIN employes e                ON hm.id_employe = e.id_employe
+    WHERE hm.id_employe = :idEmploye
+    ORDER BY hm.date_evenement DESC
+";
         $stmt = $db->prepare($sql);
         $stmt->execute(['idEmploye' => $idEmploye]);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);

@@ -1,4 +1,6 @@
 <?php
+
+use app\models\EmployeModel;
 // Récupération des données passées par le contrôleur
 $data = $data ?? [];
 $historiqueMouvement = $historiqueMouvement ?? [];
@@ -17,6 +19,9 @@ $age_annees = $dateNaissance ? $dateNaissance->diff($aujourd)->y : '—';
 $dateEmbauche = $data['date_embauche'] ? new DateTime($data['date_embauche']) : null;
 $anciennete_annees = $dateEmbauche ? $dateEmbauche->diff($aujourd)->y : '—';
 $anciennete_jours = $dateEmbauche ? $dateEmbauche->diff($aujourd)->days : '—';
+
+// ALERTE FIN DE CONTRAT (30 jours)
+$enAlerteContrat = !empty($data['id_employe']) && EmployeModel::contratEnAlerte((int)$data['id_employe']);
 ?>
 
 <!DOCTYPE html>
@@ -26,22 +31,65 @@ $anciennete_jours = $dateEmbauche ? $dateEmbauche->diff($aujourd)->days : '—';
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Fiche Employé - <?= htmlspecialchars($data['nom_personne'] ?? '') . ' ' . htmlspecialchars($data['prenom'] ?? '') ?></title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         body { font-family: 'Inter', sans-serif; }
+        .pulse-alert { animation: pulse 2s infinite; }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.7; } }
     </style>
 </head>
 <body class="bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 min-h-screen py-10 px-4">
 <div class="max-w-7xl mx-auto">
 
+    <!-- ALERTE FIN DE CONTRAT - TRÈS VISIBLE -->
+    <?php if ($enAlerteContrat): ?>
+        <div class="bg-red-50 border-l-8 border-red-600 rounded-r-2xl p-8 mb-8 shadow-2xl pulse-alert">
+            <div class="flex flex-col md:flex-row items-center justify-between gap-6">
+                <div class="flex items-center gap-6">
+                    <div class="text-red-600">
+                        <i class="fas fa-exclamation-triangle text-6xl"></i>
+                    </div>
+                    <div>
+                        <h2 class="text-3xl font-bold text-red-800 mb-2">
+                            ALERTE : FIN DE CONTRAT PROCHE
+                        </h2>
+                        <p class="text-xl text-red-700 font-medium">
+                            Le contrat de cet employé expire dans moins de 30 jours ou est déjà expiré.
+                        </p>
+                        <p class="text-red-600 mt-2">
+                            Action urgente requise !
+                        </p>
+                    </div>
+                </div>
+                <div class="flex flex-col gap-3">
+                    <a href="renouveler_contrat.php?id=<?= $data['id_employe'] ?>"
+                       class="bg-red-600 hover:bg-red-700 text-white font-bold text-lg px-8 py-4 rounded-xl shadow-lg transform hover:scale-105 transition flex items-center gap-3 pulse-alert">
+                        <i class="fas fa-file-contract text-2xl"></i>
+                        Renouveler le contrat maintenant
+                    </a>
+                    <a href="modifier_employe.php?id=<?= $data['id_employe'] ?>#contrat"
+                       class="text-red-700 underline hover:text-red-900 text-sm">
+                        → Modifier les dates du contrat
+                    </a>
+                </div>
+            </div>
+        </div>
+    <?php endif; ?>
+
     <!-- En-tête -->
-    <div class="bg-white rounded-t-2xl shadow-xl p-6 border-b-4 border-blue-500">
+    <div class="bg-white rounded-t-2xl shadow-xl p-6 border-b-4 <?= $enAlerteContrat ? 'border-red-600' : 'border-blue-500' ?>">
         <div class="flex items-center justify-between">
             <h1 class="text-3xl font-bold text-gray-800 flex items-center gap-3">
+                <i class="fas fa-user-tie"></i>
                 Fiche Employé
+                <?php if ($enAlerteContrat): ?>
+                    <span class="ml-4 inline-flex items-center gap-2 text-red-600 font-bold">
+                        <i class="fas fa-bell animate-pulse"></i> CONTRAT EN ALERTE
+                    </span>
+                <?php endif; ?>
             </h1>
-            <span class="bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-4 py-1.5 rounded-full text-sm font-semibold shadow">
+            <span class="bg-gradient-to-r <?= $enAlerteContrat ? 'from-red-600 to-red-700' : 'from-blue-600 to-indigo-600' ?> text-white px-6 py-2 rounded-full text-lg font-bold shadow-lg">
                 ID: <?= $data['id_employe'] ?? '—' ?>
             </span>
         </div>
@@ -52,18 +100,26 @@ $anciennete_jours = $dateEmbauche ? $dateEmbauche->diff($aujourd)->days : '—';
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-10">
             <!-- Photo + Nom -->
             <div class="flex flex-col items-center text-center">
-                <div class="w-48 h-48 rounded-2xl overflow-hidden shadow-xl border-4 border-white mb-4 bg-gradient-to-br from-blue-100 to-indigo-200">
-                    <?php if (!empty($data['lien_image']) && file_exists($data['lien_image'])): ?>
-                        <img src="<?= htmlspecialchars($data['lien_image']) ?>" alt="Photo" class="w-full h-full object-cover">
-                    <?php else: ?>
-                        <div class="w-full h-full flex items-center justify-center">
-                            <i class="fas fa-user text-7xl text-blue-400"></i>
+                <div class="relative">
+                    <div class="w-48 h-48 rounded-2xl overflow-hidden shadow-2xl border-4 border-white mb-4 bg-gradient-to-br from-blue-100 to-indigo-200">
+                        <?php if (!empty($data['lien_image']) && file_exists($data['lien_image'])): ?>
+                            <img src="<?= htmlspecialchars($data['lien_image']) ?>" alt="Photo" class="w-full h-full object-cover">
+                        <?php else: ?>
+                            <div class="w-full h-full flex items-center justify-center">
+                                <i class="fas fa-user text-7xl text-blue-400"></i>
+                            </div>
+                        <?php endif; ?>
+                    </div>
+                    <?php if ($enAlerteContrat): ?>
+                        <div class="absolute -top-2 -right-2 bg-red-600 text-white rounded-full p-3 shadow-xl animate-pulse">
+                            <i class="fas fa-exclamation text-xl"></i>
                         </div>
                     <?php endif; ?>
                 </div>
                 <h2 class="text-2xl font-bold text-gray-800"><?= htmlspecialchars($data['nom_personne'] ?? '') ?></h2>
                 <p class="text-lg text-gray-600"><?= htmlspecialchars($data['prenom'] ?? '') ?></p>
-                <div class="mt-2 inline-flex items-center gap-2 bg-blue-100 text-blue-700 px-4 py-1.5 rounded-full text-sm font-semibold">
+                <div class="mt-2 inline-flex items-center gap-2 <?= $enAlerteContrat ? 'bg-red-100 text-red-700' : 'bg-blue-100 text-blue-700' ?> px-6 py-2 rounded-full text-sm font-bold">
+                    <i class="fas fa-briefcase"></i>
                     <?= htmlspecialchars($data['poste'] ?? 'Non renseigné') ?>
                 </div>
             </div>
@@ -90,7 +146,7 @@ $anciennete_jours = $dateEmbauche ? $dateEmbauche->diff($aujourd)->days : '—';
                     </div>
                     <div>
                         <label class="flex items-center text-sm font-semibold text-gray-600 mb-1">Département</label>
-                        <p class="text-lg font-medium text-purple-700 bg-purple-50 px-4 py-1.5 rounded-lg inline-block">
+                        <p class="text-lg font-medium <?= $enAlerteContrat ? 'text-red-700 bg-red-50' : 'text-purple-700 bg-purple-50' ?> px-6 py-2 rounded-lg inline-block font-bold">
                             <?= htmlspecialchars($data['nom_departement'] ?? '—') ?>
                         </p>
                     </div>
@@ -109,9 +165,17 @@ $anciennete_jours = $dateEmbauche ? $dateEmbauche->diff($aujourd)->days : '—';
                     </div>
                 </div>
 
-                <div class="flex justify-end mt-8">
+                <div class="flex justify-end mt-8 gap-4">
+                    <?php if ($enAlerteContrat): ?>
+                        <a href="renouveler_contrat.php?id=<?= $data['id_employe'] ?>"
+                           class="bg-red-600 hover:bg-red-700 text-white font-bold px-8 py-4 rounded-xl shadow-lg transform hover:scale-105 transition flex items-center gap-3 pulse-alert">
+                            <i class="fas fa-file-contract"></i>
+                            Renouveler le contrat
+                        </a>
+                    <?php endif; ?>
                     <a href="modifier_employe.php?id=<?= $data['id_employe'] ?? '' ?>"
                        class="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transform hover:scale-105 transition">
+                        <i class="fas fa-edit"></i>
                         Modifier la fiche
                     </a>
                 </div>
@@ -119,6 +183,7 @@ $anciennete_jours = $dateEmbauche ? $dateEmbauche->diff($aujourd)->days : '—';
         </div>
     </div>
 
+    <!-- HISTORIQUE DES MOUVEMENTS (inchangé) -->
     <!-- HISTORIQUE DES MOUVEMENTS -->
     <div class="bg-white rounded-2xl shadow-xl p-8 overflow-hidden">
         <div class="flex flex-col sm:flex-row items-center justify-between mb-6 gap-4">
@@ -221,45 +286,6 @@ $anciennete_jours = $dateEmbauche ? $dateEmbauche->diff($aujourd)->days : '—';
             </div>
         </div>
     </div>
-
-    <!-- Script de filtre -->
-    <script>
-        const filters = {
-            date: document.getElementById('filterDate'),
-            event: document.getElementById('filterEvent'),
-            detail: document.getElementById('filterDetail'),
-            support: document.getElementById('filterSupport'),
-            poste: document.getElementById('filterPoste')
-        };
-        const rows = document.querySelectorAll('#mouvementsTable .data-row');
-        const noResults = document.getElementById('noResults');
-        const rowCount = document.getElementById('rowCount');
-
-        function applyFilters() {
-            let visible = 0;
-            const values = Object.fromEntries(
-                Object.entries(filters).map(([key, input]) => [key, input.value.trim().toLowerCase()])
-            );
-
-            rows.forEach(row => {
-                const match = Object.keys(values).every(key =>
-                    !values[key] || row.dataset[key].toLowerCase().includes(values[key])
-                );
-                row.style.display = match ? '' : 'none';
-                if (match) visible++;
-            });
-
-            noResults.classList.toggle('hidden', visible > 0 || rows.length === 0);
-            rowCount.textContent = visible || 0;
-        }
-
-        Object.values(filters).forEach(input => {
-            input.addEventListener('input', applyFilters);
-            input.addEventListener('keyup', applyFilters);
-        });
-
-        applyFilters();
-    </script>
 </div>
 </body>
 </html>
