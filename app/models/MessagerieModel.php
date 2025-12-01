@@ -8,14 +8,7 @@ use Flight;
 use flight\Engine;
 use flight\database\PdoWrapper;
 use flight\debug\database\PdoQueryCapture;
-Flight::map('db', function() {
-    return new PDO(
-        'pgsql:host=localhost;port=5432;dbname=aufildespages', // DSN PostgreSQL
-        'postgres',        // ton user PostgreSQL
-        'NouveauMotDePasse' // ton mot de passe PostgreSQL
-    );
-});
-
+    
 class MessagerieModel {
     protected $db;
 

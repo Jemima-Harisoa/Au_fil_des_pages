@@ -6,11 +6,6 @@
 -- Lookup / reference tables
 -- =========================
 
-CREATE TABLE IF NOT EXISTS evenements (
-    id_evenement SERIAL PRIMARY KEY,
-    nom_evenement VARCHAR
-);
-
 CREATE TABLE IF NOT EXISTS sexe (
     id_sexe SERIAL PRIMARY KEY,
     type_sexe VARCHAR
@@ -94,12 +89,6 @@ CREATE TABLE IF NOT EXISTS irsa (
     date_creation TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE TABLE IF NOT EXISTS seuil_tolerance (
-    id_seuil SERIAL PRIMARY KEY,
-    valeur NUMERIC(5,2) DEFAULT 5,
-    date_creation TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-
 CREATE TABLE IF NOT EXISTS treshold (
     id_treshold SERIAL PRIMARY KEY,
     valeur NUMERIC(5,2),
@@ -117,10 +106,7 @@ CREATE TABLE IF NOT EXISTS api (
     cle_api VARCHAR
 );
 
-CREATE TABLE IF NOT EXISTS jour_ferie (
-    id_jour_ferie SERIAL PRIMARY KEY,
-    date DATE
-);
+
 
 CREATE TABLE IF NOT EXISTS postes (
     id_poste SERIAL PRIMARY KEY,
@@ -129,20 +115,21 @@ CREATE TABLE IF NOT EXISTS postes (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE TABLE IF NOT EXISTS competences (
-    id_competence SERIAL PRIMARY KEY,
-    nom VARCHAR(150) NOT NULL,
-    description TEXT,
-    domaine VARCHAR(100),
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+CREATE TABLE IF NOT EXISTS type_competence (
+    id_type_competence SERIAL PRIMARY KEY,
+    libelle VARCHAR(100) NOT NULL,
+    description TEXT
 );
 
-CREATE TABLE IF NOT EXISTS formations (
-    id_formation SERIAL PRIMARY KEY,
-    titre VARCHAR(200) NOT NULL,
+-- Table des compétences
+CREATE TABLE IF NOT EXISTS competences (
+    id_competence SERIAL PRIMARY KEY,
+    nom VARCHAR(255) NOT NULL,
     description TEXT,
-    competence_id INT REFERENCES competences(id_competence),
-    niveau_cible NUMERIC(4,2)
+    domaine VARCHAR(100),
+    id_type_competence INT REFERENCES type_competence(id_type_competence),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 -- =========================
@@ -241,17 +228,6 @@ CREATE TABLE IF NOT EXISTS tests (
     CONSTRAINT fk_tests_annonce FOREIGN KEY (id_annonce) REFERENCES annonces(id_annonce)
 );
 
-CREATE TABLE IF NOT EXISTS etat (
-    id_etat SERIAL PRIMARY KEY,
-    nom VARCHAR
-);
-
-CREATE TABLE IF NOT EXISTS appreciation (
-    id_appreciation SERIAL PRIMARY KEY,
-    type_appreciation TEXT,
-    code INT
-);
-
 CREATE TABLE IF NOT EXISTS planning_entretien (
     id_entretien SERIAL PRIMARY KEY,
     id_candidat INT,
@@ -262,19 +238,6 @@ CREATE TABLE IF NOT EXISTS planning_entretien (
     id_appreciation INT,
     CONSTRAINT fk_planning_entretien_candidat FOREIGN KEY (id_candidat) REFERENCES candidats(id_candidat),
     CONSTRAINT fk_planning_entretien_appreciation FOREIGN KEY (id_appreciation) REFERENCES appreciation(id_appreciation)
-);
-
-CREATE TABLE IF NOT EXISTS message_automatique (
-    id_message_automatique SERIAL PRIMARY KEY,
-    message TEXT
-);
-
-CREATE TABLE IF NOT EXISTS notifications (
-    id_notification SERIAL PRIMARY KEY,
-    id_personne INT,
-    message TEXT,
-    date_notification TIMESTAMP,
-    CONSTRAINT fk_notifications_personne FOREIGN KEY (id_personne) REFERENCES personnes(id_personne)
 );
 
 CREATE TABLE IF NOT EXISTS contrats (
@@ -301,11 +264,6 @@ CREATE TABLE IF NOT EXISTS cv_candidats (
     CONSTRAINT fk_cv_candidats_candidat FOREIGN KEY (id_candidat) REFERENCES candidats(id_candidat)
 );
 
-CREATE TABLE IF NOT EXISTS status_validation_cv (
-    id_status_validation_cv SERIAL PRIMARY KEY,
-    statut VARCHAR
-);
-
 CREATE TABLE IF NOT EXISTS validation_cv (
     id_validation_cv SERIAL PRIMARY KEY,
     id_candidat INT,
@@ -315,47 +273,6 @@ CREATE TABLE IF NOT EXISTS validation_cv (
     CONSTRAINT fk_validation_cv_candidat FOREIGN KEY (id_candidat) REFERENCES candidats(id_candidat),
     CONSTRAINT fk_validation_cv_cv FOREIGN KEY (id_cv_candidat) REFERENCES cv_candidats(id_cv_candidats),
     CONSTRAINT fk_validation_cv_status FOREIGN KEY (id_status_validation_cv) REFERENCES status_validation_cv(id_status_validation_cv)
-);
-
-CREATE TABLE IF NOT EXISTS planning_entretien (
-    id_entretien SERIAL PRIMARY KEY,
-    id_candidat INT,
-    id_responsable INT,
-    date_heure_entretien TIMESTAMP,
-    score_entretien NUMERIC(5,2),
-    etat INT,
-    id_appreciation INT,
-    CONSTRAINT fk_planning_entretien_candidat FOREIGN KEY (id_candidat) REFERENCES candidats(id_candidat),
-    CONSTRAINT fk_planning_entretien_appreciation FOREIGN KEY (id_appreciation) REFERENCES appreciation(id_appreciation)
-);
-
-CREATE TABLE IF NOT EXISTS notifications (
-    id_notification SERIAL PRIMARY KEY,
-    id_personne INT,
-    message TEXT,
-    date_notification TIMESTAMP,
-    CONSTRAINT fk_notifications_personne FOREIGN KEY (id_personne) REFERENCES personnes(id_personne)
-);
-
-CREATE TABLE IF NOT EXISTS contrats (
-    id_contrat SERIAL PRIMARY KEY,
-    id_candidat INT,
-    id_type_contrat INT,
-    url_contrat VARCHAR,
-    CONSTRAINT fk_contrats_candidat FOREIGN KEY (id_candidat) REFERENCES candidats(id_candidat),
-    CONSTRAINT fk_contrats_type_contrat FOREIGN KEY (id_type_contrat) REFERENCES type_contrats(id_type_contrat)
-);
-
-CREATE TABLE IF NOT EXISTS essais (
-    id_essai SERIAL PRIMARY KEY,
-    id_personne INT,
-    id_contrat INT,
-    id_etat INT,
-    date_debut DATE,
-    date_fin DATE,
-    CONSTRAINT fk_essais_personne FOREIGN KEY (id_personne) REFERENCES personnes(id_personne),
-    CONSTRAINT fk_essais_contrat FOREIGN KEY (id_contrat) REFERENCES contrats(id_contrat),
-    CONSTRAINT fk_essais_etat FOREIGN KEY (id_etat) REFERENCES etat(id_etat)
 );
 
 CREATE TABLE IF NOT EXISTS employes (
@@ -433,37 +350,6 @@ CREATE TABLE IF NOT EXISTS profilsCV (
     CONSTRAINT fk_profilCV_departement FOREIGN KEY (id_departement) REFERENCES departements(id_departement)
 );
 
-CREATE TABLE IF NOT EXISTS cv_candidats (
-    id_cv_candidats SERIAL PRIMARY KEY,
-    id_candidat INT,
-    competences TEXT,
-    skills TEXT,
-    loisirs TEXT,
-    id_diplome INT,
-    filiere TEXT,
-    experience_pro TEXT,
-    certifications TEXT,
-    langues TEXT,
-    date_deposition TIMESTAMP,
-    CONSTRAINT fk_cv_candidats_candidat FOREIGN KEY (id_candidat) REFERENCES candidats(id_candidat)
-);
-
-CREATE TABLE IF NOT EXISTS status_validation_cv (
-    id_status_validation_cv SERIAL PRIMARY KEY,
-    statut VARCHAR
-);
-
-CREATE TABLE IF NOT EXISTS validation_cv (
-    id_validation_cv SERIAL PRIMARY KEY,
-    id_candidat INT,
-    id_cv_candidat INT,
-    id_status_validation_cv INT,
-    similarite NUMERIC(5,2),
-    CONSTRAINT fk_validation_cv_candidat FOREIGN KEY (id_candidat) REFERENCES candidats(id_candidat),
-    CONSTRAINT fk_validation_cv_cv FOREIGN KEY (id_cv_candidat) REFERENCES cv_candidats(id_cv_candidats),
-    CONSTRAINT fk_validation_cv_status FOREIGN KEY (id_status_validation_cv) REFERENCES status_validation_cv(id_status_validation_cv)
-);
-
 CREATE TABLE IF NOT EXISTS pointage_journalier (
     id_pointage_journalier SERIAL PRIMARY KEY,
     id_employe INT NOT NULL REFERENCES employes(id_employe),
@@ -500,14 +386,6 @@ CREATE TABLE IF NOT EXISTS heures_supplementaire_historique (
     date_creation TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE TABLE IF NOT EXISTS salaire_historique (
-    id_salaire_historique SERIAL PRIMARY KEY,
-    salaire DOUBLE PRECISION,
-    date_creation TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    id_employe INT,
-    CONSTRAINT fk_salaire_historique_employe FOREIGN KEY (id_employe) REFERENCES employes(id_employe)
-);
-
 CREATE TABLE IF NOT EXISTS prime (
     id SERIAL PRIMARY KEY,
     id_type_prime INT,
@@ -531,15 +409,7 @@ CREATE TABLE IF NOT EXISTS preavis (
 -- Congés / absences
 -- =========================
 
-CREATE TABLE IF NOT EXISTS abscence (
-    id_abscence SERIAL PRIMARY KEY,
-    id_employe INT,
-    debut TIMESTAMP,
-    fin TIMESTAMP,
-    est_autorise BOOLEAN,
-    justificatif TEXT,
-    CONSTRAINT fk_abscence_employe FOREIGN KEY (id_employe) REFERENCES employes(id_employe)
-);
+
 
 CREATE TABLE IF NOT EXISTS conge_demande (
     id_demande SERIAL PRIMARY KEY,
@@ -563,12 +433,6 @@ CREATE TABLE IF NOT EXISTS conge_historique_validation (
     CONSTRAINT fk_conge_historique_validation_employe FOREIGN KEY (id_employe) REFERENCES employes(id_employe)
 );
 
-CREATE TABLE IF NOT EXISTS conge_historique (
-    id_conge_historique SERIAL PRIMARY KEY,
-    nombres_abscence_attribue DOUBLE PRECISION,
-    id_employe INT,
-    CONSTRAINT fk_conge_historique_employe FOREIGN KEY (id_employe) REFERENCES employes(id_employe)
-);
 
 CREATE TABLE IF NOT EXISTS conge_solde (
     id_solde SERIAL PRIMARY KEY,
@@ -579,6 +443,17 @@ CREATE TABLE IF NOT EXISTS conge_solde (
     CONSTRAINT fk_conge_solde_employe FOREIGN KEY (id_employe) REFERENCES employes(id_employe),
     CONSTRAINT fk_conge_solde_type FOREIGN KEY (id_type_conge) REFERENCES conge_type(id_type)
 );
+
+CREATE TABLE IF NOT EXISTS abscence (
+    id_abscence SERIAL PRIMARY KEY,
+    id_employe INT,
+    debut TIMESTAMP,
+    fin TIMESTAMP,
+    est_autorise BOOLEAN,
+    justificatif TEXT,
+    CONSTRAINT fk_abscence_employe FOREIGN KEY (id_employe) REFERENCES employes(id_employe)
+);
+
 
 CREATE TABLE IF NOT EXISTS abscence_conge_suivi (
     id_suivi SERIAL PRIMARY KEY,
@@ -593,7 +468,7 @@ CREATE TABLE IF NOT EXISTS abscence_conge_suivi (
     dateMouvement TIMESTAMP,
     CONSTRAINT fk_conge_suivi_demande FOREIGN KEY (id_demande) REFERENCES conge_demande(id_demande),
     CONSTRAINT fk_conge_suivi_type FOREIGN KEY (id_type) REFERENCES conge_type(id_type),
-    CONSTRAINT fk_conge_suivi_employe FOREIGN KEY (id_employe) REFERENCES emplees(id_employe),
+    CONSTRAINT fk_conge_suivi_employe FOREIGN KEY (id_employe) REFERENCES employes(id_employe),
     CONSTRAINT fk_conge_suivi_abscence FOREIGN KEY (id_abscence) REFERENCES abscence(id_abscence),
     CONSTRAINT fk_conge_suivi_type_penalite FOREIGN KEY (id_type_penalite) REFERENCES abscence_type_penalite(id_type_penalite)
 );
@@ -617,18 +492,6 @@ CREATE TABLE IF NOT EXISTS disponibilite_entretien (
     CONSTRAINT fk_disponibilite_entretien_responsable FOREIGN KEY (id_responsable) REFERENCES responsable_entretien(id_responsable)
 );
 
-CREATE TABLE IF NOT EXISTS planning_entretien (
-    id_entretien SERIAL PRIMARY KEY,
-    id_candidat INT,
-    id_responsable INT,
-    date_heure_entretien TIMESTAMP,
-    score_entretien NUMERIC(5,2),
-    etat INT,
-    id_appreciation INT,
-    CONSTRAINT fk_planning_entretien_candidat FOREIGN KEY (id_candidat) REFERENCES candidats(id_candidat),
-    CONSTRAINT fk_planning_entretien_appreciation FOREIGN KEY (id_appreciation) REFERENCES appreciation(id_appreciation)
-);
-
 CREATE TABLE IF NOT EXISTS jour_ferie (
     id_jour_ferie SERIAL PRIMARY KEY,
     date DATE
@@ -641,16 +504,6 @@ CREATE TABLE IF NOT EXISTS config_entretien (
     CONSTRAINT fk_config_entretien_departement FOREIGN KEY (id_departement) REFERENCES departements(id_departement)
 );
 
-CREATE TABLE IF NOT EXISTS historique_validation (
-    id_historique_validation SERIAL PRIMARY KEY,
-    id_employe INT,
-    id_candidat INT,
-    date_heure_validation TIMESTAMP,
-    id_etat INT,
-    CONSTRAINT fk_historique_validation_employe FOREIGN KEY (id_employe) REFERENCES employes(id_employe),
-    CONSTRAINT fk_historique_validation_candidat FOREIGN KEY (id_candidat) REFERENCES candidats(id_candidat),
-    CONSTRAINT fk_historique_validation_etat FOREIGN KEY (id_etat) REFERENCES etat(id_etat)
-);
 
 CREATE TABLE IF NOT EXISTS evenements (
     id_evenement SERIAL PRIMARY KEY,
@@ -671,28 +524,6 @@ CREATE TABLE IF NOT EXISTS historique_mobilite (
     CONSTRAINT fk_historique_mobilite_departement FOREIGN KEY (id_departement) REFERENCES departements(id_departement)
 );
 
-CREATE TABLE IF NOT EXISTS conge_demande (
-    id_demande SERIAL PRIMARY KEY,
-    description TEXT,
-    id_employe INT,
-    date_demande TIMESTAMP,
-    date_debut TIMESTAMP,
-    date_fin TIMESTAMP,
-    niveau_validation INT DEFAULT 2,
-    id_type_conge INT,
-    CONSTRAINT fk_conge_demande_employe FOREIGN KEY (id_employe) REFERENCES employes(id_employe),
-    CONSTRAINT fk_conge_demande_type_conge FOREIGN KEY (id_type_conge) REFERENCES conge_type(id_type)
-);
-
-CREATE TABLE IF NOT EXISTS conge_historique_validation (
-    id_historique_validation SERIAL PRIMARY KEY,
-    id_demande INT,
-    id_employe INT,
-    date_validation TIMESTAMP,
-    CONSTRAINT fk_conge_historique_validation_demande FOREIGN KEY (id_demande) REFERENCES conge_demande(id_demande),
-    CONSTRAINT fk_conge_historique_validation_employe FOREIGN KEY (id_employe) REFERENCES employes(id_employe)
-);
-
 CREATE TABLE IF NOT EXISTS conge_historique (
     id_conge_historique SERIAL PRIMARY KEY,
     nombres_abscence_attribue DOUBLE PRECISION,
@@ -700,15 +531,6 @@ CREATE TABLE IF NOT EXISTS conge_historique (
     CONSTRAINT fk_conge_historique_employe FOREIGN KEY (id_employe) REFERENCES employes(id_employe)
 );
 
-CREATE TABLE IF NOT EXISTS abscence (
-    id_abscence SERIAL PRIMARY KEY,
-    id_employe INT,
-    debut TIMESTAMP,
-    fin TIMESTAMP,
-    est_autorise BOOLEAN,
-    justificatif TEXT,
-    CONSTRAINT fk_abscence_employe FOREIGN KEY (id_employe) REFERENCES employes(id_employe)
-);
 
 CREATE TABLE IF NOT EXISTS seuil_tolerance (
     id_seuil SERIAL PRIMARY KEY,
@@ -724,15 +546,6 @@ CREATE TABLE IF NOT EXISTS salaire_historique (
     CONSTRAINT fk_salaire_historique_employe FOREIGN KEY (id_employe) REFERENCES employes(id_employe)
 );
 
-CREATE TABLE IF NOT EXISTS prime (
-    id SERIAL PRIMARY KEY,
-    id_type_prime INT,
-    pourcentage NUMERIC(5,2),
-    id_employe INT,
-    date_creation TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT fk_prime_type FOREIGN KEY (id_type_prime) REFERENCES type_prime(id),
-    CONSTRAINT fk_prime_employe FOREIGN KEY (id_employe) REFERENCES employes(id_employe)
-);
 
 CREATE TABLE IF NOT EXISTS essais (
     id_essai SERIAL PRIMARY KEY,
@@ -760,13 +573,8 @@ CREATE TABLE IF NOT EXISTS notifications (
 -- ========================================
 
 -- Table des types de compétences
-CREATE TABLE IF NOT EXISTS type_competence (
-    id_type_competence SERIAL PRIMARY KEY,
-    libelle VARCHAR(100) NOT NULL,
-    description TEXT
-);
 
--- Table des sources d'évaluation
+-- Table des sources d'évauation
 CREATE TABLE IF NOT EXISTS source_evaluation (
     id_source SERIAL PRIMARY KEY,
     libelle VARCHAR(100) NOT NULL,
@@ -793,16 +601,7 @@ ON CONFLICT (niveau) DO UPDATE SET
     description = EXCLUDED.description,
     couleur = EXCLUDED.couleur;
 
--- Table des compétences
-CREATE TABLE IF NOT EXISTS competences (
-    id_competence SERIAL PRIMARY KEY,
-    nom VARCHAR(255) NOT NULL,
-    description TEXT,
-    domaine VARCHAR(100),
-    id_type_competence INT REFERENCES type_competence(id_type_competence),
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
+
 
 -- Table d'historique des compétences
 CREATE TABLE IF NOT EXISTS competences_historique (
@@ -912,7 +711,6 @@ FROM competences c
 LEFT JOIN agg a ON c.id_competence = a.id_competence
 LEFT JOIN type_competence tc ON c.id_type_competence = tc.id_type_competence
 LEFT JOIN niveau_competence_libelle ncl ON a.niv_moy_rounded = ncl.niveau;
-
 
 -- Vue pour les compétences par employé avec détails COMPLETS
 CREATE OR REPLACE VIEW v_employe_competences AS
@@ -1088,4 +886,172 @@ CREATE TRIGGER employe_competence_history_tracking
     EXECUTE FUNCTION track_employe_competence_changes();
 
 
+CREATE TABLE pointage (
+    id_pointage   SERIAL PRIMARY KEY,
+    id_employe    INTEGER NOT NULL,
+    connexion     TIMESTAMP NOT NULL,
+    deconnexion   TIMESTAMP,
+    duree_session INTERVAL GENERATED ALWAYS AS (deconnexion - connexion) STORED,
+    
+    FOREIGN KEY (id_employe) REFERENCES employes(id_employe)
+);
+CREATE TABLE employe_evaluation_periodes (
+    id_periode SERIAL PRIMARY KEY,
+    nom VARCHAR(50) NOT NULL,
+    description TEXT,
+    frequence_mois INT NOT NULL,     -- Exemple : 1 = mensuel, 3 = trimestriel
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
 
+-- Table : Critères d’évaluation
+-- Exemple : Ponctualité (30%), Productivité (40%), Communication (30%)
+CREATE TABLE employe_criteres_evaluation (
+    id_critere SERIAL PRIMARY KEY,
+    nom VARCHAR(100) NOT NULL,
+    description TEXT,
+    poids NUMERIC(5,2) NOT NULL CHECK (poids >= 0),   -- en pourcentage (0–100)
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Table : Évaluations générées pour les employés
+-- Chaque évaluation appartient à un employé et à une période
+CREATE TABLE employe_evaluations (
+    id_evaluation SERIAL PRIMARY KEY,
+    employe_id INT NOT NULL REFERENCES employes(id_employe) ON DELETE CASCADE,
+    periode_id INT NOT NULL REFERENCES employe_evaluation_periodes(id_periode),
+    date_generation DATE NOT NULL DEFAULT CURRENT_DATE,
+    date_evaluation DATE,
+    statut VARCHAR(20) NOT NULL DEFAULT 'PREVUE', 
+        -- PREVUE | EN_COURS | TERMINEE
+    score_total NUMERIC(6,2),
+    manager_id INT,  -- si tu gères des comptes managers ailleurs
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Trigger pour updated_at
+CREATE OR REPLACE FUNCTION employe_update_timestamp()
+RETURNS TRIGGER AS $$
+BEGIN
+    NEW.updated_at = CURRENT_TIMESTAMP;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER employe_trg_evaluations_updated
+BEFORE UPDATE ON employe_evaluations
+FOR EACH ROW EXECUTE FUNCTION employe_update_timestamp();
+
+-- Table : Détails de l’évaluation (1 ligne par critère)
+CREATE TABLE employe_evaluations_details (
+    id_detail SERIAL PRIMARY KEY,
+    evaluation_id INT NOT NULL REFERENCES employe_evaluations(id_evaluation) ON DELETE CASCADE,
+    critere_id INT NOT NULL REFERENCES employe_criteres_evaluation(id_critere),
+    note NUMERIC(5,2) CHECK (note >= 0 AND note <= 10),
+    commentaire TEXT
+);
+
+-- Trigger pour calcul automatique du score total
+CREATE OR REPLACE FUNCTION employe_calcul_score_total()
+RETURNS TRIGGER AS $$
+DECLARE
+    total NUMERIC(6,2);
+BEGIN
+    SELECT SUM(ed.note * c.poids / 10)
+    INTO total
+    FROM employe_evaluations_details ed
+    JOIN employe_criteres_evaluation c ON c.id_critere = ed.critere_id
+    WHERE ed.evaluation_id = NEW.evaluation_id;
+
+    UPDATE employe_evaluations
+    SET score_total = total
+    WHERE id_evaluation = NEW.evaluation_id;
+
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER employe_trg_update_score
+AFTER INSERT OR UPDATE ON employe_evaluations_details
+FOR EACH ROW EXECUTE FUNCTION employe_calcul_score_total();
+
+CREATE TABLE employe_performance_aggregations (
+    id_aggregation SERIAL PRIMARY KEY,
+    employe_id INT NOT NULL REFERENCES employes(id_employe),
+    annee INT NOT NULL,
+    score_moyen NUMERIC(6,2),
+    score_max NUMERIC(6,2),
+    score_min NUMERIC(6,2),
+    total_evaluations INT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+CREATE OR REPLACE VIEW vue_employe_performances_par_critere AS
+SELECT 
+    e.employe_id,
+    c.nom AS critere,
+    AVG(ed.note * c.poids / 10) AS score_pondere,
+    EXTRACT(YEAR FROM e.date_evaluation) AS annee
+FROM employe_evaluations e
+JOIN employe_evaluations_details ed ON ed.evaluation_id = e.id_evaluation
+JOIN employe_criteres_evaluation c ON c.id_critere = ed.critere_id
+WHERE e.statut = 'TERMINEE'
+GROUP BY e.employe_id, c.nom, annee;
+
+CREATE TABLE competences_postes (
+    id SERIAL PRIMARY KEY,
+    poste_id INT NOT NULL REFERENCES postes(id_poste) ON DELETE CASCADE,
+    competence_id INT NOT NULL REFERENCES competences(id_competence),
+    niveau_requis INT CHECK(niveau_requis >= 1 AND niveau_requis <= 5)
+);
+
+CREATE TABLE formations (
+    id_formation SERIAL PRIMARY KEY,
+    titre VARCHAR(200) NOT NULL,
+    description TEXT,
+    competence_id INT REFERENCES competences(id_competence),
+    niveau_cible NUMERIC(4,2)
+);
+CREATE TABLE employe_formations (
+    id SERIAL PRIMARY KEY,
+    employe_id INT NOT NULL REFERENCES employes(id_employe),
+    formation_id INT NOT NULL REFERENCES formations(id_formation),
+    statut VARCHAR(20) DEFAULT 'PLANIFIE', -- PLANIFIE, EN_COURS, TERMINEE
+    date_assignation DATE DEFAULT CURRENT_DATE
+);
+CREATE TABLE employe_evaluations_statuts (
+    id SERIAL PRIMARY KEY,
+    evaluation_id INT REFERENCES employe_evaluations(id_evaluation) ON DELETE CASCADE,
+    statut VARCHAR(20) CHECK (statut IN ('PREVUE','EN_COURS','TERMINEE')),
+    date_changement TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+CREATE TABLE employe_score_trends (
+    id SERIAL PRIMARY KEY,
+    employe_id INT REFERENCES employes(id_employe),
+    mois INT,
+    annee INT,
+    score NUMERIC(6,2)
+);
+CREATE TABLE employe_evaluation_calendrier (
+    id SERIAL PRIMARY KEY,
+    employe_id INT REFERENCES employes(id_employe),
+    periode_id INT REFERENCES employe_evaluation_periodes(id_periode),
+    date_prevue DATE,
+    date_limite DATE
+);
+CREATE TABLE manager_employes (
+    id SERIAL PRIMARY KEY,
+    manager_id INT REFERENCES employes(id_employe),
+    employe_id INT REFERENCES employes(id_employe)
+);
+CREATE TABLE IF NOT EXISTS managers (
+    id_manager SERIAL PRIMARY KEY,
+    employe_id INT NOT NULL REFERENCES employes(id_employe),
+    date_nomination DATE DEFAULT CURRENT_DATE
+);
+
+CREATE TABLE manager_admins (
+    id_manager_admin SERIAL PRIMARY KEY,
+    id_manager INT NOT NULL REFERENCES managers(id_manager), 
+    id_admin INT NOT NULL REFERENCES admins(id_admin),
+    date_lien TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
