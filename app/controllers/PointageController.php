@@ -66,95 +66,112 @@ public static function releverPresenceE(?int $idEmploye = null): void
 
     Flight::render('releve_presence_e', ["allPresence" => $presenceE]);
 }
-public function exporterCSV($idEmploye)
+
+public function exporterCSV($idEmploye, $debutPeriode = null, $finPeriode = null)
 {
     $pointageModel = new PointageModel(Flight::db());
-
-    // Recupere le releve complet
-    $pointages = $pointageModel->creerReleverPresenceIndividuelle($idEmploye);
-
-    // Nom du fichier
+    $pointages = $pointageModel->creerReleverPresenceIndividuelle($idEmploye, $debutPeriode, $finPeriode);
     $filename = "releve_presence_{$pointages['nom']}_{$pointages['prenom']}_{$idEmploye}.csv";
 
-    // Entetes HTTP pour CSV
     header('Content-Type: text/csv; charset=UTF-8');
     header('Content-Disposition: attachment; filename="' . $filename . '"');
 
     $output = fopen('php://output', 'w');
-    
-    // BOM UTF-8 pour Excel
+
+    // BOM Excel
     fputs($output, "\xEF\xBB\xBF");
 
-    // En-tete informatif
-    fputcsv($output, ["Pointage detaille de {$pointages['prenom']} {$pointages['nom']}"], ';');
-    fputcsv($output, ["Total heures : {$pointages['total_heures']}"], ';');
-    fputcsv($output, ["Total retard : {$pointages['retard']}"], ';');
-    fputcsv($output, ["Total pause : {$pointages['pause']}"], ';');
-    fputcsv($output, ["Total heures sup : {$pointages['heures_supp']}"], ';');
-    fputcsv($output, [], ';'); // Ligne vide
+    $csvWrite = fn($out, $fields) => fputcsv($out, $fields, ';');
+    $txt = fn($v) => "'" . ($v ?: "00:00:00");
 
-    // Entetes du tableau
-    $header = [
-        'Date',
-        'Periode',
-        'Arrivee',
-        'Depart',
-        'Total periode',
-        'Retard',
-        'Pause',
-        'Heures sup',
-        'Etat'
-    ];
-    fputcsv($output, $header, ';');
+    // TITRES
+    $csvWrite($output, ["Pointage détaillé de {$pointages['prenom']} {$pointages['nom']}"]);
+    $csvWrite($output, ["Total heures :", $txt($pointages['total_heures'] ?? '00:00:00')]);
+    $csvWrite($output, ["Total retard :", $txt($pointages['retard'] ?? '00:00:00')]);
+    $csvWrite($output, ["Total pause :", $txt($pointages['pause'] ?? '00:00:00')]);
+    $csvWrite($output, ["Total heures sup :", $txt($pointages['heures_supp'] ?? '00:00:00')]);
+    $csvWrite($output, []);
 
-    // Contenu par date et periode
+    // ENTÊTES
+    $csvWrite($output, ["Date","Période","Arrivée","Départ","Total période","Retard","Pause","Heures sup","État"]);
+
     foreach ($pointages['dates'] as $date => $data) {
-        // Forcer le format texte pour Excel en ajoutant un apostrophe
-        $dateFormatted = "'" . $date;
 
-        // Ligne pour la periode MATIN
-        $matin = $data['matin'];
-        $rowMatin = [
-            $dateFormatted,
-            'Matin',
-            isset($matin['sessions'][0]['arrivee']) ? "'" . $matin['sessions'][0]['arrivee'] : '-',
-            '-',
-            "'" . ($matin['total_jour'] ?? '00:00:00'),
-            "'" . ($matin['retard'] ?? '00:00:00'),
-            "'" . ($matin['pause'] ?? '00:00:00'),
-            "'" . ($matin['heures_sup'] ?? '00:00:00'),
-            $data['etat']
-        ];
-        
-        // Recuperer le depart du matin (derniere session)
-        if (!empty($matin['sessions'])) {
-            $lastSession = end($matin['sessions']);
-            $rowMatin[3] = $lastSession['depart'] ? "'" . $lastSession['depart'] : '-';
+        $totalJour = ['total_periode'=>0,'retard'=>0,'pause'=>0,'heures_sup'=>0];
+
+        foreach (['matin','apres_midi'] as $periodeKey) {
+
+            $label = $periodeKey === 'matin' ? 'Matin' : 'Après-midi';
+
+            $sessions   = $data[$periodeKey]['sessions'] ?? [];
+            $present    = $data[$periodeKey]['present'] ?? false;
+
+            // Fix clé: total_jour sans espace
+            $totalPeriode = $data[$periodeKey]['total_jour'] ?? "00:00:00";
+            $retard       = $data[$periodeKey]['retard'] ?? "00:00:00";
+            $pause        = $data[$periodeKey]['pause'] ?? "00:00:00";
+            $heuresSup    = $data[$periodeKey]['heures_sup'] ?? "00:00:00";
+
+            // Définir l'état
+            if (!empty($sessions)) $etat = "Présent";
+            elseif ($present)      $etat = "Présent $label";
+            else                   $etat = "Absent";
+
+            // Cumuls journaliers
+            $totalJour['total_periode'] += strtotime($totalPeriode) - strtotime("00:00:00");
+            $totalJour['retard']        += strtotime($retard) - strtotime("00:00:00");
+            $totalJour['pause']         += strtotime($pause) - strtotime("00:00:00");
+            $totalJour['heures_sup']    += strtotime($heuresSup) - strtotime("00:00:00");
+
+            // Absence totale
+            if (empty($sessions) && !$present) {
+                $csvWrite($output, [
+                    "'".$date, "'".$label, '-', '-', "'00:00:00", "'00:00:00", "'00:00:00", "'00:00:00", $etat
+                ]);
+                continue;
+            }
+
+            // Présent mais pas de sessions
+            if (empty($sessions) && $present) {
+                $csvWrite($output, [
+                    "'".$date, "'".$label, '-', '-',
+                    $txt($totalPeriode), $txt($retard), $txt($pause), $txt($heuresSup),
+                    $etat
+                ]);
+                continue;
+            }
+
+            // Sessions normales — SANS Arrivée1 / Arrivée2
+            foreach ($sessions as $i => $s) {
+
+                $arr = $s['arrivee'] ? "'".$s['arrivee'] : '-';
+                $dep = $s['depart']  ? "'".$s['depart']  : '-';
+
+                $csvWrite($output, [
+                    $i === 0 ? "'".$date : '',
+                    $i === 0 ? "'".$label : '',
+                    $arr,
+                    $dep,
+                    $i === 0 ? $txt($totalPeriode) : '',
+                    $i === 0 ? $txt($retard)       : '',
+                    $i === 0 ? $txt($pause)        : '',
+                    $i === 0 ? $txt($heuresSup)    : '',
+                    $i === 0 ? $etat : ''
+                ]);
+            }
         }
 
-        fputcsv($output, $rowMatin, ';');
+        // Total journée
+        $csvWrite($output, [
+            "'TOTAL JOURNÉE", '', '', '',
+            "'".gmdate("H:i:s", $totalJour['total_periode']),
+            "'".gmdate("H:i:s", $totalJour['retard']),
+            "'".gmdate("H:i:s", $totalJour['pause']),
+            "'".gmdate("H:i:s", $totalJour['heures_sup']),
+            ''
+        ]);
 
-        // Ligne pour la periode APRES-MIDI
-        $apresMidi = $data['apres_midi'];
-        $rowApresMidi = [
-            $dateFormatted,
-            'Apres-midi',
-            isset($apresMidi['sessions'][0]['arrivee']) ? "'" . $apresMidi['sessions'][0]['arrivee'] : '-',
-            '-',
-            "'" . ($apresMidi['total_jour'] ?? '00:00:00'),
-            "'" . ($apresMidi['retard'] ?? '00:00:00'),
-            "'" . ($apresMidi['pause'] ?? '00:00:00'),
-            "'" . ($apresMidi['heures_sup'] ?? '00:00:00'),
-            $data['etat']
-        ];
-        
-        // Recuperer le depart de l'apres-midi (derniere session)
-        if (!empty($apresMidi['sessions'])) {
-            $lastSession = end($apresMidi['sessions']);
-            $rowApresMidi[3] = $lastSession['depart'] ? "'" . $lastSession['depart'] : '-';
-        }
-
-        fputcsv($output, $rowApresMidi, ';');
+        $csvWrite($output, []);
     }
 
     fclose($output);
