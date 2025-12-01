@@ -232,8 +232,13 @@ $router->get('/listeCV',[ $cvController, 'listeCV']);
 $router->get('/exportCV',[ $cvController, 'exportExcel']);
 $router->post('/exportRelevePost',[ $pointageController, 'exportExcelPost']);
 $router->get('/relevePresenceE/@idEmploye', [$pointageController, 'releverPresenceE']);
-$router->get('/presence/export/pdf/@idEmploye', [$pointageController, 'exporterPDF']);
-$router->get('/presence/export/csv/@idEmploye', [$pointageController, 'exporterCSV']);
+$router->get('/presence/export/pdf/@idEmploye/@debutPeriode/@finPeriode', [$pointageController, 'exporterPDF']);
+$router->get('/presence/export/csv/@idEmploye', function($idEmploye) use ($pointageController) {
+    $debut = $_GET['debut'] ?? null;
+    $fin   = $_GET['fin'] ?? null;
+    $pointageController->exporterCSV($idEmploye, $debut, $fin);
+});
+
 
 
 

@@ -60,6 +60,7 @@ class PointageModel {
         $stmt = $this->db->query($sql);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
+
 public function creerReleverPresenceIndividuelle($idEmploye, $debutPeriode = null, $finPeriode = null)
 {
     if (!$debutPeriode) $debutPeriode = date('Y-m-01');
@@ -309,7 +310,9 @@ public function creerReleverPresenceIndividuelle($idEmploye, $debutPeriode = nul
         'retard'       => gmdate('H:i:s', $totalRetard),
         'pause'        => gmdate('H:i:s', $totalPause),
         'heures_supp'  => gmdate('H:i:s', $totalSup),
-        'etat'         => $totalWorked > 0 ? 'Présent' : 'Absent'
+        'etat'         => $totalWorked > 0 ? 'Présent' : 'Absent',
+        'debut'        =>$debutPeriode,
+        'fin'          =>$finPeriode
     ];
 }
 
