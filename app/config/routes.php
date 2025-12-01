@@ -1,4 +1,5 @@
 <?php
+use app\controllers\DocumentsController;
 use app\controllers\WelcomeController;
 use app\controllers\ConnexionController;
 use app\controllers\AnnoncesController;
@@ -7,9 +8,7 @@ use app\controllers\conge\JustificatifController;
 
 
 use app\controllers\TestController;
-
 use app\controllers\migration\MigrationController;
-
 use app\controllers\cvController;
 
 use app\controllers\EvaluationController;
@@ -30,6 +29,7 @@ use app\controllers\EmployeeCompetenceController;
 use app\models\EvaluationModel;
 use app\controllers\FichePaieController;
 use app\models\AdminModel;
+
 use flight\Engine;
 use flight\net\Router;
 //use Flight;
@@ -47,7 +47,9 @@ $welcomeController = new WelcomeController();
 $ConnexionController = new ConnexionController();
 $employeController = new EmployeController();
 $MobiliteHistoriqueController = new MobiliteHistoriqueController();
+$DocumentsController = new DocumentsController();
 
+$router -> get('/documents', [$DocumentsController, 'redirectDocuments']);
 $router -> get('/MobiliteHistorique', [$MobiliteHistoriqueController, 'redirectEmploye']);
 $evaluationController = new EvaluationController();
 
