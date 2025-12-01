@@ -1055,3 +1055,17 @@ CREATE TABLE manager_admins (
     id_admin INT NOT NULL REFERENCES admins(id_admin),
     date_lien TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
+ALTER TABLE historique_mobilite 
+RENAME COLUMN id_candidat TO id_employe;
+
+ALTER TABLE historique_mobilite 
+DROP CONSTRAINT IF EXISTS fk_historique_mobilite_candidat;
+
+ALTER TABLE historique_mobilite 
+ADD CONSTRAINT fk_historique_mobilite_employe 
+FOREIGN KEY (id_employe) REFERENCES employes(id_employe);
+
+ALTER TABLE contrats 
+ADD COLUMN IF NOT EXISTS date_debut DATE,
+ADD COLUMN IF NOT EXISTS date_fin   DATE;
