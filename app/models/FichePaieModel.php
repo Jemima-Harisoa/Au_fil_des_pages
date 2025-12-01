@@ -21,6 +21,10 @@ class FichePaieModel extends Query {
         else if($type ==="horaire"){
             return $montant / 173.33;
         }
+        else if($type == "secondes"){
+            $tauxHoraire = self::getTaux("horaire",$montant);
+            return $tauxHoraire / 3600;
+        }
         return 0;
     }
     public static function formaterMilier($montant){
@@ -190,8 +194,10 @@ class FichePaieModel extends Query {
     }
     public static function getMontantImposable($salaireBase,$totalGains, $totalRet){
         $salaireBrute = self::calculerSalaireBrute($salaireBase,$totalGains);
-        return $salaireBrute- $totalRet;
-        
+        return $salaireBrute- $totalRet;   
+    }
+    public static function getTauxEnSecondes($taux_horaire,$nombre_secondes){
+        return $taux_horaire * $nombre_secondes/3600;
     }
 }
 ?>

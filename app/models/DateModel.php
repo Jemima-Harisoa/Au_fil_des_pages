@@ -49,7 +49,7 @@ class DateModel{
     // Accéder directement à l'objet DateTime
         public function getDateTime():\DateTime
         {
-             return clone $this->dateTime;
+            return $this->dateTime;
         }
     public function addInterval(string $interval): \DateTime {
         try {
@@ -108,6 +108,10 @@ class DateModel{
     }
     public static function convertirMinuteEnHeure($minutes){
         return $minutes/60;
+    }
+    public  function convertirEnSecondes(){
+        $time = $this->format("H:i:s");
+        $seconds = strtotime($time) - strtotime("00:00:00");
     }
     public function differenceIntervalle(DateModel $dateModel){
         $propreDate = $this->getDateTime();

@@ -5,10 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Document</title>
     <!-- CDN Bootstrap -->
-<link rel="stylesheet" href="vendor/fontawesome-free/css/bootstrap.min.css">
+<link rel="stylesheet" href="/vendor/fontawesome-free/css/bootstrap.min.css">
 
 <!-- CDN Font Awesome -->
-<link href="vendor/fontawesome-free/css/all2.min.css" rel="stylesheet" type="text/css">
+<link href="/vendor/fontawesome-free/css/all2.min.css" rel="stylesheet" type="text/css">
 </head>
 <style>
     body{
@@ -64,23 +64,10 @@
         margin-left: 20%;
         
     }
-    .signature{
-        display: flex;
-        flex-direction: row;
-        justify-content: space-between; /* espace entre les enfants */
-        gap: 24px; /* espace égal entre éléments (moderne) */
-        align-items: flex-start;
-        max-width: 80%;
-        margin-left:10%;
-        padding: 12px;
-        box-sizing: border-box;
-    }
-
-    .signature canvas {
-    border: 1px solid #ccc;
-    width: 300px;
-    height: 120px;
-    }
+        .btn-pdf {
+            background: #e98f53ff;
+            color: white;
+        }
     .td-style-commun-libelle{
         border-right: 0px !important; text-align: left;
     }
@@ -96,6 +83,7 @@
     "nombre_heure_exces: ".$data["heure_de_nuit_avec_ou_sans_exces"]["nombre_heure_exces"]."</br>".
     "nuit: ".$data["heure_de_nuit_avec_ou_sans_exces"]["heure_de_nuit"]->format("H:i:s")." | ".
     "nombre_heure_exces: ".$data["heure_de_nuit_avec_ou_sans_exces"]["nombre_heure_de_nuit"]."</br>"
+    ."taux_secondes: ".$data["taux_en_secondes"]
     ;
     ?>
     <div class="main-container">
@@ -189,8 +177,8 @@
     <div>
         <p>Mode de paiement: espèce</p>
     </div>    
-    <button class="btn btn-primary">
-        <i class="fa-solid fa-file-pdf"></i> Exporter PDF
+    <button class="btn btn-pdf">
+        <i class="fa-solid fa-file-pdf"></i> Export PDF
     </button>
 </body>
 </html>

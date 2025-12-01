@@ -22,19 +22,7 @@ class FichePaieController{
             FichePaieModel::getMontantRetenu("CNAPS",$salaireBase),
             FichePaieModel::getMontantRetenu("OSTIE",$salaireBase)
         ];
-
-        $hs = [
-            "id"=>83, 
-            "id_employe"=>4,
-            "date_heure_debut"=>"2025-11-08 20:00:00",
-            "date_heure_fin"=>"2025-11-09 05:30:00",
-            "mois"=> 11,
-            "annee"=>2025,
-            "numero_semaine"=> 45
-        ];
-
-        $HeureSup = Flight::HeureSupplementaire();
-        $heureDeNuitAvecOuSansExces = $HeureSup ->calculerHeureDeNuitsAvecouSansExces($hs);
+        
         $data = [
             "employe"=> $employe,
             "anciennete"=> FichePaieModel::getAnciennete(4),
@@ -56,9 +44,7 @@ class FichePaieController{
             "total_prime"=>FichePaieModel::formaterMilier($totalPrime),
             "salaire_brute"=>FichePaieModel::formaterMilier($salaireBrute),
             "montant_imposable"=>FichePaieModel::formaterMilier($montantImposable),
-            "net_a_payer"=> FichePaieModel::formaterMilier($salaireBrute - FichePaieModel::sommeRetenus($retenus)),
-            "type_majoration"=>Flight::HeureSupplementaire()->getTypeMajoration($listeHs[0]),   
-            "heure_de_nuit_avec_ou_sans_exces"=> $heureDeNuitAvecOuSansExces
+            "net_a_payer"=> FichePaieModel::formaterMilier($salaireBrute - FichePaieModel::sommeRetenus($retenus))
         ];
         return Flight::render("paie/fiche_paie",["data"=>$data]);
     }

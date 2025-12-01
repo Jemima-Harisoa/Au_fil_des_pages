@@ -89,10 +89,9 @@ INSERT INTO candidats (id_personne, id_annonce, id_profil, cv_url, poste) VALUES
 -- 6) CONTRATS (liés à candidats qui ont signé)
 -- ========================================
 
-INSERT INTO contrats (id_candidat, id_type_contrat, url_contrat) VALUES
-(1, 1, '/contrats/contrat_lova_cdi.pdf'),
-(2, 1, '/contrats/contrat_hery_cdi.pdf'),
-(3, 1, '/contrats/contrat_paul_cdi.pdf');
+(4, 1, 4, 'Vendeur', '2021-09-01', 30, 900000.00),
+(5, 2, 3, 'Magasinier', '2020-11-15', 30, 800000.00),
+(6, NULL, 5, 'Assistant RH', '2023-03-01', 18, 1200000.00);
 
 INSERT INTO etat (nom) VALUES
 ('EN_COURS'),

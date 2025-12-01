@@ -4,16 +4,20 @@
     <meta charset="UTF-8">
     <title>Liste des fiches de paie</title>
 
-    <link rel="stylesheet" href="vendor/fontawesome-free/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/vendor/fontawesome-free/css/bootstrap.min.css">
 
     <!-- CDN Font Awesome -->
-    <link href="vendor/fontawesome-free/css/all2.min.css" rel="stylesheet" type="text/css">
+    <link href="/vendor/fontawesome-free/css/all2.min.css" rel="stylesheet" type="text/css">
     <style>
         html, body {
             height: 100%;
             margin: 0;
         }
-
+        @media (max-width:700px){
+        .main-container{
+            flex-direction: column;
+            }
+        }
         .container {
             display: flex;
             flex-direction: column;
@@ -57,7 +61,7 @@
         }
 
         .btn-pdf {
-            background: #d9534f;
+            background: #e98f53ff;
             color: white;
         }
 
