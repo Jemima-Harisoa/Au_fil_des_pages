@@ -175,16 +175,6 @@ INSERT INTO conge_demande (description, id_employe, date_demande, date_debut, da
 ('Conge annuel famille', 1, '2024-02-15', '2024-04-01', '2024-04-15', 2, 1),
 ('Conge maladie', 2, '2024-02-20', '2024-03-10', '2024-03-12', 2, 2);
 
--- Horaires
-INSERT INTO horaires_employe (id_employe, jour_semaine, debut_travail, fin_travail, seuil_retard) VALUES 
-(1, 1, '08:00:00', '12:00:00', '00:05:00'),
-(1, 1, '13:00:00', '17:00:00', '00:05:00');
-
--- Pointages
-INSERT INTO pointage (id_employe, connexion, deconnexion) VALUES
-(1, '2025-11-17 08:05:00', '2025-11-17 12:00:00'),
-(1, '2025-11-17 12:45:00', '2025-11-17 17:00:00'),
-(7, '2025-11-20 08:00:00', '2025-11-20 16:30:00');
 
 -- Compétences
 INSERT INTO competences (nom, description, domaine, id_type_competence) VALUES
@@ -251,48 +241,219 @@ INSERT INTO formations (titre, description, competence_id, niveau_cible) VALUES
 ('Formation Python Avancé', 'Python projets complexes', 7, 5), 
 ('Leadership', 'Gestion d''équipe', 4, 5);
 
--- Evaluations (IDs 1-4)
-INSERT INTO employe_evaluations (employe_id, periode_id, date_evaluation, statut, manager_id) VALUES
-(7, 1, '2025-11-01', 'TERMINEE', 1),
-(8, 1, '2025-11-01', 'EN_COURS', 1),
-(9, 2, '2025-11-10', 'PREVUE', 2),
-(10, 2, '2025-11-12', 'PREVUE', 2);
+-- Pointages
+INSERT INTO horaires_employe (id_employe, jour_semaine, debut_travail, fin_travail, seuil_retard) VALUES
+-- Lundi (1)
+(1, 1, '08:00:00', '12:00:00', '00:05:00'),
+(1, 1, '13:00:00', '17:00:00', '00:05:00'),
 
--- CORRECTION: Utiliser les IDs d'évaluations qui existent (1-4)
+-- Mardi (2)
+(1, 2, '08:00:00', '12:00:00', '00:05:00'),
+(1, 2, '13:00:00', '17:00:00', '00:05:00'),
+
+-- Mercredi (3)
+(1, 3, '08:00:00', '12:00:00', '00:05:00'),
+(1, 3, '13:00:00', '17:00:00', '00:05:00'),
+
+-- Jeudi (4)
+(1, 4, '08:00:00', '12:00:00', '00:05:00'),
+(1, 4, '13:00:00', '17:00:00', '00:05:00'),
+
+-- Vendredi (5)
+(1, 5, '08:00:00', '12:00:00', '00:05:00'),
+(1, 5, '13:00:00', '17:00:00', '00:05:00'),
+
+-- Samedi (6)
+(1, 6, '08:00:00', '12:00:00', '00:05:00'),
+(1, 6, '13:00:00', '17:00:00', '00:05:00');
+
+INSERT INTO pointage (id_employe, connexion, deconnexion) VALUES
+(1, '2025-11-18 08:05:00', '2025-11-18 12:00:00'),
+(1, '2025-11-18 13:00:00', '2025-11-18 16:45:00'),
+
+(1, '2025-11-19 08:10:00', '2025-11-19 12:10:00'),
+(1, '2025-11-19 13:15:00', '2025-11-19 17:00:00'),
+
+(1, '2025-11-20 08:00:00', '2025-11-20 12:00:00'),
+(1, '2025-11-20 14:00:00', '2025-11-20 18:20:00'),
+
+(1, '2025-11-21 08:10:00', '2025-11-21 12:45:00'),
+(1, '2025-11-21 13:50:00', '2025-11-21 17:10:00'),
+
+(1, '2025-11-22 08:05:00', '2025-11-22 12:30:00'),
+(1, '2025-11-22 13:35:00', '2025-11-22 16:55:00'),
+
+(1, '2025-11-25 08:00:00', '2025-11-25 12:00:00'),
+(1, '2025-11-25 13:30:00', '2025-11-25 17:00:00'),
+
+(1, '2025-11-26 08:20:00', '2025-11-26 12:10:00'),
+(1, '2025-11-26 14:00:00', '2025-11-26 18:00:00'),
+
+(1, '2025-11-27 08:00:00', '2025-11-27 12:00:00'),
+(1, '2025-11-27 13:00:00', '2025-11-27 17:15:00'),
+
+(1, '2025-11-28 08:15:00', '2025-11-28 12:20:00'),
+(1, '2025-11-28 13:20:00', '2025-11-28 17:30:00'),
+
+(1, '2025-11-29 03:00:00', '2025-11-29 05:00:00'), -- ton fameux test ^^
+
+(1, '2025-11-30 08:00:00', '2025-11-30 12:00:00'),
+(1, '2025-11-30 13:00:00', '2025-11-30 16:45:00');
+
+
+-- =====================================================
+-- ÉVALUATIONS DE PERFORMANCE
+-- =====================================================
+
+INSERT INTO employe_evaluation_periodes (nom, frequence_mois) VALUES
+('Mensuel',1),
+('Trimestriel',3),
+('Annuel',12);
+
+
+INSERT INTO employe_criteres_evaluation (nom, poids) VALUES
+('Qualité du travail', 30),
+('Respect des délais', 25),
+('Autonomie', 20),
+('Esprit d''équipe', 15),
+('Initiative', 10);
+
+INSERT INTO employe_evaluations 
+(employe_id, periode_id, date_generation, date_evaluation, statut, score_total, manager_id, created_at, updated_at) VALUES
+(1, 1, '2025-11-30', '2025-11-01', 'TERMINEE', 54.00, 3, '2025-11-30 07:33:14.857214', '2025-11-30 16:03:57.081917'),
+(2, 1, '2025-11-30', '2025-11-01', 'TERMINEE', 55.00, 3, '2025-11-30 07:33:14.857214', '2025-11-30 16:03:57.081917'),
+(3, 2, '2025-11-30', '2025-11-10', 'PREVUE', 0.00, 1, '2025-11-30 07:33:14.857214', '2025-11-30 16:11:38.723333'),
+(4, 2, '2025-11-30', '2025-11-12', 'PREVUE', 0.00, 1, '2025-11-30 07:33:14.857214', '2025-11-30 16:11:38.723333');
+
 INSERT INTO employe_evaluations_details (evaluation_id, critere_id, note, commentaire) VALUES
-(1, 1, 8.0, 'Bien'),
-(1, 2, 7.5, 'Peut mieux faire'),
-(2, 1, 6.0, NULL),
-(2, 2, 7.0, NULL),
-(3, 1, 7.5, 'À suivre'),
-(3, 2, 8.0, NULL),
-(4, 1, 6.5, NULL),
-(4, 2, 7.0, 'Correct');
+(1, 1, 8.5, 'Code propre et bien documenté'),
+(1, 2, 9.0, 'Toujours dans les temps'),
+(1, 3, 7.5, NULL),
+(1, 4, 9.5, 'Très bonne ambiance'),
+(1, 5, 8.0, 'Propose régulièrement des améliorations'),
+(2, 1, 7.5, 'Travail correct, quelques oublis'),
+(2, 2, 8.0, 'Respect des délais satisfaisant'),
+(2, 3, 7.0, NULL),
+(2, 4, 8.5, 'Bonne collaboration'),
+(2, 5, 7.5, 'Suggestions pertinentes');
 
-INSERT INTO employe_formations (employe_id, formation_id, statut) VALUES
-(7, 1, 'PLANIFIE'),
-(8, 2, 'EN_COURS'),
-(9, 1, 'PLANIFIE'),
-(10, 2, 'PLANIFIE');
 
--- CORRECTION: Utiliser les IDs d'évaluations existants
-INSERT INTO employe_evaluations_statuts (evaluation_id, statut) VALUES
-(1, 'PREVUE'), (1, 'EN_COURS'), (1, 'TERMINEE'),
-(2, 'PREVUE'), (2, 'EN_COURS'),
-(3, 'PREVUE'),
-(4, 'PREVUE');
 
+INSERT INTO manager_admins (id_manager, id_admin)
+VALUES
+(1, 1),
+(2, 2),
+(3, 3);
 INSERT INTO employe_score_trends (employe_id, mois, annee, score) VALUES
-(7, 10, 2025, 8.0),
-(7, 11, 2025, 8.5),
-(8, 10, 2025, 7.0),
-(8, 11, 2025, 7.5),
-(9, 10, 2025, 6.0);
+-- Employé 1
+(1, 8, 2025, 78.0),
+(1, 9, 2025, 80.0),
+(1, 10, 2025, 80.0),
+(1, 11, 2025, 85.0),
+-- Employé 2
+(2, 8, 2025, 68.0),
+(2, 9, 2025, 70.0),
+(2, 10, 2025, 70.0),
+(2, 11, 2025, 75.0),
+-- Employé 3
+(3, 8, 2025, 58.0),
+(3, 9, 2025, 60.0),
+(3, 10, 2025, 60.0),
+(3, 11, 2025, 65.0),
+-- Employé 4
+(4, 8, 2025, 72.0),
+(4, 9, 2025, 75.0),
+(4, 10, 2025, 78.0),
+(4, 11, 2025, 79.0); 
 
 INSERT INTO employe_evaluation_calendrier (employe_id, periode_id, date_prevue, date_limite) VALUES
-(7, 1, '2025-11-01', '2025-11-05'),
-(8, 1, '2025-11-01', '2025-11-05'),
-(9, 2, '2025-10-15', '2025-10-20');
+-- ===================== Évaluations Mensuelles (id_periode = 1) =====================
+-- Employé 1 : chaque mois de sept à novembre
+(1, 1, '2025-07-01', '2025-07-05'),
+(1, 1, '2025-08-01', '2025-08-05'),
+(1, 1, '2025-09-01', '2025-09-05'),
+(1, 1, '2025-10-01', '2025-10-05'),
+(1, 1, '2025-11-01', '2025-11-05'),
+
+-- Employé 2
+(2, 1, '2025-07-01', '2025-07-05'),
+(2, 1, '2025-08-01', '2025-08-05'),
+(2, 1, '2025-09-01', '2025-09-05'),
+(2, 1, '2025-10-01', '2025-10-05'),
+(2, 1, '2025-11-01', '2025-11-05'),
+
+-- Employé 3
+(3, 1, '2025-07-01', '2025-07-05'),
+(3, 1, '2025-08-01', '2025-08-05'),
+(3, 1, '2025-09-01', '2025-09-05'),
+(3, 1, '2025-10-01', '2025-10-05'),
+(3, 1, '2025-11-01', '2025-11-05'),
+
+-- Employé 4
+(4, 1, '2025-07-01', '2025-07-05'),
+(4, 1, '2025-08-01', '2025-08-05'),
+(4, 1, '2025-09-01', '2025-09-05'),
+(4, 1, '2025-10-01', '2025-10-05'),
+(4, 1, '2025-11-01', '2025-11-05'),
+
+
+
+-- ===================== Évaluations Trimestrielles (id_periode = 2) =====================
+-- Employé 1
+(1, 2, '2025-01-15', '2025-01-20'),
+(1, 2, '2025-04-15', '2025-04-20'),
+(1, 2, '2025-07-15', '2025-07-20'),
+(1, 2, '2025-10-15', '2025-10-20'),
+
+-- Employé 2
+(2, 2, '2025-01-15', '2025-01-20'),
+(2, 2, '2025-04-15', '2025-04-20'),
+(2, 2, '2025-07-15', '2025-07-20'),
+(2, 2, '2025-10-15', '2025-10-20'),
+
+-- Employé 3
+(3, 2, '2025-01-15', '2025-01-20'),
+(3, 2, '2025-04-15', '2025-04-20'),
+(3, 2, '2025-07-15', '2025-07-20'),
+(3, 2, '2025-10-15', '2025-10-20'),
+
+-- Employé 4
+(4, 2, '2025-01-15', '2025-01-20'),
+(4, 2, '2025-04-15', '2025-04-20'),
+(4, 2, '2025-07-15', '2025-07-20'),
+(4, 2, '2025-10-15', '2025-10-20'),
+
+
+
+-- ===================== Évaluations Annuelles (id_periode = 3) =====================
+-- Employé 1
+(1, 3, '2025-12-01', '2025-12-10'),
+
+-- Employé 2
+(2, 3, '2025-12-01', '2025-12-10'),
+
+-- Employé 3
+(3, 3, '2025-12-01', '2025-12-10'),
+
+-- Employé 4
+(4, 3, '2025-12-01', '2025-12-10');
+
+
+CREATE OR REPLACE VIEW vue_employe_performances_par_critere AS
+SELECT 
+    e.employe_id,
+    c.nom AS critere,
+    AVG(ed.note * c.poids / 10) AS score_pondere,
+    EXTRACT(YEAR FROM e.date_evaluation) AS annee
+FROM employe_evaluations e
+JOIN employe_evaluations_details ed ON ed.evaluation_id = e.id_evaluation
+JOIN employe_criteres_evaluation c ON c.id_critere = ed.critere_id
+WHERE e.statut = 'TERMINEE'
+GROUP BY e.employe_id, c.nom, annee;
+
+
+
+
 
 INSERT INTO notifications (id_personne, message, date_notification) VALUES
 (1, 'Nouvelle politique de congé publiée', '2024-06-01 08:00:00'),
@@ -305,5 +466,30 @@ INSERT INTO salaire_historique (salaire, date_creation, id_employe) VALUES
 (5200000, '2024-06-01 09:00:00', 1),
 (2100000, '2024-07-01 09:00:00', 2);
 
+
+-- Absences (après employes)
+INSERT INTO abscence (id_employe, debut, fin, est_autorise, justificatif) VALUES
+(2, '2024-03-05 08:00:00', '2024-03-05 17:00:00', FALSE, 'Absence non justifiee'),
+(4, '2024-03-10 08:00:00', '2024-03-10 12:00:00', TRUE, 'Rendez-vous medical'),
+(5, '2024-03-15 08:00:00', '2024-03-15 17:00:00', FALSE, 'Retard non justifie'),
+(3, '2024-03-20 13:00:00', '2024-03-20 17:00:00', TRUE, 'Demarches administratives'),
+(1, '2024-03-25 08:00:00', '2024-03-25 10:00:00', FALSE, 'Absence courte non autorisee');
+
+-- Congés (après employes et conge_type)
+INSERT INTO conge_demande (description, id_employe, date_demande, date_debut, date_fin, niveau_validation, id_type_conge) VALUES
+('Conge annuel famille', 1, '2024-02-15', '2024-04-01', '2024-04-15', 2, 1),
+('Conge maladie', 2, '2024-02-20', '2024-03-10', '2024-03-12', 2, 2),
+('Conge exceptionnel mariage', 3, '2024-02-25', '2024-05-01', '2024-05-03', 1, 3),
+('Conge sans solde projet perso', 4, '2024-03-01', '2024-06-01', '2024-06-07', 2, 4),
+('Conge maternite', 2, '2024-03-05', '2024-07-01', '2024-09-28', 2, 5);
+
+INSERT INTO abscence_conge_suivi (id_demande, id_abscence, id_type, id_employe, nombre_conge, annee, penalite_appliquee, id_type_penalite, dateMouvement) VALUES
+(1, NULL, 1, 1, 15, 2024, FALSE, NULL, '2024-02-16'),
+(NULL, 1, NULL, 2, 0, 2024, TRUE, 2, '2024-03-06'),
+(2, NULL, 2, 2, 3, 2024, FALSE, NULL, '2024-02-21'),
+(NULL, 3, NULL, 5, 0, 2024, TRUE, 1, '2024-03-16'),
+(3, NULL, 3, 3, 3, 2024, FALSE, NULL, '2024-02-26');
+
 -- FIN DES DONNÉES
+
 SELECT 'Données insérées avec succès!' AS message;

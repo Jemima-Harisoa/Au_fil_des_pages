@@ -209,6 +209,7 @@ $WelcomeController = new WelcomeController();
 $router->get('/accueilG', [ $WelcomeController, 'AppelAccueilG' ]);
 $router->get('/accueilA', [ $WelcomeController, 'AppelAccueilA' ]);
 $router->get('/accueilU', [ $WelcomeController, 'AppelAccueilU' ]);
+$router->get('/accueilE', [ $WelcomeController, 'AppelAccueilE' ]);
 
 $AnnoncesController = new AnnoncesController();
     
