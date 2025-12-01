@@ -197,6 +197,27 @@ INSERT INTO notifications (id_personne, message, date_notification) VALUES
 (1, 'Votre demande de congés a été validée', '2025-05-22 14:30:00'),
 (2, 'Rappel : évaluation annuelle le 15 janvier', '2025-01-10 09:00:00');
 
+INSERT INTO historique_mobilite 
+    (id_employe, id_evenement, id_profil, id_departement, date_evenement, support) 
+VALUES
+    -- Employé 1 : Marie Dupont (Développeuse Fullstack)
+    (1, 1, NULL,  2, '2024-03-01', 'Embauche initiale - CDI signé le 28/02/2024'),
+    (1, 3,    1,  2, '2025-06-15', 'Promotion au grade Senior suite évaluation 2025'),
+    (1, 2,    1,  4, '2025-11-01', 'Mobilité interne vers le pôle Marketing Digital'),
+
+    -- Employé 2 : Julien Martin (Chargé RH → Responsable Recrutement)
+    (2, 1, NULL,  1, '2023-06-15', 'Embauche en tant que Chargé de recrutement'),
+    (2, 3,    2,  1, '2024-12-20', 'Promotion Responsable Recrutement'),
+
+    -- Employé 3 : Nirina Rakoto (Comptable)
+    (3, 1, NULL,  3, '2022-01-10', 'Embauche en CDI - Comptable junior'),
+    (3, 3,    3,  3, '2024-03-01', 'Passage Comptable confirmé + augmentation'),
+    (3, 2,    3,  3, '2025-09-01', 'Affectation pôle comptabilité clients'),
+
+    -- Employé 4 : Sophie Bernard (Directrice RH depuis 2020)
+    (4, 1, NULL,  1, '2020-09-01', 'Prise de poste en tant que Directrice des Ressources Humaines'),
+    (4, 3, NULL,  1, '2023-07-01', 'Renouvellement de mandat pour 3 ans');
+
 -- =====================================================
 -- FIN DES DONNÉES DE TEST
 -- =====================================================

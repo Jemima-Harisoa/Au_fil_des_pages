@@ -719,6 +719,17 @@ CREATE TABLE IF NOT EXISTS employe_formations (
     date_assignation DATE DEFAULT CURRENT_DATE
 );
 
+-- À exécuter une seule fois (migration)
+ALTER TABLE historique_mobilite 
+RENAME COLUMN id_candidat TO id_employe;
+
+ALTER TABLE historique_mobilite 
+DROP CONSTRAINT IF EXISTS fk_historique_mobilite_candidat;
+
+ALTER TABLE historique_mobilite 
+ADD CONSTRAINT fk_historique_mobilite_employe 
+FOREIGN KEY (id_employe) REFERENCES employes(id_employe);
+
 -- =========================
 -- Misc duplicates handled
 -- =========================
