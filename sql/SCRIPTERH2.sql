@@ -1,49 +1,49 @@
 -- Réorganised schema for database "aufildespages"
--- Each table created with IF NOT EXISTS and ordered to satisfy foreign-key dependencies.
+-- Each table created with  and ordered to satisfy foreign-key dependencies.
 -- Vérifie les extensions / versions PostgreSQL si tu utilises des GENERATED columns (Postgres >= 12).
 
 -- =========================
 -- Lookup / reference tables
 -- =========================
 
-CREATE TABLE IF NOT EXISTS sexe (
+CREATE TABLE  sexe (
     id_sexe SERIAL PRIMARY KEY,
     type_sexe VARCHAR
 );
 
-CREATE TABLE IF NOT EXISTS departements (
+CREATE TABLE  departements (
     id_departement SERIAL PRIMARY KEY,
     nom VARCHAR
 );
 
-CREATE TABLE IF NOT EXISTS filieres (
+CREATE TABLE  filieres (
     id_filiere SERIAL PRIMARY KEY,
     nom VARCHAR
 );
 
-CREATE TABLE IF NOT EXISTS type_contrats (
+CREATE TABLE  type_contrats (
     id_type_contrat SERIAL PRIMARY KEY,
     nom VARCHAR
 );
 
-CREATE TABLE IF NOT EXISTS diplomes (
+CREATE TABLE  diplomes (
     id_diplome SERIAL PRIMARY KEY,
     nom VARCHAR,
     niveau INT
 );
 
-CREATE TABLE IF NOT EXISTS etat (
+CREATE TABLE  etat (
     id_etat SERIAL PRIMARY KEY,
     nom VARCHAR
 );
 
-CREATE TABLE IF NOT EXISTS appreciation (
+CREATE TABLE  appreciation (
     id_appreciation SERIAL PRIMARY KEY,
     type_appreciation TEXT,
     code INT
 );
 
-CREATE TABLE IF NOT EXISTS conge_type (
+CREATE TABLE  conge_type (
     id_type SERIAL PRIMARY KEY,
     nom VARCHAR,
     description TEXT,
@@ -52,36 +52,36 @@ CREATE TABLE IF NOT EXISTS conge_type (
     deductible_sur_conge BOOLEAN DEFAULT TRUE
 );
 
-CREATE TABLE IF NOT EXISTS abscence_type_penalite (
+CREATE TABLE  abscence_type_penalite (
     id_type_penalite SERIAL PRIMARY KEY,
     nom VARCHAR,
     description TEXT,
     montant DOUBLE PRECISION
 );
 
-CREATE TABLE IF NOT EXISTS status_validation_cv (
+CREATE TABLE  status_validation_cv (
     id_status_validation_cv SERIAL PRIMARY KEY,
     statut VARCHAR
 );
 
-CREATE TABLE IF NOT EXISTS type_prime (
+CREATE TABLE  type_prime (
     id SERIAL PRIMARY KEY,
     libelle VARCHAR
 );
 
-CREATE TABLE IF NOT EXISTS parametre (
+CREATE TABLE  parametre (
     id SERIAL PRIMARY KEY,
     libelle VARCHAR,
     pourcentage NUMERIC(5,2)
 );
 
-CREATE TABLE IF NOT EXISTS smig (
+CREATE TABLE  smig (
     id SERIAL PRIMARY KEY,
     montant NUMERIC(10,2) NOT NULL,
     date_application DATE NOT NULL
 );
 
-CREATE TABLE IF NOT EXISTS irsa (
+CREATE TABLE  irsa (
     id SERIAL PRIMARY KEY,
     min DOUBLE PRECISION,
     max DOUBLE PRECISION,
@@ -89,18 +89,18 @@ CREATE TABLE IF NOT EXISTS irsa (
     date_creation TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE TABLE IF NOT EXISTS treshold (
+CREATE TABLE  treshold (
     id_treshold SERIAL PRIMARY KEY,
     valeur NUMERIC(5,2),
     date_treshold TIMESTAMP
 );
 
-CREATE TABLE IF NOT EXISTS message_automatique (
+CREATE TABLE  message_automatique (
     id_message_automatique SERIAL PRIMARY KEY,
     message TEXT
 );
 
-CREATE TABLE IF NOT EXISTS api (
+CREATE TABLE  api (
     id_api SERIAL PRIMARY KEY,
     nom VARCHAR,
     cle_api VARCHAR
@@ -108,21 +108,21 @@ CREATE TABLE IF NOT EXISTS api (
 
 
 
-CREATE TABLE IF NOT EXISTS postes (
+CREATE TABLE  postes (
     id_poste SERIAL PRIMARY KEY,
     nom VARCHAR(100) NOT NULL,
     description TEXT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE TABLE IF NOT EXISTS type_competence (
+CREATE TABLE  type_competence (
     id_type_competence SERIAL PRIMARY KEY,
     libelle VARCHAR(100) NOT NULL,
     description TEXT
 );
 
 -- Table des compétences
-CREATE TABLE IF NOT EXISTS competences (
+CREATE TABLE  competences (
     id_competence SERIAL PRIMARY KEY,
     nom VARCHAR(255) NOT NULL,
     description TEXT,
@@ -136,7 +136,7 @@ CREATE TABLE IF NOT EXISTS competences (
 -- Core person / auth tables
 -- =========================
 
-CREATE TABLE IF NOT EXISTS personnes (
+CREATE TABLE  personnes (
     id_personne SERIAL PRIMARY KEY,
     nom VARCHAR,
     prenom VARCHAR,
@@ -147,7 +147,7 @@ CREATE TABLE IF NOT EXISTS personnes (
     CONSTRAINT fk_personnes_sexe FOREIGN KEY (id_sexe) REFERENCES sexe(id_sexe)
 );
 
-CREATE TABLE IF NOT EXISTS utilisateurs (
+CREATE TABLE  utilisateurs (
     id_utilisateur SERIAL PRIMARY KEY,
     nom VARCHAR,
     mdp VARCHAR,
@@ -159,7 +159,7 @@ CREATE TABLE IF NOT EXISTS utilisateurs (
 -- Recruitment / CV module
 -- =========================
 
-CREATE TABLE IF NOT EXISTS profils (
+CREATE TABLE  profils (
     id_profil SERIAL PRIMARY KEY,
     titre VARCHAR,
     competences TEXT,
@@ -179,7 +179,7 @@ CREATE TABLE IF NOT EXISTS profils (
     CONSTRAINT fk_profils_departement FOREIGN KEY (id_departement) REFERENCES departements(id_departement)
 );
 
-CREATE TABLE IF NOT EXISTS annonces (
+CREATE TABLE  annonces (
     id_annonce SERIAL PRIMARY KEY,
     id_profil INT,
     titre VARCHAR,
@@ -189,7 +189,7 @@ CREATE TABLE IF NOT EXISTS annonces (
     lien TEXT
 );
 
-CREATE TABLE IF NOT EXISTS questions (
+CREATE TABLE  questions (
     id_question SERIAL PRIMARY KEY,
     question TEXT,
     id_profil INT,
@@ -197,7 +197,7 @@ CREATE TABLE IF NOT EXISTS questions (
     CONSTRAINT fk_questions_profil FOREIGN KEY (id_profil) REFERENCES profils(id_profil)
 );
 
-CREATE TABLE IF NOT EXISTS reponses_question (
+CREATE TABLE  reponses_question (
     id_reponse SERIAL PRIMARY KEY,
     id_question INT,
     reponse TEXT,
@@ -205,7 +205,7 @@ CREATE TABLE IF NOT EXISTS reponses_question (
     CONSTRAINT fk_reponses_question FOREIGN KEY (id_question) REFERENCES questions(id_question)
 );
 
-CREATE TABLE IF NOT EXISTS candidats (
+CREATE TABLE  candidats (
     id_candidat SERIAL PRIMARY KEY,
     id_personne INT,
     id_annonce INT,
@@ -218,7 +218,7 @@ CREATE TABLE IF NOT EXISTS candidats (
     CONSTRAINT fk_candidats_profil FOREIGN KEY (id_profil) REFERENCES profils(id_profil)
 );
 
-CREATE TABLE IF NOT EXISTS tests (
+CREATE TABLE  tests (
     id_test SERIAL PRIMARY KEY,
     id_candidat INT,
     id_annonce INT,
@@ -228,7 +228,7 @@ CREATE TABLE IF NOT EXISTS tests (
     CONSTRAINT fk_tests_annonce FOREIGN KEY (id_annonce) REFERENCES annonces(id_annonce)
 );
 
-CREATE TABLE IF NOT EXISTS planning_entretien (
+CREATE TABLE  planning_entretien (
     id_entretien SERIAL PRIMARY KEY,
     id_candidat INT,
     id_responsable INT,
@@ -240,7 +240,7 @@ CREATE TABLE IF NOT EXISTS planning_entretien (
     CONSTRAINT fk_planning_entretien_appreciation FOREIGN KEY (id_appreciation) REFERENCES appreciation(id_appreciation)
 );
 
-CREATE TABLE IF NOT EXISTS contrats (
+CREATE TABLE  contrats (
     id_contrat SERIAL PRIMARY KEY,
     id_candidat INT,
     id_type_contrat INT,
@@ -249,7 +249,7 @@ CREATE TABLE IF NOT EXISTS contrats (
     CONSTRAINT fk_contrats_type_contrat FOREIGN KEY (id_type_contrat) REFERENCES type_contrats(id_type_contrat)
 );
 
-CREATE TABLE IF NOT EXISTS cv_candidats (
+CREATE TABLE  cv_candidats (
     id_cv_candidats SERIAL PRIMARY KEY,
     id_candidat INT,
     competences TEXT,
@@ -264,7 +264,7 @@ CREATE TABLE IF NOT EXISTS cv_candidats (
     CONSTRAINT fk_cv_candidats_candidat FOREIGN KEY (id_candidat) REFERENCES candidats(id_candidat)
 );
 
-CREATE TABLE IF NOT EXISTS validation_cv (
+CREATE TABLE  validation_cv (
     id_validation_cv SERIAL PRIMARY KEY,
     id_candidat INT,
     id_cv_candidat INT,
@@ -275,7 +275,7 @@ CREATE TABLE IF NOT EXISTS validation_cv (
     CONSTRAINT fk_validation_cv_status FOREIGN KEY (id_status_validation_cv) REFERENCES status_validation_cv(id_status_validation_cv)
 );
 
-CREATE TABLE IF NOT EXISTS employes (
+CREATE TABLE  employes (
     id_employe SERIAL PRIMARY KEY,
     id_personne INT,
     id_contrat INT,
@@ -289,7 +289,7 @@ CREATE TABLE IF NOT EXISTS employes (
     CONSTRAINT fk_employes_departement FOREIGN KEY (id_departement) REFERENCES departements(id_departement)
 );
 
-CREATE TABLE IF NOT EXISTS admins (
+CREATE TABLE  admins (
     id_admin SERIAL PRIMARY KEY,
     id_employe INT,
     nom VARCHAR,
@@ -299,12 +299,12 @@ CREATE TABLE IF NOT EXISTS admins (
     CONSTRAINT fk_admins_employe FOREIGN KEY (id_employe) REFERENCES employes(id_employe)
 );
 
-CREATE TABLE IF NOT EXISTS connexEmployes (
+CREATE TABLE  connexEmployes (
     idEmploye INT PRIMARY KEY REFERENCES employes(id_employe),
     mdp VARCHAR(255) NOT NULL
 );
 
-CREATE TABLE IF NOT EXISTS horaires_employe (
+CREATE TABLE  horaires_employe (
     id_employe INT NOT NULL REFERENCES employes(id_employe),
     jour_semaine INT NOT NULL,           -- 1 = lundi ... 7 = dimanche
     debut_travail TIME NOT NULL,
@@ -312,7 +312,7 @@ CREATE TABLE IF NOT EXISTS horaires_employe (
     seuil_retard INTERVAL DEFAULT '00:05:00'
 );
 
-CREATE TABLE IF NOT EXISTS disponibilite_employe (
+CREATE TABLE  disponibilite_employe (
     id_dispo SERIAL PRIMARY KEY,
     id_employe INT,
     heure_debut TIME,
@@ -320,7 +320,7 @@ CREATE TABLE IF NOT EXISTS disponibilite_employe (
     CONSTRAINT fk_disponibilite_employe FOREIGN KEY (id_employe) REFERENCES employes(id_employe)
 );
 
-CREATE TABLE IF NOT EXISTS historique_validation (
+CREATE TABLE  historique_validation (
     id_historique_validation SERIAL PRIMARY KEY,
     id_employe INT,
     id_candidat INT,
@@ -331,7 +331,7 @@ CREATE TABLE IF NOT EXISTS historique_validation (
     CONSTRAINT fk_historique_validation_etat FOREIGN KEY (id_etat) REFERENCES etat(id_etat)
 );
 
-CREATE TABLE IF NOT EXISTS profilsCV (
+CREATE TABLE  profilsCV (
     id_profil SERIAL PRIMARY KEY,
     titre VARCHAR,
     competences TEXT,
@@ -350,7 +350,7 @@ CREATE TABLE IF NOT EXISTS profilsCV (
     CONSTRAINT fk_profilCV_departement FOREIGN KEY (id_departement) REFERENCES departements(id_departement)
 );
 
-CREATE TABLE IF NOT EXISTS pointage_journalier (
+CREATE TABLE  pointage_journalier (
     id_pointage_journalier SERIAL PRIMARY KEY,
     id_employe INT NOT NULL REFERENCES employes(id_employe),
     date_pointage DATE NOT NULL,
@@ -360,13 +360,13 @@ CREATE TABLE IF NOT EXISTS pointage_journalier (
     heures_travaillees interval
 );
 
-CREATE TABLE IF NOT EXISTS heure_supplementaire_config (
+CREATE TABLE  heure_supplementaire_config (
     id SERIAL PRIMARY KEY,
     date_creation TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     nombre_premieres_heures INT NOT NULL
 );
 
-CREATE TABLE IF NOT EXISTS heures_supplementaire (
+CREATE TABLE  heures_supplementaire (
     id SERIAL PRIMARY KEY,
     id_employe INT NOT NULL REFERENCES employes(id_employe) ON DELETE CASCADE,
     nombre_heure_effectue NUMERIC(5,2) NOT NULL,
@@ -376,7 +376,7 @@ CREATE TABLE IF NOT EXISTS heures_supplementaire (
     date_enregistrement TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE TABLE IF NOT EXISTS heures_supplementaire_historique (
+CREATE TABLE  heures_supplementaire_historique (
     id SERIAL PRIMARY KEY,
     id_heure_supp INT NOT NULL REFERENCES heures_supplementaire(id) ON DELETE CASCADE,
     nombre_heure_effectue NUMERIC(5,2) NOT NULL,
@@ -386,7 +386,7 @@ CREATE TABLE IF NOT EXISTS heures_supplementaire_historique (
     date_creation TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE TABLE IF NOT EXISTS prime (
+CREATE TABLE  prime (
     id SERIAL PRIMARY KEY,
     id_type_prime INT,
     pourcentage NUMERIC(5,2),
@@ -396,7 +396,7 @@ CREATE TABLE IF NOT EXISTS prime (
     CONSTRAINT fk_prime_employe FOREIGN KEY (id_employe) REFERENCES employes(id_employe)
 );
 
-CREATE TABLE IF NOT EXISTS preavis (
+CREATE TABLE  preavis (
     id SERIAL PRIMARY KEY,
     id_employe INT NOT NULL REFERENCES employes(id_employe) ON DELETE CASCADE,
     date_debut_preavis DATE NOT NULL,
@@ -411,7 +411,7 @@ CREATE TABLE IF NOT EXISTS preavis (
 
 
 
-CREATE TABLE IF NOT EXISTS conge_demande (
+CREATE TABLE  conge_demande (
     id_demande SERIAL PRIMARY KEY,
     description TEXT,
     id_employe INT,
@@ -424,7 +424,7 @@ CREATE TABLE IF NOT EXISTS conge_demande (
     CONSTRAINT fk_conge_demande_type_conge FOREIGN KEY (id_type_conge) REFERENCES conge_type(id_type)
 );
 
-CREATE TABLE IF NOT EXISTS conge_historique_validation (
+CREATE TABLE  conge_historique_validation (
     id_historique_validation SERIAL PRIMARY KEY,
     id_demande INT,
     id_employe INT,
@@ -434,7 +434,7 @@ CREATE TABLE IF NOT EXISTS conge_historique_validation (
 );
 
 
-CREATE TABLE IF NOT EXISTS conge_solde (
+CREATE TABLE  conge_solde (
     id_solde SERIAL PRIMARY KEY,
     id_employe INT,
     id_type_conge INT,
@@ -444,7 +444,7 @@ CREATE TABLE IF NOT EXISTS conge_solde (
     CONSTRAINT fk_conge_solde_type FOREIGN KEY (id_type_conge) REFERENCES conge_type(id_type)
 );
 
-CREATE TABLE IF NOT EXISTS abscence (
+CREATE TABLE  abscence (
     id_abscence SERIAL PRIMARY KEY,
     id_employe INT,
     debut TIMESTAMP,
@@ -455,7 +455,7 @@ CREATE TABLE IF NOT EXISTS abscence (
 );
 
 
-CREATE TABLE IF NOT EXISTS abscence_conge_suivi (
+CREATE TABLE  abscence_conge_suivi (
     id_suivi SERIAL PRIMARY KEY,
     id_demande INT,
     id_abscence INT,
@@ -473,7 +473,7 @@ CREATE TABLE IF NOT EXISTS abscence_conge_suivi (
     CONSTRAINT fk_conge_suivi_type_penalite FOREIGN KEY (id_type_penalite) REFERENCES abscence_type_penalite(id_type_penalite)
 );
 
-CREATE TABLE IF NOT EXISTS responsable_entretien (
+CREATE TABLE  responsable_entretien (
     id_responsable SERIAL PRIMARY KEY,
     id_profil INT,
     id_employe INT,
@@ -482,7 +482,7 @@ CREATE TABLE IF NOT EXISTS responsable_entretien (
     CONSTRAINT fk_responsable_entretien_employe FOREIGN KEY (id_employe) REFERENCES employes(id_employe)
 );
 
-CREATE TABLE IF NOT EXISTS disponibilite_entretien (
+CREATE TABLE  disponibilite_entretien (
     id_dispo SERIAL PRIMARY KEY,
     id_responsable INT,
     heure_debut TIME,
@@ -492,12 +492,12 @@ CREATE TABLE IF NOT EXISTS disponibilite_entretien (
     CONSTRAINT fk_disponibilite_entretien_responsable FOREIGN KEY (id_responsable) REFERENCES responsable_entretien(id_responsable)
 );
 
-CREATE TABLE IF NOT EXISTS jour_ferie (
+CREATE TABLE  jour_ferie (
     id_jour_ferie SERIAL PRIMARY KEY,
     date DATE
 );
 
-CREATE TABLE IF NOT EXISTS config_entretien (
+CREATE TABLE  config_entretien (
     id_config_entretien SERIAL PRIMARY KEY,
     id_departement INT,
     duree_entretien VARCHAR,
@@ -505,12 +505,12 @@ CREATE TABLE IF NOT EXISTS config_entretien (
 );
 
 
-CREATE TABLE IF NOT EXISTS evenements (
+CREATE TABLE  evenements (
     id_evenement SERIAL PRIMARY KEY,
     nom_evenement VARCHAR
 );
 
-CREATE TABLE IF NOT EXISTS historique_mobilite (
+CREATE TABLE  historique_mobilite (
     id_mobilite SERIAL PRIMARY KEY,
     id_candidat INT,
     id_evenement INT,
@@ -524,7 +524,7 @@ CREATE TABLE IF NOT EXISTS historique_mobilite (
     CONSTRAINT fk_historique_mobilite_departement FOREIGN KEY (id_departement) REFERENCES departements(id_departement)
 );
 
-CREATE TABLE IF NOT EXISTS conge_historique (
+CREATE TABLE  conge_historique (
     id_conge_historique SERIAL PRIMARY KEY,
     nombres_abscence_attribue DOUBLE PRECISION,
     id_employe INT,
@@ -532,13 +532,13 @@ CREATE TABLE IF NOT EXISTS conge_historique (
 );
 
 
-CREATE TABLE IF NOT EXISTS seuil_tolerance (
+CREATE TABLE  seuil_tolerance (
     id_seuil SERIAL PRIMARY KEY,
     valeur NUMERIC(5,2) DEFAULT 5,
     date_creation TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE TABLE IF NOT EXISTS salaire_historique (
+CREATE TABLE  salaire_historique (
     id_salaire_historique SERIAL PRIMARY KEY,
     salaire DOUBLE PRECISION,
     date_creation TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -547,7 +547,7 @@ CREATE TABLE IF NOT EXISTS salaire_historique (
 );
 
 
-CREATE TABLE IF NOT EXISTS essais (
+CREATE TABLE  essais (
     id_essai SERIAL PRIMARY KEY,
     id_personne INT,
     id_contrat INT,
@@ -559,7 +559,7 @@ CREATE TABLE IF NOT EXISTS essais (
     CONSTRAINT fk_essais_etat FOREIGN KEY (id_etat) REFERENCES etat(id_etat)
 );
 
-CREATE TABLE IF NOT EXISTS notifications (
+CREATE TABLE  notifications (
     id_notification SERIAL PRIMARY KEY,
     id_personne INT,
     message TEXT,
@@ -575,14 +575,14 @@ CREATE TABLE IF NOT EXISTS notifications (
 -- Table des types de compétences
 
 -- Table des sources d'évauation
-CREATE TABLE IF NOT EXISTS source_evaluation (
+CREATE TABLE  source_evaluation (
     id_source SERIAL PRIMARY KEY,
     libelle VARCHAR(100) NOT NULL,
     description TEXT
 );
 
 -- Table de référence pour les libellés des niveaux
-CREATE TABLE IF NOT EXISTS niveau_competence_libelle (
+CREATE TABLE  niveau_competence_libelle (
     niveau INT PRIMARY KEY,
     libelle VARCHAR(50) NOT NULL,
     description TEXT,
@@ -604,7 +604,7 @@ ON CONFLICT (niveau) DO UPDATE SET
 
 
 -- Table d'historique des compétences
-CREATE TABLE IF NOT EXISTS competences_historique (
+CREATE TABLE  competences_historique (
     id_historique SERIAL PRIMARY KEY,
     id_competence INT NOT NULL,
     nom VARCHAR(255) NOT NULL,
@@ -618,7 +618,7 @@ CREATE TABLE IF NOT EXISTS competences_historique (
 );
 
 -- Table de liaison employé-compétence
-CREATE TABLE IF NOT EXISTS employe_competences (
+CREATE TABLE  employe_competences (
     id SERIAL PRIMARY KEY,
     id_employe INT NOT NULL REFERENCES employes(id_employe) ON DELETE CASCADE,
     id_competence INT NOT NULL REFERENCES competences(id_competence) ON DELETE CASCADE,
@@ -635,7 +635,7 @@ CREATE TABLE IF NOT EXISTS employe_competences (
 );
 
 -- Table d'historique des compétences employés
-CREATE TABLE IF NOT EXISTS employe_competences_historique (
+CREATE TABLE  employe_competences_historique (
     id_historique SERIAL PRIMARY KEY,
     id_liaison INT NOT NULL,
     id_employe INT NOT NULL,
@@ -1043,7 +1043,7 @@ CREATE TABLE manager_employes (
     manager_id INT REFERENCES employes(id_employe),
     employe_id INT REFERENCES employes(id_employe)
 );
-CREATE TABLE IF NOT EXISTS managers (
+CREATE TABLE  managers (
     id_manager SERIAL PRIMARY KEY,
     employe_id INT NOT NULL REFERENCES employes(id_employe),
     date_nomination DATE DEFAULT CURRENT_DATE
@@ -1067,5 +1067,5 @@ ADD CONSTRAINT fk_historique_mobilite_employe
 FOREIGN KEY (id_employe) REFERENCES employes(id_employe);
 
 ALTER TABLE contrats 
-ADD COLUMN IF NOT EXISTS date_debut DATE,
-ADD COLUMN IF NOT EXISTS date_fin   DATE;
+ADD COLUMN  date_debut DATE,
+ADD COLUMN  date_fin   DATE;
