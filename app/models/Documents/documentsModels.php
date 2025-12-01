@@ -13,11 +13,9 @@ class documentsModels
 
     public static function creerDossierCompletEmploye($id_employe): array
     {
-        // Chemin absolu depuis la racine du serveur
-        $basePath = $_SERVER['DOCUMENT_ROOT'] . '/Documents';
-        
-        // OU en utilisant une constante définie dans votre bootstrap
-        // $basePath = PUBLIC_PATH . '/Documents';
+        // === 1. Chemin relatif depuis le dossier models vers public/Documents ===
+        // models/Documents -> models -> app -> racine -> public -> Documents
+        $basePath = dirname(__DIR__, 3) . '/public/Documents';
         
 
         // === 2. Création du répertoire de base s'il n'existe pas ===

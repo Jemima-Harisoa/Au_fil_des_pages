@@ -58,7 +58,8 @@ if (isset($_GET['creer']) && is_numeric($_GET['creer'])) {
             <?php
                 $nomComplet = trim($emp['nom'] . ' ' . $emp['prenom']);
                 $dossierNom = $emp['nom'] . '_' . $emp['prenom'] . '_' . $emp['id_employe'];
-                $dossierChemin = __DIR__ . '/public/Documents/' . $dossierNom;
+                // Chemin relatif depuis views/Documents vers public/Documents
+                $dossierChemin = dirname(__DIR__, 2) . '/public/Documents/' . $dossierNom;
                 $dossierExiste = is_dir($dossierChemin);
             ?>
             <div class="bg-white rounded-2xl shadow-xl overflow-hidden card-hover transition-all duration-300 <?= $dossierExiste ? 'ring-4 ring-green-400' : '' ?>">
@@ -121,7 +122,10 @@ if (isset($_GET['creer']) && is_numeric($_GET['creer'])) {
         <p class="text-gray-600">
             <strong>Chemin de stockage :</strong><br>
             <code class="text-sm bg-gray-800 text-white px-4 py-2 rounded mt-2 inline-block">
-                <?= htmlspecialchars(realpath(__DIR__ . '/public/Documents/')) ?>
+                <?php 
+                $publicPath = dirname(__DIR__, 2) . '/public/Documents';
+                echo htmlspecialchars(realpath($publicPath) ?: $publicPath); 
+                ?>
             </code>
         </p>
     </div>
