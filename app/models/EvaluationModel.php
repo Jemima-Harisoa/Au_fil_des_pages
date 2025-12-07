@@ -383,27 +383,26 @@ public function getEvaluationDetails($evaluationId) {
     }
 }
 
-
- public function getScoreTrends($managerId, $months = 6) {
+public function getScoreTrends($managerId, $months = 6) {
     $stmt = $this->db->prepare("
         SELECT 
             p.nom || ' ' || p.prenom AS employe,
             e.score_total,
-            EXTRACT(MONTH FROM e.date_evaluation) AS mois,
-            EXTRACT(YEAR FROM e.date_evaluation) AS annee
+            AVG(e.score_total) OVER (PARTITION BY e.employe_id) AS score_moyen,
+            EXTRACT(MONTH FROM e.date_evaluation)::INTEGER AS mois,
+            EXTRACT(YEAR FROM e.date_evaluation)::INTEGER AS annee
         FROM employe_evaluations e
         JOIN employes emp ON emp.id_employe = e.employe_id
         JOIN personnes p ON p.id_personne = emp.id_personne
         WHERE e.manager_id = ?
           AND e.statut = 'TERMINEE'
-          AND e.date_evaluation >= CURRENT_DATE - (? || ' months')::INTERVAL
+          AND e.date_evaluation >= CURRENT_DATE - INTERVAL '$months months'
         ORDER BY annee, mois, employe
     ");
     
-    $stmt->execute([$managerId, $months]);
+    $stmt->execute([$managerId]);
     return $stmt->fetchAll(PDO::FETCH_ASSOC);
 }
-
 
 
     public function getTeamUrgentEvaluations($managerId) {

@@ -93,7 +93,7 @@ public static function saveNotes($id) {
         Flight::json([
             'success' => true,
             'message' => 'Notes enregistrées avec succès',
-            'redirect' => "/evaluations/$id/saisie" // URL plus explicite
+            'redirect' => "/evaluation/$id/saisie" // URL plus explicite
         ]);
     } else {
         error_log("=== ERREUR SAUVEGARDE ===");

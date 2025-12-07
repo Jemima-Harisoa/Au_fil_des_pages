@@ -1069,3 +1069,5 @@ FOREIGN KEY (id_employe) REFERENCES employes(id_employe);
 ALTER TABLE contrats 
 ADD COLUMN  date_debut DATE,
 ADD COLUMN  date_fin   DATE;
+
+--\i C:/xampp/htdocs/Au_fil_des_pages/Au_fil_des_pages/sql/SCRIPTERH2.sql

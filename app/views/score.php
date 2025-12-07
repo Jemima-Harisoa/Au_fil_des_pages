@@ -56,7 +56,8 @@
             background-color: #f5f5f5;
         }
         .chart-container {
-            max-width: 600px;
+            max-width: 900px;
+            height: 600px;
             margin: 40px auto;
             padding: 20px;
         }
@@ -136,62 +137,100 @@
     </div>
 
     <script>
-        // Configuration du graphique radar
+        // Configuration du graphique radar avec données réelles
         document.addEventListener('DOMContentLoaded', function() {
             var ctx = document.getElementById('radarChart').getContext('2d');
             
-            // Préparation des données depuis PHP
+            // Préparation des labels (noms des critères)
             var labels = [
-                <?php foreach ($details as $d): ?>
-                    "<?= addslashes($d['critere'] ?? 'Critère') ?>",
-                <?php endforeach; ?>
+                <?php 
+                $labelArray = [];
+                foreach ($details as $d) {
+                    $labelArray[] = '"' . addslashes($d['critere'] ?? 'Critère') . '"';
+                }
+                echo implode(',', $labelArray);
+                ?>
             ];
             
-            var data = [
-                <?php foreach ($details as $d): ?>
-                    <?= $d['score_calcule'] ?? 0 ?>,
-                <?php endforeach; ?>
+            // Préparation des notes (valeurs sur 10)
+            var notes = [
+                <?php 
+                $noteArray = [];
+                foreach ($details as $d) {
+                    $noteArray[] = floatval($d['note'] ?? 0);
+                }
+                echo implode(',', $noteArray);
+                ?>
             ];
 
-            // Création du graphique
+            // Création du graphique radar
             new Chart(ctx, {
                 type: 'radar',
                 data: {
                     labels: labels,
                     datasets: [{
-                        label: 'Performance',
-                        data: data,
-                        backgroundColor: 'rgba(54, 162, 235, 0.2)',
-                        borderColor: 'rgba(54, 162, 235, 1)',
+                        label: 'Note sur 10',
+                        data: notes,
+                        backgroundColor: 'rgba(102, 126, 234, 0.2)',
+                        borderColor: 'rgba(102, 126, 234, 1)',
                         borderWidth: 2,
-                        pointBackgroundColor: 'rgba(54, 162, 235, 1)',
+                        pointBackgroundColor: 'rgba(102, 126, 234, 1)',
                         pointBorderColor: '#fff',
                         pointHoverBackgroundColor: '#fff',
-                        pointHoverBorderColor: 'rgba(54, 162, 235, 1)'
+                        pointHoverBorderColor: 'rgba(102, 126, 234, 1)',
+                        pointRadius: 5,
+                        pointHoverRadius: 7
                     }]
                 },
                 options: {
                     responsive: true,
-                    maintainAspectRatio: false,
+                    maintainAspectRatio: true,
                     scales: {
                         r: {
                             angleLines: {
-                                display: true
+                                display: true,
+                                color: 'rgba(0, 0, 0, 0.1)'
                             },
-                            suggestedMin: 0,
-                            suggestedMax: 10,
+                            grid: {
+                                color: 'rgba(0, 0, 0, 0.1)'
+                            },
+                            pointLabels: {
+                                font: {
+                                    size: 12
+                                }
+                            },
+                            min: 0,
+                            max: 10,
                             ticks: {
-                                stepSize: 2
+                                stepSize: 2,
+                                backdropColor: 'transparent'
                             }
                         }
                     },
                     plugins: {
                         legend: {
                             position: 'top',
+                            labels: {
+                                font: {
+                                    size: 14
+                                }
+                            }
                         },
                         title: {
                             display: true,
-                            text: 'Profil de performance par critère'
+                            text: 'Profil de performance par critère',
+                            font: {
+                                size: 16,
+                                weight: 'bold'
+                            },
+                            padding: 20
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return 'Note: ' + context.parsed.r + '/10';
+                                }
+                            }
                         }
                     }
                 }

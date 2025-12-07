@@ -481,4 +481,4 @@ INSERT INTO abscence_conge_suivi (id_demande, id_abscence, id_type, id_employe, 
 -- FIN DES DONNÉES
 
 SELECT 'Données insérées avec succès!' AS message;
-
+--\i C:/xampp/htdocs/Au_fil_des_pages/Au_fil_des_pages/sql/DonneesTenaIzy.sql

@@ -104,7 +104,7 @@
             border-radius: 8px;
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
             margin: 40px 0;
-            height: 400px;
+            height: 450px;
         }
         .no-data {
             text-align: center;
@@ -133,6 +133,9 @@
             }
             .header h2 {
                 font-size: 1.8rem;
+            }
+            .chart-container {
+                height: 350px;
             }
         }
     </style>
@@ -217,7 +220,7 @@
                                     <strong><?= number_format($score, 1) ?>%</strong>
                                     <br>
                                     <small style="color: #7f8c8d;">
-                                        (<?= number_format($score / 10, 1) ?>/10)
+                                        (<?= number_format($score / 10, 1) ?>/100)
                                     </small>
                                 </td>
                                 <td>
@@ -255,20 +258,29 @@
         document.addEventListener('DOMContentLoaded', function() {
             var ctx = document.getElementById('lineChart').getContext('2d');
             
-            // Préparation des données
+            // Préparation des labels (dates)
             var labels = [
-                <?php foreach ($evaluations as $e): ?>
-                    "<?= date('d/m/Y', strtotime($e['date_evaluation'])) ?>",
-                <?php endforeach; ?>
+                <?php 
+                $labelArray = [];
+                foreach ($evaluations as $e) {
+                    $labelArray[] = '"' . date('d/m/Y', strtotime($e['date_evaluation'])) . '"';
+                }
+                echo implode(',', $labelArray);
+                ?>
             ];
             
+            // Préparation des données (scores)
             var data = [
-                <?php foreach ($evaluations as $e): ?>
-                    <?= number_format($e['score_total'], 1) ?>,
-                <?php endforeach; ?>
+                <?php 
+                $dataArray = [];
+                foreach ($evaluations as $e) {
+                    $dataArray[] = floatval($e['score_total']);
+                }
+                echo implode(',', $dataArray);
+                ?>
             ];
 
-            // Création du graphique
+            // Création du graphique ligne
             new Chart(ctx, {
                 type: 'line',
                 data: {
@@ -276,16 +288,18 @@
                     datasets: [{
                         label: 'Évolution des scores (%)',
                         data: data,
-                        borderColor: '#3498db',
-                        backgroundColor: 'rgba(52, 152, 219, 0.1)',
+                        borderColor: '#667eea',
+                        backgroundColor: 'rgba(102, 126, 234, 0.1)',
                         borderWidth: 3,
                         fill: true,
                         tension: 0.4,
-                        pointBackgroundColor: '#3498db',
+                        pointBackgroundColor: '#667eea',
                         pointBorderColor: '#ffffff',
-                        pointBorderWidth: 2,
+                        pointBorderWidth: 3,
                         pointRadius: 6,
-                        pointHoverRadius: 8
+                        pointHoverRadius: 9,
+                        pointHoverBackgroundColor: '#764ba2',
+                        pointHoverBorderWidth: 3
                     }]
                 },
                 options: {
@@ -294,18 +308,38 @@
                     plugins: {
                         legend: {
                             position: 'top',
+                            labels: {
+                                font: {
+                                    size: 14,
+                                    weight: 'bold'
+                                },
+                                padding: 15
+                            }
                         },
                         title: {
                             display: true,
-                            text: 'Progression des performances',
+                            text: 'Progression des performances dans le temps',
                             font: {
-                                size: 16
+                                size: 18,
+                                weight: 'bold'
+                            },
+                            padding: {
+                                top: 10,
+                                bottom: 20
                             }
                         },
                         tooltip: {
+                            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                            padding: 12,
+                            titleFont: {
+                                size: 14
+                            },
+                            bodyFont: {
+                                size: 13
+                            },
                             callbacks: {
                                 label: function(context) {
-                                    return 'Score: ' + context.parsed.y + '%';
+                                    return 'Score: ' + context.parsed.y.toFixed(1) + '%';
                                 }
                             }
                         }
@@ -316,20 +350,49 @@
                             max: 100,
                             title: {
                                 display: true,
-                                text: 'Score (%)'
+                                text: 'Score (%)',
+                                font: {
+                                    size: 14,
+                                    weight: 'bold'
+                                }
                             },
                             ticks: {
+                                stepSize: 10,
                                 callback: function(value) {
                                     return value + '%';
+                                },
+                                font: {
+                                    size: 12
                                 }
+                            },
+                            grid: {
+                                color: 'rgba(0, 0, 0, 0.05)'
                             }
                         },
                         x: {
                             title: {
                                 display: true,
-                                text: 'Dates d\'évaluation'
+                                text: 'Dates d\'évaluation',
+                                font: {
+                                    size: 14,
+                                    weight: 'bold'
+                                }
+                            },
+                            ticks: {
+                                font: {
+                                    size: 11
+                                },
+                                maxRotation: 45,
+                                minRotation: 45
+                            },
+                            grid: {
+                                display: false
                             }
                         }
+                    },
+                    interaction: {
+                        intersect: false,
+                        mode: 'index'
                     }
                 }
             });
