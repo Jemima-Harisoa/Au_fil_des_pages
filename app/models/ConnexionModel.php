@@ -126,6 +126,27 @@ class ConnexionModel {
         return $Departement; 
     }
 
+    public function getIdEmployeAdmin($idAdmin)
+{
+    $stmt = $this->db->prepare("
+        SELECT id_employe 
+        FROM admins
+        WHERE id_admin = :id_admin
+        LIMIT 1
+    ");
+
+    $stmt->execute(['id_admin' => $idAdmin]);
+
+    $idEmploye = $stmt->fetchColumn(); // <-- correct
+
+    if ($idEmploye === false) {
+        return null;
+    }
+
+    return (int) $idEmploye;
+}
+
+
     public function deconnexion()
 {
     // On démarre la session si elle n'est pas déjà active

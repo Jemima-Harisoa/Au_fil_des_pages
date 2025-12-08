@@ -152,7 +152,7 @@ class ConnexionController {
         $idGestion = 1;
         $p = new ConnexionModel(Flight::db());
         $AdminModel = new AdminModel(Flight::db());
-
+        $employeModel = new EmployeModel(Flight::db());
         $messagerieModel = new MessagerieModel(Flight::db());
 
 
@@ -172,17 +172,41 @@ class ConnexionController {
 
             // if($_SESSION['departement']['id_departement'] ==  $idGestion  )
             // {
-                Flight::render('accueilG',null);    
+    
             // }
             // else{
             //     Flight::render('accueilA',null);
             // }
 
+        $idEmploye =$p->getIdEmployeAdmin($_SESSION['admin']['id_admin']);  
+       
+        if ($idEmploye) {
+
+            // ---- 🔹 Récupérer les infos de l'employé ----
+            $_SESSION['employe'] = $employeModel->getInfosEmploye($idEmploye);
+
+            // ---- 🔹 Processus de pointage ----
+            if (!isset($_SESSION['pointage_en_cours'])) {
+                $dernierPointage = $pointageModel->getDernierPointage($idEmploye);
+
+                if (!$dernierPointage || $dernierPointage['deconnexion'] != null) {
+                    // Aucun pointage ouvert → créer une nouvelle ligne
+                    $pointageModel->ajouterPointage($idEmploye);
+                }
+
+                $_SESSION['pointage_en_cours'] = true; // marque que le pointage est ouvert
+            }
+
+            // ---- 🔹 Messagerie ----
+            $model = new \app\models\MessagerieModel();
+            $_SESSION['messagerie'] = $model->getTitresConversationsE($_SESSION['employe']['id_employe']);
+            $_SESSION['nbNonLus'] = $model->countNouveauxMessagesE($_SESSION['employe']['id_employe']);
+            
+            // ---- 🔹 Affichage accueil ----
+            Flight::render('accueilG', null);
+
         }
-        else {
-            $mess = "Verifier votre mot de passe ou votre nom d'utilisateur admin";
-            Flight::render('connexionA', ['mess' => $mess]);
-        }
+    }
     }
     
     public function deconnexion() {

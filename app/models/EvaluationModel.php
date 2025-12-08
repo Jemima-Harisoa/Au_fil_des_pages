@@ -396,7 +396,7 @@ public function getScoreTrends($managerId, $months = 6) {
         JOIN personnes p ON p.id_personne = emp.id_personne
         WHERE e.manager_id = ?
           AND e.statut = 'TERMINEE'
-          AND e.date_evaluation >= CURRENT_DATE - INTERVAL '$months months'
+          AND e.date_evaluation >= CURRENT_DATE - INTERVAL '6 months'
         ORDER BY annee, mois, employe
     ");
     
