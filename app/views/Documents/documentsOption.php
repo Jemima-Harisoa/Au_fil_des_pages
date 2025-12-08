@@ -125,6 +125,27 @@ if ($voirId) {
             transition: background-color 0.2s;
         }
         .dropdown-content a:hover { background-color: #f0f9ff; }
+        
+        /* Modale pour l'arborescence */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.7);
+        }
+        .modal.active { display: flex; align-items: center; justify-content: center; }
+        .modal-content {
+            background-color: white;
+            border-radius: 1rem;
+            max-width: 800px;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
     </style>
     <script>
         function toggleFolder(id) {
@@ -155,9 +176,84 @@ if ($voirId) {
             link.click();
             document.body.removeChild(link);
         }
+
+        // Afficher l'arborescence d'un dossier dans une modale
+        function afficherArborescenceDossier(chemin, nomDossier) {
+            fetch(`?action=arborescence&chemin=${encodeURIComponent(chemin)}`)
+                .then(r => r.json())
+                .then(data => {
+                    if (data.success) {
+                        ouvrirModalArborescence(data.arborescence, nomDossier);
+                    } else {
+                        alert('Impossible de charger l\'arborescence');
+                    }
+                })
+                .catch(err => console.error(err));
+        }
+
+        function ouvrirModalArborescence(arborescence, nomDossier) {
+            const modal = document.getElementById('modalArborescence');
+            const titre = document.getElementById('modalTitre');
+            const contenu = document.getElementById('modalContenu');
+            
+            titre.textContent = nomDossier;
+            contenu.innerHTML = genererHTML(arborescence);
+            modal.classList.add('active');
+        }
+
+        function fermerModal() {
+            document.getElementById('modalArborescence').classList.remove('active');
+        }
+
+        function genererHTML(items, niveau = 0) {
+            let html = '<ul class="space-y-1">';
+            items.forEach(item => {
+                if (item.type === 'dir') {
+                    html += `<li class="ml-${niveau * 4}">
+                        <div class="flex items-center gap-2 py-1 px-2 hover:bg-blue-50 rounded">
+                            <i class="fas fa-folder text-yellow-500"></i>
+                            <span class="font-medium">${item.name}</span>
+                            ${item.children ? `<span class="text-xs text-gray-500">(${item.children.length})</span>` : ''}
+                        </div>
+                        ${item.children ? genererHTML(item.children, niveau + 1) : ''}
+                    </li>`;
+                } else {
+                    const icons = {
+                        'pdf': 'fa-file-pdf text-red-600',
+                        'doc': 'fa-file-word text-blue-600',
+                        'docx': 'fa-file-word text-blue-600',
+                        'xls': 'fa-file-excel text-green-600',
+                        'xlsx': 'fa-file-excel text-green-600',
+                    };
+                    const iconClass = icons[item.ext] || 'fa-file text-gray-600';
+                    html += `<li class="ml-${niveau * 4}">
+                        <div class="flex items-center gap-2 py-1 px-2 hover:bg-blue-50 rounded">
+                            <i class="fas ${iconClass}"></i>
+                            <span>${item.name}</span>
+                            <span class="text-xs text-gray-500">${(item.size / 1024).toFixed(1)} Ko</span>
+                        </div>
+                    </li>`;
+                }
+            });
+            html += '</ul>';
+            return html;
+        }
     </script>
 </head>
 <body class="bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 min-h-screen py-12">
+
+<!-- Modale pour afficher l'arborescence -->
+<div id="modalArborescence" class="modal" onclick="if(event.target === this) fermerModal()">
+    <div class="modal-content p-8">
+        <div class="flex items-center justify-between mb-6">
+            <h3 id="modalTitre" class="text-2xl font-bold text-gray-800"></h3>
+            <button onclick="fermerModal()" class="text-gray-500 hover:text-gray-700">
+                <i class="fas fa-times text-2xl"></i>
+            </button>
+        </div>
+        <div id="modalContenu" class="text-sm"></div>
+    </div>
+</div>
 
 <div class="max-w-7xl mx-auto px-6">
 
@@ -209,13 +305,24 @@ if ($voirId) {
                                 $hasChildren = !empty($item['children']);
                     ?>
                         <div class="mb-1">
-                            <div class="tree-item flex items-center gap-2 py-2 px-3 rounded-lg hover:bg-blue-50" 
+                            <div class="tree-item flex items-center gap-2 py-2 px-3 rounded-lg hover:bg-blue-50 group" 
                                  <?= $hasChildren ? 'onclick="toggleFolder(\'' . $id . '\')"' : '' ?>>
                                 <i id="icon-<?= $id ?>" class="fas fa-folder text-yellow-500 file-icon"></i>
                                 <span class="font-medium text-gray-700"><?= htmlspecialchars($item['name']) ?></span>
                                 <?php if ($hasChildren): ?>
                                     <span class="text-xs text-gray-500 ml-2">(<?= count($item['children']) ?>)</span>
                                 <?php endif; ?>
+                                
+                                <!-- Bouton pour afficher l'arborescence du dossier -->
+                                <?php 
+                                $folderRealPath = $basePath . $item['path'];
+                                ?>
+                                <button onclick="afficherArborescenceDossier('<?= htmlspecialchars($folderRealPath) ?>', '<?= htmlspecialchars($item['name']) ?>')"
+                                        class="ml-auto px-3 py-1 bg-indigo-500 hover:bg-indigo-600 text-white text-xs rounded-lg transition opacity-0 group-hover:opacity-100"
+                                        title="Voir l'arborescence du dossier">
+                                    <i class="fas fa-sitemap mr-1"></i>
+                                    Arborescence
+                                </button>
                             </div>
                             <?php if ($hasChildren): ?>
                                 <div id="children-<?= $id ?>" class="tree-children">

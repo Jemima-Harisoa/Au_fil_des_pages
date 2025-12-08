@@ -141,22 +141,24 @@ class EmployeModel
     public static function contratEnAlerte(int $id_employe): bool
     {
         $db = Flight::db();
+        
+        // Version corrigée : lien direct employe -> contrat
         $sql = "
-        SELECT EXISTS (
-            SELECT 1 
-            FROM contrats c
-            JOIN candidats ca ON c.id_candidat = ca.id_candidat
-            JOIN employes e   ON ca.id_personne = e.id_personne
-            JOIN type_contrats tc ON c.id_type_contrat = tc.id_type_contrat
-            WHERE e.id_employe = :id_employe
-              AND c.date_fin IS NOT NULL
-              AND tc.nom != 'CDI'
-              AND c.date_fin <= CURRENT_DATE + INTERVAL '30 days'
-        )
-    ";
+            SELECT EXISTS (
+                SELECT 1 
+                FROM employes e
+                JOIN contrats c ON e.id_contrat = c.id_contrat
+                JOIN type_contrats tc ON c.id_type_contrat = tc.id_type_contrat
+                WHERE e.id_employe = :id_employe
+                  AND c.date_fin IS NOT NULL
+                  AND tc.nom != 'CDI'
+                  AND c.date_fin <= CURRENT_DATE + INTERVAL '30 days'
+            ) AS alerte
+        ";
+        
         $stmt = $db->prepare($sql);
         $stmt->execute([':id_employe' => $id_employe]);
-        return $stmt->fetchColumn(); // Directement true ou false
+        return (bool)$stmt->fetchColumn();
     }
     // 
 
@@ -890,7 +892,7 @@ class EmployeModel
                         tc.libelle as type_competence,
                         tc.id_type_competence
                     FROM competences c
-                    LEFT JOIN type_competence tc ON c.id_type_competence = tc.id_type_competence
+                    LEFT JOIN type_competence tc ON c.id_type_competence = tc.id_type_contrat
                     WHERE c.id_competence IN (
                         SELECT DISTINCT id_competence 
                         FROM employe_competences 
