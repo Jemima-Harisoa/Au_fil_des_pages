@@ -126,6 +126,20 @@ class ConnexionModel {
         return $Departement; 
     }
 
+    
+    public function getIdEmployeAdmin($idAdmin)
+    {
+        $idDepartement = null;
+
+        $stmt = $this->db->prepare(" select id_employe from admins  WHERE admins.id_admin= :id_admin ;");
+        $stmt->execute(['id_admin' => $idAdmin]);
+        $idEmploye = $stmt->fetch(PDO::FETCH_ASSOC);
+        if ($idEmploye === false) {
+            return null;
+        }
+        return $idEmploye; 
+    }
+
     public function deconnexion()
 {
     // On démarre la session si elle n'est pas déjà active

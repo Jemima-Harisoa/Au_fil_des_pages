@@ -14,15 +14,24 @@ $messages = $messages ?? [];
     <link href="/vendor/fontawesome-free/css/all.min.css" rel="stylesheet">
 </head>
 <body>
-    <?php require_once __DIR__ . '/headerE.php'; ?>
-    
+    <?php if(isset($_SESSION['admin'])) { ?>
+    <?php require_once __DIR__ . '/headerA.php'; ?>
+    <?php  } else {
+        ?> 
+    <?php require_once __DIR__ . '/headerE.php'; ?>    
+        <?php
+    } ?>
     <div class="container-fluid">
         <div class="card shadow mb-4">
             <div class="card-header py-3 d-flex justify-content-between align-items-center">
                 <h6 class="m-0 font-weight-bold text-primary">
                     Conversation avec <?= htmlspecialchars($partenairePrenom . ' ' . $partenaireNom) ?>
                 </h6>
+                <?php if(isset($_SESSION['admin'])) { ?>
+                      <a href="/accueilG" class="btn btn-secondary btn-sm">Retour</a>
+                    <?php  }  else { ?>
                 <a href="/accueilE" class="btn btn-secondary btn-sm">Retour</a>
+            <?php } ?>
             </div>
             
             <div class="card-body" style="height: 500px; overflow-y: auto;" id="messageContainer">
