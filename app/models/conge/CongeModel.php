@@ -878,11 +878,17 @@ class CongeModel {
     }
 
     /**
-     * Récupère les données brutes des congés par type pour un employé
+     * [CHATBOT] Récupère les données brutes des congés par type pour un employé
+     * Utile pour : Questions sur les congés, soldes, jours pris/restants
+     * 
      * @param int $idEmploye ID de l'employé
-     * @return array Données des congés
+     * @return array Tableau avec : type_conge, description, jours_pris, jours_totaux, jours_restants
+     * 
+     * Questions supportées :
+     * - "Combien de congés me reste-t-il ?"
+     * - "Quels types de congés ai-je ?"
+     * - "Combien de jours de congé j'ai pris ?"
      */
-
     public function getDonneesConges($idEmploye) {
         $sql = "
             SELECT 
@@ -928,9 +934,16 @@ class CongeModel {
     }
 
     /**
-     * Génère le HTML pour la section des congés par type
+     * [CHATBOT] Génère les informations détaillées sur les congés par type
+     * Utile pour : Affichage du solde de congés avec détails par type
+     * 
      * @param int $idEmploye ID de l'employé
-     * @return string HTML formaté de la section congés
+     * @return array Données formatées avec pourcentages, couleurs, icônes pour chaque type
+     * 
+     * Questions supportées :
+     * - "Mon solde de congés ?"
+     * - "Combien de congés annuels me reste-t-il ?"
+     * - "Mes congés disponibles ?"
      */
     public function getNombreConge($idEmploye) {
         $conges = $this->getDonneesCongesParType($idEmploye);
