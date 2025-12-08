@@ -152,7 +152,7 @@ class ConnexionController {
         $idGestion = 1;
         $p = new ConnexionModel(Flight::db());
         $AdminModel = new AdminModel(Flight::db());
-
+        $employeModel = new EmployeModel(Flight::db());
         $messagerieModel = new MessagerieModel(Flight::db());
 
 
@@ -178,8 +178,8 @@ class ConnexionController {
             //     Flight::render('accueilA',null);
             // }
 
-            $idEmploye =$p->getIdEmployeAdmin($_SESSION['admin']['id_admin']);  
-            
+        $idEmploye =$p->getIdEmployeAdmin($_SESSION['admin']['id_admin']);  
+        echo $idEmploye ;
         if ($idEmploye) {
 
             // ---- 🔹 Récupérer les infos de l'employé ----
@@ -205,7 +205,8 @@ class ConnexionController {
             // ---- 🔹 Affichage accueil ----
             Flight::render('accueilG', null);
 
-        }}
+        }
+    }
     }
     
     public function deconnexion() {

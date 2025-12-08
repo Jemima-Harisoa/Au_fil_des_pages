@@ -126,19 +126,26 @@ class ConnexionModel {
         return $Departement; 
     }
 
-    
     public function getIdEmployeAdmin($idAdmin)
-    {
-        $idDepartement = null;
+{
+    $stmt = $this->db->prepare("
+        SELECT id_employe 
+        FROM admins
+        WHERE id_admin = :id_admin
+        LIMIT 1
+    ");
 
-        $stmt = $this->db->prepare(" select id_employe from admins  WHERE admins.id_admin= :id_admin ;");
-        $stmt->execute(['id_admin' => $idAdmin]);
-        $idEmploye = $stmt->fetch(PDO::FETCH_ASSOC);
-        if ($idEmploye === false) {
-            return null;
-        }
-        return $idEmploye; 
+    $stmt->execute(['id_admin' => $idAdmin]);
+
+    $idEmploye = $stmt->fetchColumn(); // <-- correct
+
+    if ($idEmploye === false) {
+        return null;
     }
+
+    return (int) $idEmploye;
+}
+
 
     public function deconnexion()
 {
