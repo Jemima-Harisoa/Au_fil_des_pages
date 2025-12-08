@@ -13,12 +13,9 @@ class documentsModels
 
     public static function creerDossierCompletEmploye($id_employe): array
     {
-        // Chemin absolu depuis la racine du serveur
-        $basePath = $_SERVER['DOCUMENT_ROOT'] . '/Documents';
-        
-        // OU en utilisant une constante définie dans votre bootstrap
-        // $basePath = PUBLIC_PATH . '/Documents';
-        
+        // Chemin vers public/Documents (accessible via web)
+        $basePath = dirname(__DIR__, 3) . '/public/Documents';
+
 
         // === 2. Création du répertoire de base s'il n'existe pas ===
         if (!is_dir($basePath)) {
@@ -41,7 +38,7 @@ class documentsModels
             JOIN personnes p ON e.id_personne = p.id_personne
             WHERE e.id_employe = :id
             LIMIT 1
-        ";
+            ";
 
             $stmt = $db->prepare($sql);
             $stmt->execute([':id' => $id_employe]);
