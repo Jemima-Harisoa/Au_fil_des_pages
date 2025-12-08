@@ -12,7 +12,8 @@ Flight::map('db', function() {
     return new PDO(
         'pgsql:host=localhost;port=5432;dbname=aufildespages', // DSN PostgreSQL
         'postgres',        // ton user PostgreSQL
-        'manoa' // ton mot de passe PostgreSQL
+        'NouveauMotDePasse' // ton mot de passe PostgreSQL
+
     );
 });
 

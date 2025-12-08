@@ -418,19 +418,174 @@ VALUES
 
 -- Évaluations prévues pour plus tard en décembre
 (4, 2, '2025-11-30', '2025-12-10', 'PREVUE', 0.00, 1, '2025-11-30 08:00:00', '2025-11-30 08:00:00');
-
-
 INSERT INTO employe_evaluations_details (evaluation_id, critere_id, note, commentaire) VALUES
-(1, 1, 8.5, 'Code propre et bien documenté'),
-(1, 2, 9.0, 'Toujours dans les temps'),
-(1, 3, 7.5, NULL),
-(1, 4, 9.5, 'Très bonne ambiance'),
-(1, 5, 8.0, 'Propose régulièrement des améliorations'),
-(2, 1, 7.5, 'Travail correct, quelques oublis'),
-(2, 2, 8.0, 'Respect des délais satisfaisant'),
-(2, 3, 7.0, NULL),
-(2, 4, 8.5, 'Bonne collaboration'),
-(2, 5, 7.5, 'Suggestions pertinentes');
+(1, 1, 9, NULL),
+(1, 2, 8, NULL),
+(1, 3, 8, NULL),
+(1, 4, 7, NULL),
+(1, 5, 7, NULL),
+
+(2, 1, 8, NULL),
+(2, 2, 7, NULL),
+(2, 3, 7, NULL),
+(2, 4, 7, NULL),
+(2, 5, 6, NULL),
+
+(3, 1, 7, NULL),
+(3, 2, 6, NULL),
+(3, 3, 6, NULL),
+(3, 4, 6, NULL),
+(3, 5, 5, NULL),
+
+(4, 1, 7, NULL),
+(4, 2, 7, NULL),
+(4, 3, 7, NULL),
+(4, 4, 6, NULL),
+(4, 5, 6, NULL),
+
+(5, 1, 6, NULL),
+(5, 2, 5, NULL),
+(5, 3, 5, NULL),
+(5, 4, 5, NULL),
+(5, 5, 4, NULL),
+
+(6, 1, 9, NULL),
+(6, 2, 8, NULL),
+(6, 3, 8, NULL),
+(6, 4, 8, NULL),
+(6, 5, 7, NULL),
+
+(7, 1, 8, NULL),
+(7, 2, 7, NULL),
+(7, 3, 7, NULL),
+(7, 4, 7, NULL),
+(7, 5, 6, NULL),
+
+(8, 1, 7, NULL),
+(8, 2, 6, NULL),
+(8, 3, 6, NULL),
+(8, 4, 6, NULL),
+(8, 5, 5, NULL),
+
+(9, 1, 8, NULL),
+(9, 2, 7, NULL),
+(9, 3, 7, NULL),
+(9, 4, 7, NULL),
+(9, 5, 6, NULL),
+
+(10, 1, 6, NULL),
+(10, 2, 5, NULL),
+(10, 3, 5, NULL),
+(10, 4, 5, NULL),
+(10, 5, 4, NULL),
+
+(11, 1, 9, NULL),
+(11, 2, 8, NULL),
+(11, 3, 8, NULL),
+(11, 4, 8, NULL),
+(11, 5, 7, NULL),
+
+(12, 1, 8, NULL),
+(12, 2, 8, NULL),
+(12, 3, 7, NULL),
+(12, 4, 7, NULL),
+(12, 5, 6, NULL),
+
+(13, 1, 7, NULL),
+(13, 2, 6, NULL),
+(13, 3, 6, NULL),
+(13, 4, 6, NULL),
+(13, 5, 5, NULL),
+
+(14, 1, 8, NULL),
+(14, 2, 7, NULL),
+(14, 3, 7, NULL),
+(14, 4, 7, NULL),
+(14, 5, 6, NULL),
+
+(15, 1, 6, NULL),
+(15, 2, 5, NULL),
+(15, 3, 5, NULL),
+(15, 4, 5, NULL),
+(15, 5, 4, NULL),
+
+(16, 1, 9, NULL),
+(16, 2, 9, NULL),
+(16, 3, 8, NULL),
+(16, 4, 8, NULL),
+(16, 5, 7, NULL),
+
+(17, 1, 8, NULL),
+(17, 2, 8, NULL),
+(17, 3, 7, NULL),
+(17, 4, 7, NULL),
+(17, 5, 7, NULL),
+
+(18, 1, 7, NULL),
+(18, 2, 6, NULL),
+(18, 3, 6, NULL),
+(18, 4, 6, NULL),
+(18, 5, 5, NULL),
+
+(19, 1, 8, NULL),
+(19, 2, 7, NULL),
+(19, 3, 7, NULL),
+(19, 4, 7, NULL),
+(19, 5, 6, NULL),
+
+(20, 1, 6, NULL),
+(20, 2, 6, NULL),
+(20, 3, 5, NULL),
+(20, 4, 5, NULL),
+(20, 5, 5, NULL),
+
+(21, 1, 9, NULL),
+(21, 2, 9, NULL),
+(21, 3, 8, NULL),
+(21, 4, 8, NULL),
+(21, 5, 8, NULL),
+
+(22, 1, 8, NULL),
+(22, 2, 8, NULL),
+(22, 3, 7, NULL),
+(22, 4, 8, NULL),
+(22, 5, 7, NULL),
+
+(23, 1, 7, NULL),
+(23, 2, 6, NULL),
+(23, 3, 6, NULL),
+(23, 4, 6, NULL),
+(23, 5, 5, NULL),
+
+(24, 1, 8, NULL),
+(24, 2, 8, NULL),
+(24, 3, 7, NULL),
+(24, 4, 7, NULL),
+(24, 5, 7, NULL),
+
+(25, 1, 7, NULL),
+(25, 2, 6, NULL),
+(25, 3, 6, NULL),
+(25, 4, 6, NULL),
+(25, 5, 5, NULL),
+
+(26, 1, 9, NULL),
+(26, 2, 9, NULL),
+(26, 3, 9, NULL),
+(26, 4, 8, NULL),
+(26, 5, 8, NULL),
+
+(27, 1, 8, NULL),
+(27, 2, 8, NULL),
+(27, 3, 8, NULL),
+(27, 4, 7, NULL),
+(27, 5, 7, NULL),
+
+(28, 1, 7, NULL),
+(28, 2, 6, NULL),
+(28, 3, 6, NULL),
+(28, 4, 6, NULL),
+(28, 5, 5, NULL);
 
 
 
