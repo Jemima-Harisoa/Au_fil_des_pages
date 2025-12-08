@@ -1,5 +1,5 @@
 <?php include "headerA.php"; ?>
-<?php/*
+<?php /*
 // === Données de test ===
 $annee = 2025;
 $employeNom = "Jean Rakoto";
@@ -134,7 +134,7 @@ $comparison = [
 
   <!-- Tableau détaillé -->
   <div class="chart-section">
-    <h2>📋 Détails des Évaluations</h2>
+    <h2>Détails des Évaluations</h2>
     <table>
       <thead>
         <tr>
