@@ -20,6 +20,8 @@ class ChatbotModel
         $this->registerModel('pointage', new PointageModel($this->db));
         $this->registerModel('departement', new DepartementModel());
         $this->registerModel('conge', new \app\models\conge\CongeModel($this->db));
+        $this->registerModel('evaluation', new \app\models\EvaluationModel($this->db));
+        $this->registerModel('evaluation', new \app\models\EvaluationModel($this->db));
         
         // Analyser automatiquement les méthodes disponibles
         $this->buildModelSchemas();
