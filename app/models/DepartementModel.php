@@ -35,6 +35,7 @@ class DepartementModel {
     }
 
     // --- Méthodes BDD ---
+    // [CHATBOT] Liste tous les départements - Questions: "Quels départements?", "Liste des services?"
     public function list(): array {
         $sql = "SELECT * FROM departements";
         $stmt = $this->db->query($sql);

@@ -1,2 +1,15 @@
-app/config/config.php
-api.env
+# Ignore application config with credentials
+/app/config/config.php
+
+# Uploads and generated content
+/uploads/
+/app/log/
+
+# Dependencies / tools
+/vendor/
+/node_modules/
+
+# Env and OS files
+.env
+.DS_Store
+Thumbs.db
