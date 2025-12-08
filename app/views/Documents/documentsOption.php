@@ -12,8 +12,10 @@ $message = null;
 $dossierActif = null;
 $arborescenceComplete = [];
 
-// Chemin de base identique à celui du model
-$basePath = $_SERVER['DOCUMENT_ROOT'] . '/Documents';
+// Chemin de base : MÊME que dans le model
+$basePath = dirname(__DIR__, 2) . '/public/Documents';
+// Ancien chemin (pour compatibilité temporaire)
+$oldBasePath = $_SERVER['DOCUMENT_ROOT'] . '/Documents';
 
 // === 1. Création du dossier ===
 if ($creerId) {
@@ -69,6 +71,11 @@ if ($voirId) {
         if ($emp['id_employe'] == $voirId) {
             $dossierNom = $emp['nom'] . '_' . $emp['prenom'] . '_' . $emp['id_employe'];
             $dossierChemin = $basePath . '/' . $dossierNom;
+            
+            // Vérifier aussi l'ancien emplacement si pas trouvé dans le nouveau
+            if (!is_dir($dossierChemin)) {
+                $dossierChemin = $oldBasePath . '/' . $dossierNom;
+            }
 
             if (is_dir($dossierChemin)) {
                 $dossierActif = $emp;
@@ -134,58 +141,19 @@ if ($voirId) {
             }
         }
 
-        function ouvrirFichier(path) {
-            window.open('/Documents' + path, '_blank');
+        // Ouvrir le fichier dans le navigateur (pour visualiser)
+        function ouvrirFichier(webPath) {
+            window.open(webPath, '_blank');
         }
 
-        function telechargerFichier(path, filename) {
+        // Télécharger le fichier (sans l'ouvrir)
+        function telechargerFichier(webPath, filename) {
             const link = document.createElement('a');
-            link.href = '/Documents' + path;
+            link.href = webPath;
             link.download = filename;
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
-        }
-
-        // Fonction spéciale pour les PDF : télécharge automatiquement
-        function ouvrirPDF(path, filename) {
-            // Télécharge le PDF automatiquement
-            telechargerFichier(path, filename);
-            
-            // Affiche un message à l'utilisateur
-            const toast = document.createElement('div');
-            toast.className = 'fixed bottom-4 right-4 bg-blue-500 text-white px-6 py-3 rounded-lg shadow-lg z-50';
-            toast.innerHTML = '<i class="fas fa-download mr-2"></i>Téléchargement de ' + filename + '...';
-            document.body.appendChild(toast);
-            
-            setTimeout(() => {
-                toast.remove();
-            }, 3000);
-        }
-
-        // Fonction pour ouvrir avec un logiciel spécifique
-        function ouvrirAvecApplication(path, ext, filename) {
-            // Pour les PDF, on force le téléchargement
-            if (ext === 'pdf') {
-                ouvrirPDF(path, filename);
-                return;
-            }
-            
-            let protocol = '';
-            switch(ext) {
-                case 'doc':
-                case 'docx':
-                    protocol = 'ms-word:ofe|u|';
-                    break;
-                case 'xls':
-                case 'xlsx':
-                    protocol = 'ms-excel:ofe|u|';
-                    break;
-                default:
-                    telechargerFichier(path, filename);
-                    return;
-            }
-            window.location.href = protocol + window.location.origin + '/Documents' + path;
         }
     </script>
 </head>
@@ -232,7 +200,7 @@ if ($voirId) {
                     </div>
                     
                     <?php 
-                    function afficherArborescence($items, $niveau = 0, &$compteur = 0) {
+                    function afficherArborescence($items, $basePath, $niveau = 0, &$compteur = 0) {
                         foreach ($items as $item):
                             $compteur++;
                             $id = 'item-' . $compteur;
@@ -251,7 +219,7 @@ if ($voirId) {
                             </div>
                             <?php if ($hasChildren): ?>
                                 <div id="children-<?= $id ?>" class="tree-children">
-                                    <?php afficherArborescence($item['children'], $niveau + 1, $compteur); ?>
+                                    <?php afficherArborescence($item['children'], $basePath, $niveau + 1, $compteur); ?>
                                 </div>
                             <?php endif; ?>
                         </div>
@@ -274,6 +242,8 @@ if ($voirId) {
                                 $fileName = htmlspecialchars($item['name']);
                                 $fullServerPath = $basePath . $item['path'];
                                 $isPDF = $item['ext'] === 'pdf';
+                                $segments = explode('/', ltrim($item['path'], '/'));
+                                $webPath = '/Documents/' . implode('/', array_map('rawurlencode', $segments));
                     ?>
                         <div class="tree-item flex items-center gap-2 py-2 px-3 rounded-lg hover:bg-blue-50 mb-1 group">
                             <i class="fas <?= $iconClass ?> file-icon"></i>
@@ -282,28 +252,12 @@ if ($voirId) {
                             
                             <!-- Boutons d'action -->
                             <div class="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                                <?php if ($isPDF): ?>
-                                    <!-- Bouton spécial pour PDF -->
-                                    <button onclick="ouvrirPDF('<?= $filePath ?>', '<?= $fileName ?>')"
-                                            class="px-3 py-1 bg-red-500 hover:bg-red-600 text-white text-xs rounded-lg transition"
-                                            title="Télécharger et ouvrir avec Adobe Reader">
-                                        <i class="fas fa-file-pdf mr-1"></i>Ouvrir PDF
-                                    </button>
-                                <?php else: ?>
-                                    <!-- Bouton Ouvrir (navigateur) -->
-                                    <button onclick="ouvrirFichier('<?= $filePath ?>')"
-                                            class="px-3 py-1 bg-blue-500 hover:bg-blue-600 text-white text-xs rounded-lg transition"
-                                            title="Ouvrir dans le navigateur">
-                                        <i class="fas fa-eye mr-1"></i>Navigateur
-                                    </button>
-                                    
-                                    <!-- Bouton Ouvrir (application native) -->
-                                    <button onclick="ouvrirAvecApplication('<?= $filePath ?>', '<?= $item['ext'] ?>', '<?= $fileName ?>')"
-                                            class="px-3 py-1 bg-green-500 hover:bg-green-600 text-white text-xs rounded-lg transition"
-                                            title="Ouvrir avec l'application par défaut">
-                                        <i class="fas fa-desktop mr-1"></i>App
-                                    </button>
-                                <?php endif; ?>
+                                <!-- Bouton Ouvrir (tous types de fichiers) -->
+                                <button onclick="ouvrirFichier('<?= $webPath ?>')"
+                                        class="px-3 py-1 <?= $isPDF ? 'bg-red-500 hover:bg-red-600' : 'bg-blue-500 hover:bg-blue-600' ?> text-white text-xs rounded-lg transition"
+                                        title="Ouvrir dans le navigateur">
+                                    <i class="fas <?= $isPDF ? 'fa-file-pdf' : 'fa-eye' ?> mr-1"></i>Ouvrir
+                                </button>
                                 
                                 <!-- Menu déroulant "Plus d'options" -->
                                 <div class="dropdown">
@@ -312,24 +266,19 @@ if ($voirId) {
                                         <i class="fas fa-ellipsis-v"></i>
                                     </button>
                                     <div class="dropdown-content">
-                                        <?php if ($isPDF): ?>
-                                        <a href="/Documents<?= $filePath ?>" target="_blank">
-                                            <i class="fas fa-eye mr-2"></i>Voir dans le navigateur
-                                        </a>
-                                        <?php endif; ?>
-                                        <a href="#" onclick="event.preventDefault(); telechargerFichier('<?= $filePath ?>', '<?= $fileName ?>')">
+                                        <a href="#" onclick="event.preventDefault(); telechargerFichier('<?= $webPath ?>', '<?= $fileName ?>')">
                                             <i class="fas fa-download mr-2"></i>Télécharger
                                         </a>
                                         <a href="#" onclick="event.preventDefault(); navigator.clipboard.writeText('<?= $fullServerPath ?>')">
                                             <i class="fas fa-copy mr-2"></i>Copier le chemin
                                         </a>
                                         <?php if ($isPDF): ?>
-                                        <a href="https://docs.google.com/viewer?url=<?= urlencode('http://' . $_SERVER['HTTP_HOST'] . '/Documents' . $filePath) ?>" target="_blank">
+                                        <a href="https://docs.google.com/viewer?url=<?= urlencode('http://' . $_SERVER['HTTP_HOST'] . $webPath) ?>" target="_blank">
                                             <i class="fas fa-file-pdf mr-2"></i>Google PDF Viewer
                                         </a>
                                         <?php endif; ?>
                                         <?php if (in_array($item['ext'], ['doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx'])): ?>
-                                        <a href="https://view.officeapps.live.com/op/view.aspx?src=<?= urlencode('http://' . $_SERVER['HTTP_HOST'] . '/Documents' . $filePath) ?>" target="_blank">
+                                        <a href="https://view.officeapps.live.com/op/view.aspx?src=<?= urlencode('http://' . $_SERVER['HTTP_HOST'] . $webPath) ?>" target="_blank">
                                             <i class="fas fa-file-alt mr-2"></i>Office Online
                                         </a>
                                         <?php endif; ?>
@@ -342,7 +291,7 @@ if ($voirId) {
                         endforeach;
                     }
                     
-                    afficherArborescence($arborescenceComplete);
+                    afficherArborescence($arborescenceComplete, $basePath);
                     ?>
                 </div>
             <?php endif; ?>
@@ -355,7 +304,12 @@ if ($voirId) {
                 <?php
                     $dossierNom = $emp['nom'] . '_' . $emp['prenom'] . '_' . $emp['id_employe'];
                     $dossierChemin = $basePath . '/' . $dossierNom;
+                    
+                    // Vérifier aussi dans l'ancien emplacement
                     $dossierExiste = is_dir($dossierChemin);
+                    if (!$dossierExiste) {
+                        $dossierExiste = is_dir($oldBasePath . '/' . $dossierNom);
+                    }
                 ?>
                 <div class="bg-white rounded-2xl shadow-xl overflow-hidden card-hover transition-all duration-300 <?= $dossierExiste ? 'ring-4 ring-green-400' : '' ?>">
                     <div class="bg-gradient-to-r from-indigo-500 to-purple-600 p-6 text-white">
@@ -375,7 +329,10 @@ if ($voirId) {
                     <div class="p-6">
                         <div class="space-y-3 text-sm text-gray-600">
                             <div class="flex justify-between"><span>ID :</span> <strong>#<?= $emp['id_employe'] ?></strong></div>
-                            <div class="flex justify-between"><span>Dépt :</span> <strong><?= htmlspecialchars($emp['nom_departement'] ?? '—') ?></strong></div>
+                            <div class="flex justify-between">
+                                <span>Dépt :</span> 
+                                <strong><?= isset($emp['nom_departement']) ? htmlspecialchars($emp['nom_departement']) : (isset($emp['id_departement']) ? 'Dépt #' . $emp['id_departement'] : '—') ?></strong>
+                            </div>
                         </div>
 
                         <div class="mt-6 pt-6 border-t border-gray-200">
