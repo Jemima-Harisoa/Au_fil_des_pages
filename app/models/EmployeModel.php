@@ -105,6 +105,15 @@ class EmployeModel
     {
         $this->date_embauche = $date;
     }
+
+    public static function getAllPoste()
+    {
+        $db = Flight::db();
+        $sql = "SELECT nom FROM postes";
+        $stmt = $db->query($sql);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
     public static function getAllDepartements()
     {
         $db = Flight::db();
@@ -116,7 +125,7 @@ class EmployeModel
     public static function getJoinedEmployePersonnes()
     {
         $db = Flight::db();
-        
+
         $sql = "
             SELECT 
                 e.id_employe,
@@ -133,7 +142,7 @@ class EmployeModel
             LEFT JOIN departements d ON e.id_departement = d.id_departement
             ORDER BY p.nom, p.prenom
         ";
-        
+
         $stmt = $db->query($sql);
         return $stmt->fetchAll(\PDO::FETCH_ASSOC);
     }
@@ -141,7 +150,7 @@ class EmployeModel
     public static function contratEnAlerte(int $id_employe): bool
     {
         $db = Flight::db();
-        
+
         // Version corrigée : lien direct employe -> contrat
         $sql = "
             SELECT EXISTS (
@@ -155,7 +164,7 @@ class EmployeModel
                   AND c.date_fin <= CURRENT_DATE + INTERVAL '30 days'
             ) AS alerte
         ";
-        
+
         $stmt = $db->prepare($sql);
         $stmt->execute([':id_employe' => $id_employe]);
         return (bool)$stmt->fetchColumn();
@@ -298,8 +307,9 @@ class EmployeModel
 
     // [CHATBOT] Méthode pour récupérer les employés avec les informations liées
     // Questions supportées: "Liste des employés?", "Qui travaille où?", "Informations employés?"
-   public function listWithDetails(): array {
-    $sql = "SELECT e.id_employe,
+    public function listWithDetails(): array
+    {
+        $sql = "SELECT e.id_employe,
                    e.id_personne,
                    e.id_contrat,
                    e.id_departement,

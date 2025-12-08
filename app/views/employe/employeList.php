@@ -2,7 +2,13 @@
 
     use app\models\EmployeModel;
     // Les données sont déjà dans $data
-    // Ex: $data = EmployeModel::listeEmployerV2();
+    // $data[0] = liste des employés
+    // $data[1] = liste des départements
+    // $data[2] = liste des postes
+    
+    $employes = $data[0] ?? [];
+    $departements_db = $data[1] ?? [];
+    $postes_db = $data[2] ?? [];
 
     // Récupération des filtres GET
     $search = trim($_GET['search'] ?? '');
@@ -11,7 +17,7 @@
     $poste_filter = $_GET['poste'] ?? '';
 
     // 1. Filtrage
-    $filtered = array_filter($data, function($emp) use ($search, $departement_filter, $poste_filter) {
+    $filtered = array_filter($employes, function($emp) use ($search, $departement_filter, $poste_filter) {
         $in_search = empty($search) || 
             stripos($emp['nom'], $search) !== false || 
             stripos($emp['prenoms'], $search) !== false || 
@@ -31,10 +37,12 @@
         usort($filtered, fn($a, $b) => strcasecmp($b['nom'], $a['nom']));
     }
 
-    // 3. Listes uniques pour filtres
-    $departements = array_values(array_unique(array_filter(array_column($data, 'departement'))));
+    // 3. Liste des départements pour le filtre (depuis la BDD)
+    $departements = array_column($departements_db, 'nom');
     sort($departements);
-    $postes = array_values(array_unique(array_filter(array_column($data, 'poste'))));
+    
+    // 4. Liste des postes pour le filtre (depuis la BDD)
+    $postes = array_column($postes_db, 'nom');
     sort($postes);
 ?>
 
@@ -158,7 +166,7 @@
 
     <!-- Compteur -->
     <div class="mt-6 text-sm text-gray-600">
-        <strong><?= count($filtered) ?></strong> employé(s) affiché(s) sur <strong><?= count($data) ?></strong> au total.
+        <strong><?= count($filtered) ?></strong> employé(s) affiché(s) sur <strong><?= count($employes) ?></strong> au total.
         <?php if (!empty($filtered)): ?>
             <?php $alertes = array_filter($filtered, fn($e) => EmployeModel::contratEnAlerte($e['id_employe'])); ?>
             <?php if (count($alertes) > 0): ?>

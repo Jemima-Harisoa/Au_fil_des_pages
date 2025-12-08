@@ -75,7 +75,7 @@ $enAlerteContrat = !empty($data['id_employe']) && EmployeModel::contratEnAlerte(
 
         // Afficher l'arborescence d'un dossier dans une modale
         function afficherArborescenceDossier(chemin, nomDossier) {
-            fetch(`/Documents/documentsOption?action=arborescence&chemin=${encodeURIComponent(chemin)}`)
+            fetch(`?action=arborescence&chemin=${encodeURIComponent(chemin)}`)
                 .then(r => r.json())
                 .then(data => {
                     if (data.success) {
@@ -129,11 +129,20 @@ $enAlerteContrat = !empty($data['id_employe']) && EmployeModel::contratEnAlerte(
                         'png': 'fa-file-image text-purple-600',
                     };
                     const iconClass = icons[item.ext] || 'fa-file text-gray-600';
+                    const isPDF = item.ext === 'pdf';
+                    
                     html += `<li style="margin-left: ${marginLeft * 4}px;">
-                        <div class="flex items-center gap-2 py-1 px-2 hover:bg-blue-50 rounded">
+                        <div class="flex items-center gap-2 py-1 px-2 hover:bg-blue-50 rounded group">
                             <i class="fas ${iconClass}"></i>
-                            <span>${item.name}</span>
-                            <span class="text-xs text-gray-500 ml-auto">${(item.size / 1024).toFixed(1)} Ko</span>
+                            <span class="flex-1">${item.name}</span>
+                            <span class="text-xs text-gray-500">${(item.size / 1024).toFixed(1)} Ko</span>
+                            ${isPDF ? `
+                                <button onclick="window.open('${item.webPath}', '_blank')" 
+                                        class="ml-2 px-2 py-1 bg-red-500 hover:bg-red-600 text-white text-xs rounded transition opacity-0 group-hover:opacity-100"
+                                        title="Ouvrir le PDF">
+                                    <i class="fas fa-file-pdf"></i>
+                                </button>
+                            ` : ''}
                         </div>
                     </li>`;
                 }
@@ -181,15 +190,17 @@ $enAlerteContrat = !empty($data['id_employe']) && EmployeModel::contratEnAlerte(
                     </div>
                 </div>
                 <div class="flex flex-col gap-3">
-                    <a href="renouveler_contrat.php?id=<?= $data['id_employe'] ?>"
-                       class="bg-red-600 hover:bg-red-700 text-white font-bold text-lg px-8 py-4 rounded-xl shadow-lg transform hover:scale-105 transition flex items-center gap-3 pulse-alert">
+                    <button disabled
+                       class="bg-gray-400 text-white font-bold text-lg px-8 py-4 rounded-xl shadow-lg cursor-not-allowed opacity-50 flex items-center gap-3"
+                       title="Fonctionnalité désactivée">
                         <i class="fas fa-file-contract text-2xl"></i>
                         Renouveler le contrat maintenant
-                    </a>
-                    <a href="modifier_employe.php?id=<?= $data['id_employe'] ?>#contrat"
-                       class="text-red-700 underline hover:text-red-900 text-sm">
+                    </button>
+                    <button disabled
+                       class="text-gray-400 text-sm cursor-not-allowed"
+                       title="Fonctionnalité désactivée">
                         → Modifier les dates du contrat
-                    </a>
+                    </button>
                 </div>
             </div>
         </div>
@@ -285,17 +296,19 @@ $enAlerteContrat = !empty($data['id_employe']) && EmployeModel::contratEnAlerte(
 
                 <div class="flex justify-end mt-8 gap-4">
                     <?php if ($enAlerteContrat): ?>
-                        <a href="renouveler_contrat.php?id=<?= $data['id_employe'] ?>"
-                           class="bg-red-600 hover:bg-red-700 text-white font-bold px-8 py-4 rounded-xl shadow-lg transform hover:scale-105 transition flex items-center gap-3 pulse-alert">
+                        <button disabled
+                           class="bg-gray-400 text-white font-bold px-8 py-4 rounded-xl shadow-lg cursor-not-allowed opacity-50 flex items-center gap-3"
+                           title="Fonctionnalité désactivée">
                             <i class="fas fa-file-contract"></i>
                             Renouveler le contrat
-                        </a>
+                        </button>
                     <?php endif; ?>
-                    <a href="modifier_employe.php?id=<?= $data['id_employe'] ?? '' ?>"
-                       class="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transform hover:scale-105 transition">
+                    <button disabled
+                       class="inline-flex items-center gap-2 px-6 py-3 bg-gray-400 text-white font-semibold rounded-xl shadow-lg cursor-not-allowed opacity-50"
+                       title="Fonctionnalité désactivée">
                         <i class="fas fa-edit"></i>
                         Modifier la fiche
-                    </a>
+                    </button>
                 </div>
             </div>
         </div>
