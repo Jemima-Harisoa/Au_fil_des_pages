@@ -82,7 +82,11 @@ return [
         'user'     => 'postgres',
 <<<<<<< Updated upstream
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
         'password' => 'NouveauMotDePasse',
+=======
+        'password' => 'manoa'
+>>>>>>> Stashed changes
 =======
         'password' => 'manoa'
 >>>>>>> Stashed changes
