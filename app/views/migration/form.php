@@ -1,20 +1,6 @@
-<!DOCTYPE html>
-<html lang="fr">
-
-<head>
-    <meta charset="utf-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <title>Contrat de Travail - Formulaire</title>
-
-    <!-- Fonts et styles -->
-    <link href="../../vendor/fontawesome-free/css/all.min.css" rel="stylesheet" type="text/css">
-    <link href="https://fonts.googleapis.com/css?family=Nunito:200,300,400,600,700,800,900" rel="stylesheet">
-    <link href="../../css/sb-admin-2.min.css" rel="stylesheet">
-</head>
-
+<link href="https://fonts.googleapis.com/css?family=Nunito:200,300,400,600,700,800,900" rel="stylesheet">
+<?php Flight::render("headerA")?>
 <body class="bg-gradient-primary">
-    <?php Flight::render("headerA")?>
     <div class="container">
         <div class="card o-hidden border-0 shadow-lg my-5">
             <div class="card-body p-0">
@@ -201,11 +187,6 @@
     </div>
     <?php Flight::render("footer")?>
 
-    <!-- Scripts -->
-    <script src="../../vendor/jquery/jquery.min.js"></script>
-    <script src="../../vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
-    <script src="../../vendor/jquery-easing/jquery.easing.min.js"></script>
-    <script src="../../js/sb-admin-2.min.js"></script>
 
     <script>
         function ajouterAvantage() {

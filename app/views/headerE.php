@@ -1,21 +1,20 @@
 <?php
-var_dump($_SESSION['employe']);
-var_dump($_SESSION['messagerie']); 
- echo $_SESSION['nbNonLus'];
+// var_dump($_SESSION['employe']);
+// var_dump($_SESSION['messagerie']); 
+//  echo $_SESSION['nbNonLus'];
 ?>
 
 <!DOCTYPE html>
 <html lang="en">
 
 <head>
-
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <meta name="description" content="">
     <meta name="author" content="">
 
-    <title></title>
+    <title><?=  $_SESSION['employe']['nom_departement'] ?></title>
 
     <!-- Custom fonts for this template-->
     <link href="/vendor/fontawesome-free/css/all.min.css" rel="stylesheet" type="text/css">
@@ -29,50 +28,84 @@ var_dump($_SESSION['messagerie']);
     <!-- Custom styles for this page -->
     <link href="/vendor/datatables/dataTables.bootstrap4.min.css" rel="stylesheet">
 
-
     <style>
-.dropdown-header {
-    display: flex !important;
-    align-items: center !important;
-    padding: 0.5rem 1rem !important;
-}
+        .dropdown-header {
+            display: flex !important;
+            align-items: center !important;
+            padding: 0.5rem 1rem !important;
+        }
 
-#messageCenterSearch {
-    background: rgba(255,255,255,0.2);
-    border: none;
-    color: white;
-    font-size: 0.85rem;
-    padding: 0.25rem 0.5rem;
-}
+        #messageCenterSearch {
+            background: rgba(255,255,255,0.2);
+            border: none;
+            color: white;
+            font-size: 0.85rem;
+            padding: 0.25rem 0.5rem;
+        }
 
-#messageCenterSearch::placeholder {
-    color: rgba(255,255,255,0.7);
-}
+        #messageCenterSearch::placeholder {
+            color: rgba(255,255,255,0.7);
+        }
 
-#messageCenterSearch:focus {
-    outline: none;
-    background: rgba(255,255,255,0.3);
-}
+        #messageCenterSearch:focus {
+            outline: none;
+            background: rgba(255,255,255,0.3);
+        }
 
-.message-item {
-    transition: all 0.2s;
-}
+        .message-item {
+            transition: all 0.2s;
+        }
 
-.no-results-message {
-    font-style: italic;
-    color: #6c757d !important;
-}
+        .no-results-message {
+            font-style: italic;
+            color: #6c757d !important;
+        }
 
-.hidden-by-search {
-    display: none !important;
-    visibility: hidden !important;
-    opacity: 0 !important;
-    height: 0 !important;
-    padding: 0 !important;
-    margin: 0 !important;
-}
-</style>
+        .hidden-by-search {
+            display: none !important;
+            visibility: hidden !important;
+            opacity: 0 !important;
+            height: 0 !important;
+            padding: 0 !important;
+            margin: 0 !important;
+        }
+        
+        /* Style pour les éléments désactivés */
+        .nav-item.disabled {
+            opacity: 0.5;
+            pointer-events: none;
+            cursor: not-allowed;
+        }
+        
+        .disabled .nav-link {
+            color: #6c757d !important;
+        }
+        
+        .employe-item {
+            cursor: pointer;
+            transition: all 0.2s;
+            border-left: 3px solid transparent;
+        }
 
+        .employe-item:hover {
+            background-color: #f8f9fc;
+            border-left-color: #4e73df;
+            transform: translateX(5px);
+        }
+
+        .employe-item img {
+            width: 50px;
+            height: 50px;
+            object-fit: cover;
+        }
+
+        #searchEmployeModal:focus {
+            border-color: #4e73df;
+            box-shadow: 0 0 0 0.2rem rgba(78, 115, 223, 0.25);
+        }
+    </style>
+ <!-- Styles supplémentaires -->
+    <?= $extra_css ?? '' ?>
 </head>
 
 <body id="page-top">
@@ -88,7 +121,7 @@ var_dump($_SESSION['messagerie']);
                 <div class="sidebar-brand-icon rotate-n-15">
                     <i class="fas fa-laugh-wink"></i>
                 </div>
-                <div class="sidebar-brand-text mx-3"></div>
+                <div class="sidebar-brand-text mx-3"><?=  $_SESSION['employe']['nom_departement'] ?></div>
             </a>
 
             <!-- Divider -->
@@ -98,22 +131,85 @@ var_dump($_SESSION['messagerie']);
             <li class="nav-item">
                 <a class="nav-link" href="/accueilU">
                     <i class="fas fa-fw fa-tachometer-alt"></i>
-                    <span>Accueil</span></a>
+                    <span>Accueil</span>
+                </a>
             </li>
 
             <!-- Divider -->
             <hr class="sidebar-divider">
 
-            <!-- Nav Item - Dashboard -->
+            <!-- Nav Item - Relevé de présence -->
             <li class="nav-item">
-                  <a class="nav-link" href="/relevePresenceE/<?= $_SESSION['employe']['id_employe'] ?>">
-        <span>Relevé de présence actuel</span>
-    </a>    </li>
+                <a class="nav-link" href="/relevePresenceE/<?= $_SESSION['employe']['id_employe'] ?>">
+                    <i class="fas fa-fw fa-tachometer-alt"></i>
+                    <span>Relevé de présence actuel</span>
+                </a>
+            </li>
 
+            <!-- Nav Item - Gestion competence (Pour employé simple) -->
+            <?php 
+            // Récupérer l'ID de l'employé connecté
+            $id_employe_connecte = $_SESSION['employe']['id_employe'] ?? '';
+            if($id_employe_connecte): ?>
+            <li class="nav-item">
+                <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseGC" 
+                aria-expanded="false" aria-controls="collapseGC">
+                    <i class="fas fa-fw fa-briefcase"></i>
+                    <span>Gestion competence</span>
+                </a>
+                <div id="collapseGC" class="collapse" aria-labelledby="headingGC" data-parent="#accordionSidebar">
+                    <div class="bg-white py-2 collapse-inner rounded">
+                        <h6 class="collapse-header">Gestion des compétences:</h6>
+                        
+                        <!-- Auto-évaluation des compétences -->
+                        <a class="collapse-item" href="/employees/<?= $id_employe_connecte ?>/competences/form">
+                            <i class="fas fa-user-edit fa-fw mr-2"></i>Auto-évaluation
+                        </a>
+                        
+                        <!-- Liste des compétences auto-évaluées -->
+                        <a class="collapse-item" href="/employees/<?= $id_employe_connecte ?>/competences/list">
+                            <i class="fas fa-list-alt fa-fw mr-2"></i>Mes compétences
+                        </a>
+                        
+                        <!-- Statistiques (version limitée pour employé) -->
+                        <div class="collapse-divider"></div>
+                        <h6 class="collapse-header">Statistiques:</h6>
+                        <a class="collapse-item" href="/competences/mes-statistiques/<?= $id_employe_connecte ?>">
+                            <i class="fas fa-chart-bar fa-fw mr-2"></i>Mes statistiques
+                        </a>
+                    </div>
+                </div>
+            </li>
+            <?php endif; ?>
 
+            <!-- Nav Item - Congés et Absences (Pour employé simple) -->
+            <li class="nav-item">
+                <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseConges" 
+                aria-expanded="false" aria-controls="collapseConges">
+                    <i class="fas fa-fw fa-calendar-alt"></i>
+                    <span>Congés et Absences</span>
+                </a>
+                <div id="collapseConges" class="collapse" aria-labelledby="headingConges" data-parent="#accordionSidebar">
+                    <div class="bg-white py-2 collapse-inner rounded">
+                        <h6 class="collapse-header">Gestion des congés et absences:</h6>
+                        <?php if($id_employe_connecte): ?>
+                        <a class="collapse-item" href="/conge/employe">Suivi Congés</a>
+                        <a class="collapse-item" href="/absence/liste/<?= $id_employe_connecte ?>">Suivi absences</a>
+                        <a class="collapse-item" href="/conge/demande">Demande de congé</a>
+                        <?php else: ?>
+                        <a class="collapse-item disabled" href="#" onclick="return false;">Connectez-vous pour accéder</a>
+                        <?php endif; ?>
+                    </div>
+                </div>
+            </li>
 
-          
-
+            <!-- Nav Item - Annonces (Lecture seule pour employé) -->
+            <li class="nav-item">
+                <a class="nav-link" href="/annonces/read/employe">
+                    <i class="fas fa-fw fa-folder"></i>
+                    <span>Voir les annonces</span>
+                </a>
+            </li>
 
             <!-- Divider -->
             <hr class="sidebar-divider d-none d-md-block">
@@ -140,7 +236,6 @@ var_dump($_SESSION['messagerie']);
                         <i class="fa fa-bars"></i>
                     </button>
 
-
                     <!-- Topbar Navbar -->
                     <ul class="navbar-nav ml-auto">
 
@@ -158,10 +253,9 @@ var_dump($_SESSION['messagerie']);
                                data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                                 <i class="fas fa-envelope fa-fw"></i>
                                 <!-- Counter - Messages -->
-                                    <?php if($_SESSION['nbNonLus'] > 0): ?>
-                                        <span id="unreadBadge" class="badge badge-danger badge-counter"><?= $_SESSION['nbNonLus'] ?></span>
-                                    <?php endif; ?>
-
+                                <?php if(isset($_SESSION['nbNonLus']) && $_SESSION['nbNonLus'] > 0): ?>
+                                    <span id="unreadBadge" class="badge badge-danger badge-counter"><?= $_SESSION['nbNonLus'] ?></span>
+                                <?php endif; ?>
                             </a>
                             <!-- Dropdown - Messages -->
                             <div class="dropdown-list dropdown-menu dropdown-menu-right shadow animated--grow-in"
@@ -182,13 +276,13 @@ var_dump($_SESSION['messagerie']);
                                     </div>
                                 </h6>
                                 <div id="conversationsEmployeContainer">
-                                    <?php if(!empty($_SESSION['messagerie'])): ?>
+                                    <?php if(isset($_SESSION['messagerie']) && !empty($_SESSION['messagerie'])): ?>
                                         <?php foreach($_SESSION['messagerie'] as $conv): ?>
                                             <a class="dropdown-item d-flex align-items-center message-item <?= $conv['nouveaux_messages'] ? 'font-weight-bold' : '' ?>" 
                                                href="/messagerieE/<?= $_SESSION['employe']['id_employe'] ?>/<?= $conv['partenaire_id'] ?>">
                                                 <div class="dropdown-list-image mr-3">
                                                     <img class="rounded-circle" 
-                                                        
+                                                         src="https://cdn-icons-png.flaticon.com/512/3135/3135715.png" 
                                                          alt="..." 
                                                          style="width: 40px; height: 40px; object-fit: cover;">
                                                     <?php if($conv['nouveaux_messages']): ?>
@@ -218,16 +312,22 @@ var_dump($_SESSION['messagerie']);
                             </div>
                         </li>
 
-
                         <!-- Nav Item - User Information -->
                         <li class="nav-item dropdown no-arrow">
                             <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button"
                                 data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                <span class="mr-2 d-none d-lg-inline text-gray-600 small"> <br></span>
+                                <span class="mr-2 d-none d-lg-inline text-gray-600 small">
+                                    <?php 
+                                    if(isset($_SESSION['employe'])) {
+                                        echo htmlspecialchars($_SESSION['employe']['nom_personne'] ?? 'Inconnu') . ' ' . 
+                                             htmlspecialchars($_SESSION['employe']['prenom'] ?? 'Inconnu');
+                                    } else {
+                                        echo 'Inconnu';
+                                    }
+                                    ?>
+                                </span>
                                 <img class="img-profile rounded-circle"
-
                                     src="https://cdn-icons-png.flaticon.com/512/3135/3135715.png">
-
                             </a>
                             <!-- Dropdown - User Information -->
                             <div class="dropdown-menu dropdown-menu-right shadow animated--grow-in"
@@ -285,31 +385,6 @@ var_dump($_SESSION['messagerie']);
         </div>
     </div>
 </div>
-
-<style>
-.employe-item {
-    cursor: pointer;
-    transition: all 0.2s;
-    border-left: 3px solid transparent;
-}
-
-.employe-item:hover {
-    background-color: #f8f9fc;
-    border-left-color: #4e73df;
-    transform: translateX(5px);
-}
-
-.employe-item img {
-    width: 50px;
-    height: 50px;
-    object-fit: cover;
-}
-
-#searchEmployeModal:focus {
-    border-color: #4e73df;
-    box-shadow: 0 0 0 0.2rem rgba(78, 115, 223, 0.25);
-}
-</style>
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
@@ -597,4 +672,3 @@ function loadConversations(idEmploye) {
         .catch(err => console.error('Erreur chargement conversations:', err));
 }
 </script>
-

@@ -1,25 +1,104 @@
+<?php
+// Vérification de sécurité - Accès réservé aux administrateurs
+$isAdmin = isset($_SESSION['infoAdmin']);
+?>
+
 <!DOCTYPE html>
 <html lang="en">
 
 <head>
-
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <meta name="description" content="">
     <meta name="author" content="">
 
-    <title>Responsable du departement : <?= $_SESSION['departement']['nom'] ?> </title>
+    <title><?= $_SESSION['departement']['nom'] ?? 'Inconnu' ?></title>
 
     <!-- Custom fonts for this template-->
-    <link href="vendor/fontawesome-free/css/all.min.css" rel="stylesheet" type="text/css">
+    <link href="/vendor/fontawesome-free/css/all.min.css" rel="stylesheet" type="text/css">
     <link
         href="https://fonts.googleapis.com/css?family=Nunito:200,200i,300,300i,400,400i,600,600i,700,700i,800,800i,900,900i"
         rel="stylesheet">
 
     <!-- Custom styles for this template-->
-    <link href="css/sb-admin-2.min.css" rel="stylesheet">
+    <link href="/css/sb-admin-2.min.css" rel="stylesheet">
+    
+    <!-- Custom styles for this page -->
+    <link href="/vendor/datatables/dataTables.bootstrap4.min.css" rel="stylesheet">
 
+    <!-- Styles supplémentaires -->
+    <?= $extra_css ?? '' ?>
+    <style>
+        .dropdown-header {
+            display: flex !important;
+            align-items: center !important;
+            padding: 0.5rem 1rem !important;
+        }
+
+        #messageCenterSearch {
+            background: white;
+            border: 1px solid rgba(255,255,255,0.3);
+            color: #333;
+            font-size: 0.85rem;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+        }
+
+        #messageCenterSearch::placeholder {
+            color: #999;
+        }
+
+        #messageCenterSearch:focus {
+            outline: none;
+            background: white;
+            border-color: white;
+            box-shadow: 0 0 0 0.2rem rgba(255,255,255,0.25);
+        }
+
+        .message-item {
+            transition: all 0.2s;
+        }
+
+        .message-item:hover {
+            background-color: #f8f9fc;
+        }
+
+        .no-results-message {
+            font-style: italic;
+            color: #6c757d !important;
+        }
+
+        .dropdown-menu {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        #employeSearchResults .dropdown-item,
+        #conversationsEmployeContainer .dropdown-item {
+            cursor: pointer;
+        }
+
+        .hidden-by-search {
+            display: none !important;
+            visibility: hidden !important;
+            opacity: 0 !important;
+            height: 0 !important;
+            padding: 0 !important;
+            margin: 0 !important;
+        }
+        
+        /* Style pour les éléments désactivés */
+        .nav-item.disabled {
+            opacity: 0.5;
+            pointer-events: none;
+            cursor: not-allowed;
+        }
+        
+        .disabled .nav-link {
+            color: #6c757d !important;
+        }
+    </style>    
 </head>
 
 <body id="page-top">
@@ -31,111 +110,198 @@
         <ul class="navbar-nav bg-gradient-primary sidebar sidebar-dark accordion" id="accordionSidebar">
 
             <!-- Sidebar - Brand -->
-            <a class="sidebar-brand d-flex align-items-center justify-content-center" href="index.html">
+            <a class="sidebar-brand d-flex align-items-center justify-content-center">
                 <div class="sidebar-brand-icon rotate-n-15">
                     <i class="fas fa-laugh-wink"></i>
                 </div>
-                <div class="sidebar-brand-text mx-3">SB Admin <sup>2</sup></div>
+                <div class="sidebar-brand-text mx-3"><?= $_SESSION['departement']['nom'] ?? 'Inconnu' ?></div>
             </a>
 
             <!-- Divider -->
             <hr class="sidebar-divider my-0">
 
             <!-- Nav Item - Dashboard -->
-            <li class="nav-item active">
-                <a class="nav-link" href="index.html">
+            <li class="nav-item">
+                <a class="nav-link" href="/accueilE">
                     <i class="fas fa-fw fa-tachometer-alt"></i>
-                    <span>Dashboard</span></a>
+                    <span>Accueil Admin</span>
+                </a>
+            </li>
+            
+            <!-- Relevé de présence -->
+            <li class="nav-item">
+                <a class="nav-link" href="/relevePresenceE/<?= $_SESSION['infoAdmin']['id_employe'] ?? ($_SESSION['admin']['id_employe'] ?? 'Inconnu') ?>">
+                    <i class="fas fa-fw fa-tachometer-alt"></i>
+                    <span>Relevé de présence actuel</span>
+                </a>
             </li>
 
-            <!-- Divider -->
-            <hr class="sidebar-divider">
-
-            <!-- Heading -->
-            <div class="sidebar-heading">
-                Interface
-            </div>
-
-            <!-- Nav Item - Pages Collapse Menu -->
+            <!-- Annonces -->
             <li class="nav-item">
-                <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseTwo"
-                    aria-expanded="true" aria-controls="collapseTwo">
-                    <i class="fas fa-fw fa-cog"></i>
-                    <span>Components</span>
+                <a class="nav-link" href="#" data-toggle="collapse" data-target="#collapsePages" aria-expanded="true"
+                    aria-controls="collapsePages">
+                    <i class="fas fa-fw fa-folder"></i>
+                    <span>Annonces</span>
                 </a>
-                <a class="nav-link collapsed" href="/testAccueil">
-                   
-                    Test
-                </a>
-                <div id="collapseTwo" class="collapse" aria-labelledby="headingTwo" data-parent="#accordionSidebar">
-                    <div class="bg-white py-2 collapse-inner rounded">
-                        <h6 class="collapse-header">Custom Components:</h6>
-                        <a class="collapse-item" href="buttons.html">Buttons</a>
-                        <a class="collapse-item" href="cards.html">Cards</a>
-                    </div>
-                </div>
-            </li>
-
-            <!-- Nav Item - Utilities Collapse Menu -->
-            <li class="nav-item">
-                <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseUtilities"
-                    aria-expanded="true" aria-controls="collapseUtilities">
-                    <i class="fas fa-fw fa-wrench"></i>
-                    <span>Utilities</span>
-                </a>
-                <div id="collapseUtilities" class="collapse" aria-labelledby="headingUtilities"
+                <div id="collapsePages" class="collapse" aria-labelledby="headingPages"
                     data-parent="#accordionSidebar">
                     <div class="bg-white py-2 collapse-inner rounded">
-                        <h6 class="collapse-header">Custom Utilities:</h6>
-                        <a class="collapse-item" href="utilities-color.html">Colors</a>
-                        <a class="collapse-item" href="utilities-border.html">Borders</a>
-                        <a class="collapse-item" href="utilities-animation.html">Animations</a>
-                        <a class="collapse-item" href="utilities-other.html">Other</a>
+                        <h6 class="collapse-header">Gestion des annonces:</h6>
+                        <a class="collapse-item" href="/annonces/form">Créer une annonce</a>
+                        <a class="collapse-item" href="/annonces/read">Voir les annonces</a>
+                        <!-- NOTE: Route /annonces/gestion n'existe pas dans routes.php - désactivée temporairement -->
+                        <a class="collapse-item disabled" href="#" style="color: #6c757d; cursor: not-allowed;">Gérer les annonces</a>
                     </div>
                 </div>
             </li>
 
-            <!-- Divider -->
-            <hr class="sidebar-divider">
-
-            <!-- Heading -->
-            <div class="sidebar-heading">
-                Addons
-            </div>
-
-            <!-- Nav Item - Pages Collapse Menu -->
+            <!-- Tests -->
             <li class="nav-item">
-                <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapsePages"
-                    aria-expanded="true" aria-controls="collapsePages">
-                    <i class="fas fa-fw fa-folder"></i>
-                    <span>Pages</span>
+                <a class="nav-link" href="/allTests">
+                     <i class="fas fa-fw fa-pen"></i>
+                    <span>Gestion des Tests</span>
                 </a>
-                <div id="collapsePages" class="collapse" aria-labelledby="headingPages" data-parent="#accordionSidebar">
+            </li>
+            
+            <!-- Pointage -->
+            <li class="nav-item">
+                <a class="nav-link" href="/pointage">
+                <i class="fas fa-clock"></i>
+                    <span>Pointage</span>
+                </a>
+            </li>
+
+            <!-- Liste CV -->
+            <li class="nav-item">
+                <a class="nav-link" href="/listeCV">
+                <i class="fas fa-file-alt"></i>
+                    <span>Liste CV</span>
+                </a>
+            </li>
+
+            <!-- RH / Migration -->
+            <li class="nav-item">
+                <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseRH" aria-expanded="false" aria-controls="collapseRH">
+                    <i class="fas fa-fw fa-briefcase"></i>
+                    <span>RH / Migration</span>
+                </a>
+                <div id="collapseRH" class="collapse" aria-labelledby="headingRH" data-parent="#accordionSidebar">
                     <div class="bg-white py-2 collapse-inner rounded">
-                        <h6 class="collapse-header">Login Screens:</h6>
-                        <a class="collapse-item" href="login.html">Login</a>
-                        <a class="collapse-item" href="register.html">Register</a>
-                        <a class="collapse-item" href="forgot-password.html">Forgot Password</a>
+                        <h6 class="collapse-header">Gestion RH:</h6>
+                        <a class="collapse-item" href="/migration/candidats">Candidats retenus</a>
+                        <a class="collapse-item" href="/migration/contrats">Liste des contrats</a>
+                        <a class="collapse-item" href="/migration/contrat/create">Créer un contrat</a>
+                    </div>
+                </div>
+            </li>
+            
+            <!-- Gestion compétence -->
+            <li class="nav-item">
+                <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseGC" 
+                aria-expanded="false" aria-controls="collapseGC">
+                    <i class="fas fa-fw fa-briefcase"></i>
+                    <span>Gestion compétence</span>
+                </a>
+                <div id="collapseGC" class="collapse" aria-labelledby="headingGC" data-parent="#accordionSidebar">
+                    <div class="bg-white py-2 collapse-inner rounded">
+                        <h6 class="collapse-header">Gestion des compétences:</h6>
+                        
+                        <?php 
+                        // Récupérer l'ID de l'admin connecté
+                        $id_admin_connecte = $_SESSION['infoAdmin']['id_employe'] ?? ($_SESSION['admin']['id_employe'] ?? '');
+                        ?>
+                        
+                        <a class="collapse-item" href="/competences/liste">Liste des compétences</a>
+                        
+                        <!-- Auto-évaluation des compétences -->
+                        <?php if($id_admin_connecte): ?>
+                        <a class="collapse-item" href="/employees/<?= $id_admin_connecte ?>/competences/form">
+                            <i class="fas fa-user-edit fa-fw mr-2"></i>Auto-évaluation
+                        </a>
+                        
+                        <!-- Liste des compétences auto-évaluées -->
+                        <a class="collapse-item" href="/employees/<?= $id_admin_connecte ?>/competences/list">
+                            <i class="fas fa-list-alt fa-fw mr-2"></i>Mes compétences
+                        </a>
+                        <?php endif; ?>
+                        
+                        <!-- Statistiques et cartographie -->
+                        <a class="collapse-item" href="/competences/statistiques">
+                            <i class="fas fa-chart-bar fa-fw mr-2"></i>Statistiques
+                        </a>
+                        <a class="collapse-item" href="/competences/cartographie">
+                            <i class="fas fa-map fa-fw mr-2"></i>Cartographie
+                        </a>
+                        
+                        <!-- Validation managériale -->
                         <div class="collapse-divider"></div>
-                        <h6 class="collapse-header">Other Pages:</h6>
-                        <a class="collapse-item" href="404.html">404 Page</a>
-                        <a class="collapse-item" href="blank.html">Blank Page</a>
+                        <h6 class="collapse-header">Validation managériale:</h6>
+                        <a class="collapse-item" href="/validations/dashboard">
+                            <i class="fas fa-clipboard-check fa-fw mr-2"></i>Dashboard validation
+                        </a>
+                        <a class="collapse-item" href="/validations/pending">
+                            <i class="fas fa-clock fa-fw mr-2"></i>Validations en attente
+                        </a>
                     </div>
                 </div>
             </li>
 
-            <!-- Nav Item - Charts -->
+            <!-- Congés et Absences -->
             <li class="nav-item">
-                <a class="nav-link" href="charts.html">
-                    <i class="fas fa-fw fa-chart-area"></i>
-                    <span>Charts</span></a>
+                <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseConges" 
+                aria-expanded="false" aria-controls="collapseConges">
+                    <i class="fas fa-fw fa-calendar-alt"></i>
+                    <span>Congés et Absences</span>
+                </a>
+                <div id="collapseConges" class="collapse" aria-labelledby="headingConges" data-parent="#accordionSidebar">
+                    <div class="bg-white py-2 collapse-inner rounded">
+                        <h6 class="collapse-header">Gestion des congés et absences:</h6>
+                        <a class="collapse-item" href="/conge">Suivi Congés</a>
+                        <a class="collapse-item" href="/absence/liste">Suivi absences</a>
+                        <a class="collapse-item" href="/conge/demande">Demande de congé</a>
+                        <a class="collapse-item" href="/conge/validation">Validation des congés</a>
+                    </div>
+                </div>
             </li>
 
-            <!-- Nav Item - Tables -->
+            <!-- Gestion des employés -->
             <li class="nav-item">
-                <a class="nav-link" href="tables.html">
-                    <i class="fas fa-fw fa-table"></i>
-                    <span>Tables</span></a>
+                <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseEmployes" 
+                aria-expanded="false" aria-controls="collapseEmployes">
+                    <i class="fas fa-fw fa-users"></i>
+                    <span>Gestion des employés</span>
+                </a>
+                <div id="collapseEmployes" class="collapse" aria-labelledby="headingEmployes" data-parent="#accordionSidebar">
+                    <div class="bg-white py-2 collapse-inner rounded">
+                        <h6 class="collapse-header">Gestion du personnel:</h6>
+                        <!-- NOTE: Route /employes/liste n'existe pas, alternative /employeList -->
+                        <a class="collapse-item" href="/employeList">Liste des employés</a>
+                        <!-- NOTE: Route /employes/ajouter n'existe pas - désactivée -->
+                        <a class="collapse-item disabled" href="#" style="color: #6c757d; cursor: not-allowed;">Ajouter un employé</a>
+                        <!-- NOTE: Route /departements n'existe pas - désactivée -->
+                        <a class="collapse-item disabled" href="#" style="color: #6c757d; cursor: not-allowed;">Gestion départements</a>
+                        <!-- NOTE: Route /postes n'existe pas - désactivée -->
+                        <a class="collapse-item disabled" href="#" style="color: #6c757d; cursor: not-allowed;">Gestion des postes</a>
+                    </div>
+                </div>
+            </li>
+
+            <!-- Rapports et statistiques -->
+            <li class="nav-item">
+                <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseRapports" 
+                aria-expanded="false" aria-controls="collapseRapports">
+                    <i class="fas fa-fw fa-chart-line"></i>
+                    <span>Rapports et statistiques</span>
+                </a>
+                <div id="collapseRapports" class="collapse" aria-labelledby="headingRapports" data-parent="#accordionSidebar">
+                    <div class="bg-white py-2 collapse-inner rounded">
+                        <h6 class="collapse-header">Rapports:</h6>
+                        <!-- NOTE: Ces routes n'existent pas - désactivées -->
+                        <a class="collapse-item disabled" href="#" style="color: #6c757d; cursor: not-allowed;">Rapport de présence</a>
+                        <a class="collapse-item disabled" href="#" style="color: #6c757d; cursor: not-allowed;">Rapport productivité</a>
+                        <a class="collapse-item disabled" href="#" style="color: #6c757d; cursor: not-allowed;">Rapport congés</a>
+                    </div>
+                </div>
             </li>
 
             <!-- Divider -->
@@ -144,13 +310,6 @@
             <!-- Sidebar Toggler (Sidebar) -->
             <div class="text-center d-none d-md-inline">
                 <button class="rounded-circle border-0" id="sidebarToggle"></button>
-            </div>
-
-            <!-- Sidebar Message -->
-            <div class="sidebar-card d-none d-lg-flex">
-                <img class="sidebar-card-illustration mb-2" src="img/undraw_rocket.svg" alt="...">
-                <p class="text-center mb-2"><strong>SB Admin Pro</strong> is packed with premium features, components, and more!</p>
-                <a class="btn btn-success btn-sm" href="https://startbootstrap.com/theme/sb-admin-pro">Upgrade to Pro!</a>
             </div>
 
         </ul>
@@ -170,20 +329,6 @@
                         <i class="fa fa-bars"></i>
                     </button>
 
-                    <!-- Topbar Search -->
-                    <form
-                        class="d-none d-sm-inline-block form-inline mr-auto ml-md-3 my-2 my-md-0 mw-100 navbar-search">
-                        <div class="input-group">
-                            <input type="text" class="form-control bg-light border-0 small" placeholder="Search for..."
-                                aria-label="Search" aria-describedby="basic-addon2">
-                            <div class="input-group-append">
-                                <button class="btn btn-primary" type="button">
-                                    <i class="fas fa-search fa-sm"></i>
-                                </button>
-                            </div>
-                        </div>
-                    </form>
-
                     <!-- Topbar Navbar -->
                     <ul class="navbar-nav ml-auto">
 
@@ -193,247 +338,126 @@
                                 data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                                 <i class="fas fa-search fa-fw"></i>
                             </a>
-                            <!-- Dropdown - Messages -->
-                            <div class="dropdown-menu dropdown-menu-right p-3 shadow animated--grow-in"
-                                aria-labelledby="searchDropdown">
-                                <form class="form-inline mr-auto w-100 navbar-search">
-                                    <div class="input-group">
-                                        <input type="text" class="form-control bg-light border-0 small"
-                                            placeholder="Search for..." aria-label="Search"
-                                            aria-describedby="basic-addon2">
-                                        <div class="input-group-append">
-                                            <button class="btn btn-primary" type="button">
-                                                <i class="fas fa-search fa-sm"></i>
-                                            </button>
-                                        </div>
-                                    </div>
-                                </form>
-                            </div>
-                        </li>
-
-                        <!-- Nav Item - Alerts -->
-                        <li class="nav-item dropdown no-arrow mx-1">
-                            <a class="nav-link dropdown-toggle" href="#" id="alertsDropdown" role="button"
-                                data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                <i class="fas fa-bell fa-fw"></i>
-                                <!-- Counter - Alerts -->
-                                <span class="badge badge-danger badge-counter">3+</span>
-                            </a>
-                            <!-- Dropdown - Alerts -->
-                            <div class="dropdown-list dropdown-menu dropdown-menu-right shadow animated--grow-in"
-                                aria-labelledby="alertsDropdown">
-                                <h6 class="dropdown-header">
-                                    Alerts Center
-                                </h6>
-                                <a class="dropdown-item d-flex align-items-center" href="#">
-                                    <div class="mr-3">
-                                        <div class="icon-circle bg-primary">
-                                            <i class="fas fa-file-alt text-white"></i>
-                                        </div>
-                                    </div>
-                                    <div>
-                                        <div class="small text-gray-500">December 12, 2019</div>
-                                        <span class="font-weight-bold">A new monthly report is ready to download!</span>
-                                    </div>
-                                </a>
-                                <a class="dropdown-item d-flex align-items-center" href="#">
-                                    <div class="mr-3">
-                                        <div class="icon-circle bg-success">
-                                            <i class="fas fa-donate text-white"></i>
-                                        </div>
-                                    </div>
-                                    <div>
-                                        <div class="small text-gray-500">December 7, 2019</div>
-                                        $290.29 has been deposited into your account!
-                                    </div>
-                                </a>
-                                <a class="dropdown-item d-flex align-items-center" href="#">
-                                    <div class="mr-3">
-                                        <div class="icon-circle bg-warning">
-                                            <i class="fas fa-exclamation-triangle text-white"></i>
-                                        </div>
-                                    </div>
-                                    <div>
-                                        <div class="small text-gray-500">December 2, 2019</div>
-                                        Spending Alert: We've noticed unusually high spending for your account.
-                                    </div>
-                                </a>
-                                <a class="dropdown-item text-center small text-gray-500" href="#">Show All Alerts</a>
-                            </div>
                         </li>
 
                         <!-- Nav Item - Messages -->
                         <li class="nav-item dropdown no-arrow mx-1">
                             <a class="nav-link dropdown-toggle" href="#" id="messagesDropdown" role="button"
-                                data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                               data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                                 <i class="fas fa-envelope fa-fw"></i>
                                 <!-- Counter - Messages -->
-                                <span class="badge badge-danger badge-counter">7</span>
+                                <?php 
+                                $nbNonLus = $_SESSION['nbNonLus'] ?? 0;
+                                if($nbNonLus > 0): ?>
+                                    <span id="unreadBadge" class="badge badge-danger badge-counter"><?= $nbNonLus ?></span>
+                                <?php endif; ?>
                             </a>
-                            <!-- Dropdown - Messages -->
+                            <!-- Dropdown - Messages -->    
                             <div class="dropdown-list dropdown-menu dropdown-menu-right shadow animated--grow-in"
-                                aria-labelledby="messagesDropdown">
-                                <h6 class="dropdown-header">
-                                    Message Center
+                                aria-labelledby="messagesDropdown" style="width: 350px;">
+                                <h6 class="dropdown-header d-flex justify-content-between align-items-center" style="background: linear-gradient(180deg, #4e73df 10%, #224abe 100%); color: white;">
+                                    <span id="messageCenterTitle">Message Center</span>
+                                    <input type="text" id="messageCenterSearch" 
+                                           class="form-control form-control-sm d-none" 
+                                           placeholder="Rechercher un employé..." 
+                                           autocomplete="off"
+                                           style="flex: 1; margin-right: 10px;">
+                                    <button id="toggleMessageSearch" class="btn btn-link text-white p-0 ml-2" type="button">
+                                        <i class="fas fa-search fa-sm"></i>
+                                    </button>
                                 </h6>
-                                <a class="dropdown-item d-flex align-items-center" href="#">
-                                    <div class="dropdown-list-image mr-3">
-                                        <img class="rounded-circle" src="img/undraw_profile_1.svg"
-                                            alt="...">
-                                        <div class="status-indicator bg-success"></div>
-                                    </div>
-                                    <div class="font-weight-bold">
-                                        <div class="text-truncate">Hi there! I am wondering if you can help me with a
-                                            problem I've been having.</div>
-                                        <div class="small text-gray-500">Emily Fowler · 58m</div>
-                                    </div>
-                                </a>
-                                <a class="dropdown-item d-flex align-items-center" href="#">
-                                    <div class="dropdown-list-image mr-3">
-                                        <img class="rounded-circle" src="img/undraw_profile_2.svg"
-                                            alt="...">
-                                        <div class="status-indicator"></div>
-                                    </div>
-                                    <div>
-                                        <div class="text-truncate">I have the photos that you ordered last month, how
-                                            would you like them sent to you?</div>
-                                        <div class="small text-gray-500">Jae Chun · 1d</div>
-                                    </div>
-                                </a>
-                                <a class="dropdown-item d-flex align-items-center" href="#">
-                                    <div class="dropdown-list-image mr-3">
-                                        <img class="rounded-circle" src="img/undraw_profile_3.svg"
-                                            alt="...">
-                                        <div class="status-indicator bg-warning"></div>
-                                    </div>
-                                    <div>
-                                        <div class="text-truncate">Last month's report looks great, I am very happy with
-                                            the progress so far, keep up the good work!</div>
-                                        <div class="small text-gray-500">Morgan Alvarez · 2d</div>
-                                    </div>
-                                </a>
-                                <a class="dropdown-item d-flex align-items-center" href="#">
-                                    <div class="dropdown-list-image mr-3">
-                                        <img class="rounded-circle" src="https://source.unsplash.com/Mv9hjnEUHR4/60x60"
-                                            alt="...">
-                                        <div class="status-indicator bg-success"></div>
-                                    </div>
-                                    <div>
-                                        <div class="text-truncate">Am I a good boy? The reason I ask is because someone
-                                            told me that people say this to all dogs, even if they aren't good...</div>
-                                        <div class="small text-gray-500">Chicken the Dog · 2w</div>
-                                    </div>
-                                </a>
-                                <a class="dropdown-item text-center small text-gray-500" href="#">Read More Messages</a>
+                                
+                                <!-- Conversations existantes -->
+                                <div id="conversationsEmployeContainer">
+                                    <a class="dropdown-item text-center small text-gray-500">Chargement...</a>
+                                </div>
+                                
+                                <!-- Résultats de recherche -->
+                                <div id="employeSearchResults" class="d-none">
+                                    <!-- Les résultats de recherche apparaîtront ici -->
+                                </div>
                             </div>
                         </li>
 
-                        <div class="topbar-divider d-none d-sm-block"></div>
+                        <!-- Nav Item - Notifications Admin -->
+                        <li class="nav-item dropdown no-arrow mx-1">
+                            <a class="nav-link dropdown-toggle" href="#" id="notificationsDropdown" role="button"
+                               data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                <i class="fas fa-bell fa-fw"></i>
+                                <!-- Counter - Notifications -->
+                                <?php 
+                                $nbNotifications = $_SESSION['notifications_admin'] ?? 0;
+                                if($nbNotifications > 0): ?>
+                                    <span id="notificationBadge" class="badge badge-danger badge-counter"><?= $nbNotifications ?></span>
+                                <?php endif; ?>
+                            </a>
+                            <!-- Dropdown - Notifications -->
+                            <div class="dropdown-list dropdown-menu dropdown-menu-right shadow animated--grow-in"
+                                aria-labelledby="notificationsDropdown" style="width: 300px;">
+                                <h6 class="dropdown-header" style="background: linear-gradient(180deg, #4e73df 10%, #224abe 100%); color: white;">
+                                    Notifications Admin
+                                </h6>
+                                <a class="dropdown-item" href="/validations/pending">
+                                    <div class="font-weight-bold">Demandes en attente</div>
+                                    <div class="small text-gray-500">Congés, absences, validations...</div>
+                                </a>
+                                <a class="dropdown-item" href="/rapports/alertes">
+                                    <div class="font-weight-bold">Alertes système</div>
+                                    <div class="small text-gray-500">Problèmes à résoudre</div>
+                                </a>
+                            </div>
+                        </li>
 
                         <!-- Nav Item - User Information -->
                         <li class="nav-item dropdown no-arrow">
                             <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button"
                                 data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                <span class="mr-2 d-none d-lg-inline text-gray-600 small">Douglas McGee</span>
+                                <span class="mr-2 d-none d-lg-inline text-gray-600 small">
+                                    <?php 
+                                    if(isset($_SESSION['infoAdmin'])) {
+                                        echo htmlspecialchars($_SESSION['infoAdmin']['nom'] ?? 'Inconnu') . ' ' . 
+                                             htmlspecialchars($_SESSION['infoAdmin']['prenom'] ?? 'Inconnu');
+                                    } elseif(isset($_SESSION['admin'])) {
+                                        echo htmlspecialchars($_SESSION['admin']['nom'] ?? 'Inconnu') . ' ' . 
+                                             htmlspecialchars($_SESSION['admin']['prenom'] ?? 'Inconnu');
+                                    } else {
+                                        echo 'Administrateur';
+                                    }
+                                    ?>
+                                    <br>
+                                    <small class="text-primary">
+                                        <i class="fas fa-user-shield fa-xs"></i> Administrateur
+                                    </small>
+                                </span>
                                 <img class="img-profile rounded-circle"
-                                    src="img/undraw_profile.svg">
+                                    src="https://cdn-icons-png.flaticon.com/512/3135/3135715.png">
                             </a>
                             <!-- Dropdown - User Information -->
                             <div class="dropdown-menu dropdown-menu-right shadow animated--grow-in"
                                 aria-labelledby="userDropdown">
-                                <a class="dropdown-item" href="#">
+                                <!-- NOTE: Route /profil/admin n'existe pas - désactivée -->
+                                <a class="dropdown-item disabled" href="#" style="color: #6c757d; cursor: not-allowed;">
                                     <i class="fas fa-user fa-sm fa-fw mr-2 text-gray-400"></i>
-                                    Profile
+                                    Mon profil
                                 </a>
-                                <a class="dropdown-item" href="#">
+                                <!-- NOTE: Route /parametres/admin n'existe pas - désactivée -->
+                                <a class="dropdown-item disabled" href="#" style="color: #6c757d; cursor: not-allowed;">
                                     <i class="fas fa-cogs fa-sm fa-fw mr-2 text-gray-400"></i>
-                                    Settings
-                                </a>
-                                <a class="dropdown-item" href="#">
-                                    <i class="fas fa-list fa-sm fa-fw mr-2 text-gray-400"></i>
-                                    Activity Log
+                                    Paramètres
                                 </a>
                                 <div class="dropdown-divider"></div>
-                                <a class="dropdown-item" href="#" data-toggle="modal" data-target="#logoutModal">
-                                    <i class="fas fa-sign-out-alt fa-sm fa-fw mr-2 text-gray-400"></i>
-                                    Logout
-                                </a>
+                                <form method="post" action="/deconnexion" style="display:inline;">
+                                    <button type="submit" class="dropdown-item">
+                                        <i class="fas fa-sign-out-alt fa-sm fa-fw mr-2 text-gray-400"></i>
+                                        Déconnexion
+                                    </button>
+                                </form>
                             </div>
                         </li>
 
                     </ul>
 
                 </nav>
-                <!-- End of Topbar -->
 
-                <!-- Begin Page Content -->
-
-
-                <!-- Here we put the page content  -->
-                
-                <!-- /.container-fluid -->
-
-            </div>
-            <!-- End of Main Content -->
-
-            <!-- Footer -->
-            <footer class="sticky-footer bg-white">
-                <div class="container my-auto">
-                    <div class="copyright text-center my-auto">
-                        <span>Copyright &copy; Your Website 2021</span>
-                    </div>
-                </div>
-            </footer>
-            <!-- End of Footer -->
-
-        </div>
-        <!-- End of Content Wrapper -->
-
-    </div>
-    <!-- End of Page Wrapper -->
-
-    <!-- Scroll to Top Button-->
-    <a class="scroll-to-top rounded" href="#page-top">
-        <i class="fas fa-angle-up"></i>
-    </a>
-
-    <!-- Logout Modal-->
-    <div class="modal fade" id="logoutModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
-        aria-hidden="true">
-        <div class="modal-dialog" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="exampleModalLabel">Ready to Leave?</h5>
-                    <button class="close" type="button" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">×</span>
-                    </button>
-                </div>
-                <div class="modal-body">Select "Logout" below if you are ready to end your current session.</div>
-                <div class="modal-footer">
-                    <button class="btn btn-secondary" type="button" data-dismiss="modal">Cancel</button>
-                    <a class="btn btn-primary" href="login.html">Logout</a>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Bootstrap core JavaScript-->
-    <script src="vendor/jquery/jquery.min.js"></script>
-    <script src="vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
-
-    <!-- Core plugin JavaScript-->
-    <script src="vendor/jquery-easing/jquery.easing.min.js"></script>
-
-    <!-- Custom scripts for all pages-->
-    <script src="js/sb-admin-2.min.js"></script>
-
-    <!-- Page level plugins -->
-    <script src="vendor/chart.js/Chart.min.js"></script>
-
-    <!-- Page level custom scripts -->
-    <script src="js/demo/chart-area-demo.js"></script>
-    <script src="js/demo/chart-pie-demo.js"></script>
-
-</body>
-
-</html>
+                <div class="container-fluid">
+                    <!-- Votre contenu ici -->

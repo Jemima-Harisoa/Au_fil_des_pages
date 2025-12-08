@@ -357,7 +357,7 @@
                                     </button>
                                 </form>
                                 <?php else: ?>
-                                <form method="post" action="/deconnexion" style="display:inline;">
+                                <form  action="/deconnexion" style="display:inline;">
                                     <button type="submit" class="dropdown-item">
                                         <i class="fas fa-sign-out-alt fa-sm fa-fw mr-2 text-gray-400"></i>
                                         Logout

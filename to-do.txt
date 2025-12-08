@@ -112,3 +112,4 @@ getFormationsByCompetence(id_competence):Renvoie les formations liées.
 assignTrainingToEmployee(id_employe, id_formation):Ajoute une formation au plan."
 base
 formations;employe_formations
+

@@ -578,16 +578,16 @@ class EmployeeCompetenceController {
             $pendingValidations = $employeModel->getPendingValidations();
             $competences = $employeModel->getAvailableCompetences();
             $niveaux = $employeModel->getNiveauLibelles();
+            $employes = $employeModel->listWithDetails(); // Nouvelle ligne
             
             // Afficher la vue
             Flight::render('validationDashboard', [
                 'pendingValidations' => $pendingValidations,
                 'competences' => $competences,
                 'niveaux' => $niveaux,
-                'managerId' => $managerId,
-                'getCouleurNiveau' => [$this, 'getCouleurNiveau']
-            ]);
-            
+                'employes' => $employes, // Nouveau paramètre
+                'managerId' => $managerId
+            ]);    
         } catch (\Exception $e) {
             echo '<div class="alert alert-danger">Erreur: ' . htmlspecialchars($e->getMessage()) . '</div>';
         }

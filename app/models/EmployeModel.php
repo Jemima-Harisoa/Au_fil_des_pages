@@ -580,20 +580,23 @@ class EmployeModel
      * @param array $details Données supplémentaires optionnelles
      * @return bool
      */
-    public function submitSelfCompetence(int $id_employe, int $id_competence, int $niveau, array $details = []): bool
+    public function submitSelfCompetence(int $id_employe, int $id_competence, int $niveau): bool
     {
         try {
             if ($niveau < 1 || $niveau > 5) {
                 throw new \Exception("Le niveau doit être compris entre 1 et 5");
             }
 
-            $id_source_auto = $this->getAutoEvaluationSourceId();
-            $valide = false;
-            $date_mesure = date('Y-m-d H:i:s');
-
+            // Vérifications d'existence
             if (!$this->competenceExists($id_competence)) {
                 throw new \Exception("La compétence spécifiée n'existe pas");
             }
+
+            $id_source_auto = $this->getAutoEvaluationSourceId();
+            // Pour PostgreSQL, on utilise TRUE/FALSE directement dans la requête
+            // ou on passe des chaînes 't'/'f'
+            $valide = 'f'; // 'f' pour false en PostgreSQL
+            $date_mesure = date('Y-m-d H:i:s');
 
             $sql = "INSERT INTO employe_competences 
                     (id_employe, id_competence, niveau, id_source, date_mesure, valide) 
@@ -608,28 +611,60 @@ class EmployeModel
                         date_validation = NULL";
 
             $stmt = $this->db->prepare($sql);
-            $result = $stmt->execute([
-                'id_employe' => $id_employe,
-                'id_competence' => $id_competence,
-                'niveau' => $niveau,
-                'id_source' => $id_source_auto,
-                'date_mesure' => $date_mesure,
-                'valide' => $valide
-            ]);
+            
+            // Exécution avec bindParam pour mieux contrôler les types
+            $stmt->bindParam(':id_employe', $id_employe, PDO::PARAM_INT);
+            $stmt->bindParam(':id_competence', $id_competence, PDO::PARAM_INT);
+            $stmt->bindParam(':niveau', $niveau, PDO::PARAM_INT);
+            $stmt->bindParam(':id_source', $id_source_auto, PDO::PARAM_INT);
+            $stmt->bindParam(':date_mesure', $date_mesure);
+            $stmt->bindParam(':valide', $valide); // 'f' comme chaîne
+            
+            $result = $stmt->execute();
 
             if ($result && $this->isRealtimeMode()) {
                 $this->triggerCompetenceConsolidationJob($id_employe, $id_competence);
             }
 
-            return (bool)$result;
+            return $result;
 
-        } catch (PDOException $e) {
-            error_log("Erreur lors de la soumission de compétence: " . $e->getMessage());
-            return false;
+        } catch (\PDOException $e) {
+            error_log("Erreur PDO lors de la soumission de compétence: " . $e->getMessage());
+            throw new \Exception("Erreur lors de la sauvegarde de la compétence: " . $e->getMessage());
         } catch (\Exception $e) {
             error_log("Erreur de validation: " . $e->getMessage());
-            return false;
+            throw $e;
         }
+    }
+    
+    /**
+     * Vérifier si une compétence existe
+     * 
+     * @param int $id_competence
+     * @return bool
+     */
+    private function competenceExists(int $id_competence): bool
+    {
+        $sql = "SELECT COUNT(*) FROM competences WHERE id_competence = :id_competence";
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute(['id_competence' => $id_competence]);
+        return $stmt->fetchColumn() > 0;
+    }
+
+    // Méthode helper pour vérifier l'existence d'un employé
+    private function employeExists(int $id_employe): bool
+    {
+        $sql = "SELECT COUNT(*) FROM employes WHERE id_employe = :id_employe";
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute(['id_employe' => $id_employe]);
+        return $stmt->fetchColumn() > 0;
+    }
+
+    // Méthode pour logger l'opération (optionnel)
+    private function logCompetenceOperation(int $id_employe, int $id_competence, int $niveau, int $id_source): void
+    {
+        // Vous pouvez implémenter un logging plus détaillé ici
+        error_log("Compétence soumise - Employé: $id_employe, Compétence: $id_competence, Niveau: $niveau, Source: $id_source");
     }
 
     /**
@@ -683,19 +718,7 @@ class EmployeModel
         }
     }
 
-    /**
-     * Vérifier si une compétence existe
-     * 
-     * @param int $id_competence
-     * @return bool
-     */
-    private function competenceExists(int $id_competence): bool
-    {
-        $sql = "SELECT 1 FROM competences WHERE id_competence = :id_competence";
-        $stmt = $this->db->prepare($sql);
-        $stmt->execute(['id_competence' => $id_competence]);
-        return (bool)$stmt->fetch(PDO::FETCH_ASSOC);
-    }
+   
 
     /**
      * Vérifier si le mode temps réel est activé
@@ -741,7 +764,7 @@ class EmployeModel
      * 
      * @return array
      */
-    public function getAvailableCompetences(): array
+    public function getAvailableCompetences($estvalide = false): array
     {
         try {
             $sql = "SELECT 
@@ -756,11 +779,14 @@ class EmployeModel
                     WHERE c.id_competence IN (
                         SELECT DISTINCT id_competence 
                         FROM employe_competences 
-                        WHERE valide = true
+                        WHERE valide = :valide
                     )
                     ORDER BY c.domaine, c.nom";
 
-            $stmt = $this->db->query($sql);
+            $stmt = $this->db->prepare($sql);
+            // Pour PostgreSQL, on peut passer 't' ou 'f' pour les booléens
+            $valide_bool = $estvalide ? 't' : 'f';
+            $stmt->execute(['valide' => $valide_bool]);
             return $stmt->fetchAll(PDO::FETCH_ASSOC);
 
         } catch (PDOException $e) {
@@ -859,7 +885,7 @@ class EmployeModel
                     LEFT JOIN employes ev ON ec.id_employe_validateur = ev.id_employe
                     LEFT JOIN personnes evp ON ev.id_personne = evp.id_personne
                     WHERE ec.valide = false
-                    AND ec.id_source = 1
+                    AND ec.id_source = :id_source_auto
                     ORDER BY ec.date_mesure DESC, e.id_employe";
             
             $stmt = $this->db->prepare($sql);

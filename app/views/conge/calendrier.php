@@ -1,12 +1,24 @@
 <?php
-// Inclure votre header selon le type d'utilisateur
-Flight::render('headerA');
 
 // Générer les années pour le filtre (5 ans avant et après l'année actuelle)
 $currentYear = date('Y');
 $years = [];
 for ($i = $currentYear - 2; $i <= $currentYear + 3; $i++) {
     $years[] = $i;
+}
+
+if (isset($_SESSION['infoAdmin'])) {
+    // Rediriger vers une page d'erreur ou de connexion
+    Flight::render("headerA", ['extra_css' => $extra_css]);
+}
+else if (isset($_SESSION['employe'])) {
+    // Rediriger vers une page d'erreur ou de connexion
+    Flight::render("headerE", ['extra_css' => $extra_css]);
+}
+else {
+    // Rediriger vers une page d'erreur ou de connexion
+    Flight::render("headerU");
+
 }
 ?>
 

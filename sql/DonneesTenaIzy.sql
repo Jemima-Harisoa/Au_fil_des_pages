@@ -441,15 +441,16 @@ INSERT INTO conge_solde (id_employe, id_type_conge, solde, annee) VALUES
 (4, 1, 15.0, 2024);
 
 INSERT INTO abscence_conge_suivi (id_demande, id_abscence, id_type, id_employe, nombre_conge, annee, penalite_appliquee, id_type_penalite, dateMouvement) VALUES
+(NULL, 5, NULL, 1, 0, 2024, TRUE, 1, '2024-03-25 10:00:00'),
 (1, NULL, 1, 1, 15, 2024, FALSE, NULL, '2024-02-16'),
 (NULL, 1, NULL, 2, 0, 2024, TRUE, 2, '2024-03-06'),
 (2, NULL, 2, 2, 3, 2024, FALSE, NULL, '2024-02-21'),
-(NULL, 3, NULL, 5, 0, 2024, TRUE, 1, '2024-03-16'),
+(NULL, 3, NULL, 4, 0, 2024, TRUE, 1, '2024-03-16'),
 (3, NULL, 3, 3, 3, 2024, FALSE, NULL, '2024-02-26');
 
 -- CORRECTION: L'employe 5 n'existe pas (nous n'avons que 4 employés)
 INSERT INTO responsable_entretien (id_profil, id_employe, ordre_passage) VALUES
-(1, 1, 1),  -- Vendeur senior evalue en 1er
+(1, 1, 1),  -- Vendeur senior evalue e
 (1, 2, 2),  -- Gerant valide ensuite (utiliser employe 2 au lieu de 5)
 (3, 3, 1),  -- Magasinier principal
 (3, 2, 2),  -- Gerant valide ensuite (utiliser employe 2 au lieu de 5)
@@ -510,7 +511,9 @@ INSERT INTO competences (nom, description, domaine, id_type_competence) VALUES
     ('Gestion de projet', 'Méthodologies agiles et waterfall', 'Management', 2),
     ('Communication', 'Communication interpersonnelle et présentations', 'Soft Skills', 2),
     ('Anglais', 'Langue anglaise professionnelle', 'Langues', 3),
-    ('Python', 'Langage de programmation polyvalent', 'Développement', 1)
+    ('Python', 'Langage de programmation polyvalent', 'Développement', 1),
+    ('Gestion du temps', 'Priorisation, planification et respect des delais', 'Management', 2),
+    ('Docker', 'Conteneurisation applications', 'DevOps', 1)
 ON CONFLICT DO NOTHING;
 
 -- CORRECTION: Supprimer les IDs explicites pour éviter les conflits
@@ -543,7 +546,61 @@ INSERT INTO notifications (id_personne, message, date_notification) VALUES
 (1, 'Nouvelle politique de conge publiee', '2024-06-01 08:00:00'),
 (3, 'Formation obligatoire : securite au travail', '2024-05-12 12:00:00');
 
-INSERT INTO competences (nom, description, domaine, id_type_competence) VALUES
-('Gestion du temps', 'Priorisation, planification et respect des delais', 'Management', 2),
-('Docker', 'Conteneurisation applications', 'DevOps', 1)
-ON CONFLICT DO NOTHING;
+
+-- INSERTS: compétences plausibles validées (manager / RH)
+INSERT INTO employe_competences (id_employe, id_competence, niveau, id_source, date_mesure, valide, id_employe_validateur, date_validation)
+VALUES
+-- Directeur (id_employe = 1) : Gestion, Communication, Anglais
+(1, 4, 5, (SELECT id_source FROM source_evaluation WHERE libelle = 'manager-evaluation'), '2024-02-01 09:00:00', TRUE, 1, '2024-02-02 10:00:00'),
+(1, 5, 4, (SELECT id_source FROM source_evaluation WHERE libelle = 'manager-evaluation'), '2024-02-01 09:15:00', TRUE, 1, '2024-02-02 10:05:00'),
+(1, 6, 4, (SELECT id_source FROM source_evaluation WHERE libelle = 'rh-evaluation'),      '2024-02-01 09:30:00', TRUE, 2, '2024-02-03 11:00:00')
+ON CONFLICT (id_employe, id_competence) DO NOTHING;
+
+-- Comptable (id_employe = 2) : SQL, Communication, Anglais
+INSERT INTO employe_competences (id_employe, id_competence, niveau, id_source, date_mesure, valide, id_employe_validateur, date_validation)
+VALUES
+(2, 3, 4, (SELECT id_source FROM source_evaluation WHERE libelle = 'manager-evaluation'), '2024-03-02 14:00:00', TRUE, 2, '2024-03-03 10:00:00'),
+(2, 5, 4, (SELECT id_source FROM source_evaluation WHERE libelle = 'rh-evaluation'),      '2024-03-02 14:30:00', TRUE, 2, '2024-03-04 09:45:00'),
+(2, 6, 3, (SELECT id_source FROM source_evaluation WHERE libelle = 'manager-evaluation'), '2024-03-05 08:20:00', TRUE, 2, '2024-03-06 09:00:00')
+ON CONFLICT (id_employe, id_competence) DO NOTHING;
+
+-- Caissier (id_employe = 3) : Communication, SQL (opérationnel), Anglais basique
+INSERT INTO employe_competences (id_employe, id_competence, niveau, id_source, date_mesure, valide, id_employe_validateur, date_validation)
+VALUES
+(3, 5, 4, (SELECT id_source FROM source_evaluation WHERE libelle = 'manager-evaluation'), '2024-03-06 09:00:00', TRUE, 1, '2024-03-07 08:30:00'),
+(3, 3, 3, (SELECT id_source FROM source_evaluation WHERE libelle = 'test-technique'),    '2024-03-06 10:00:00', TRUE, 1, '2024-03-07 08:45:00'),
+(3, 6, 2, (SELECT id_source FROM source_evaluation WHERE libelle = 'auto-evaluation'),   '2024-03-05 09:00:00', FALSE, NULL, NULL)
+ON CONFLICT (id_employe, id_competence) DO NOTHING;
+
+-- Magasinier (id_employe = 4) : Gestion de projet (logistique), Communication, Anglais
+INSERT INTO employe_competences (id_employe, id_competence, niveau, id_source, date_mesure, valide, id_employe_validateur, date_validation)
+VALUES
+(4, 4, 3, (SELECT id_source FROM source_evaluation WHERE libelle = 'manager-evaluation'), '2024-03-08 16:00:00', FALSE, NULL, NULL),
+(4, 5, 3, (SELECT id_source FROM source_evaluation WHERE libelle = 'manager-evaluation'), '2024-03-09 09:30:00', TRUE, 4, '2024-03-10 11:00:00'),
+(4, 6, 2, (SELECT id_source FROM source_evaluation WHERE libelle = 'rh-evaluation'),      '2024-03-09 10:00:00', TRUE, 4, '2024-03-11 10:30:00')
+ON CONFLICT (id_employe, id_competence) DO NOTHING;
+
+-- Magasinier (id_employe = 5) : même profil que 4 (si doublon de poste)
+INSERT INTO employe_competences (id_employe, id_competence, niveau, id_source, date_mesure, valide, id_employe_validateur, date_validation)
+VALUES
+(5, 4, 3, (SELECT id_source FROM source_evaluation WHERE libelle = 'manager-evaluation'), '2024-01-16 09:00:00', TRUE, 4, '2024-01-17 10:00:00'),
+(5, 5, 3, (SELECT id_source FROM source_evaluation WHERE libelle = 'manager-evaluation'), '2024-01-16 09:20:00', TRUE, 4, '2024-01-17 10:05:00'),
+(5, 6, 2, (SELECT id_source FROM source_evaluation WHERE libelle = 'auto-evaluation'),   '2024-01-16 09:30:00', FALSE, NULL, NULL)
+ON CONFLICT (id_employe, id_competence) DO NOTHING;
+
+-- --------------------------------------------------------------------
+-- Auto-évaluations NON VALIDÉES: une entrée auto-eval (valide = FALSE) par employé
+-- --------------------------------------------------------------------
+INSERT INTO employe_competences (id_employe, id_competence, niveau, id_source, date_mesure, valide)
+VALUES
+-- pour l'employé 1 (Directeur) : auto-éval Gestion de projet non validée
+(1, 4, 5, (SELECT id_source FROM source_evaluation WHERE libelle = 'auto-evaluation'), '2024-02-01 08:50:00', FALSE),
+-- pour l'employé 2 (Comptable) : auto-éval SQL non validée
+(2, 3, 4, (SELECT id_source FROM source_evaluation WHERE libelle = 'auto-evaluation'), '2024-03-02 13:50:00', FALSE),
+-- pour l'employé 3 (Caissier) : auto-éval Communication non validée
+(3, 5, 4, (SELECT id_source FROM source_evaluation WHERE libelle = 'auto-evaluation'), '2024-03-05 08:50:00', FALSE),
+-- pour l'employé 4 (Magasinier) : auto-éval Gestion de projet non validée
+(4, 4, 3, (SELECT id_source FROM source_evaluation WHERE libelle = 'auto-evaluation'), '2024-03-08 15:30:00', FALSE),
+-- pour l'employé 5 (Magasinier) : auto-éval Communication non validée
+(5, 5, 3, (SELECT id_source FROM source_evaluation WHERE libelle = 'auto-evaluation'), '2024-01-15 08:45:00', FALSE)
+ON CONFLICT (id_employe, id_competence) DO NOTHING;

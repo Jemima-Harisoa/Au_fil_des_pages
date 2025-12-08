@@ -74,6 +74,7 @@ $WelcomeController = new WelcomeController();
 $router->get('/accueilG', [ $WelcomeController, 'AppelAccueilG' ]);
 $router->get('/accueilA', [ $WelcomeController, 'AppelAccueilA' ]);
 $router->get('/accueilU', [ $WelcomeController, 'AppelAccueilU' ]);
+$router->get('/accueilE', [ $WelcomeController, 'AppelAccueilE' ]);
 
 $AnnoncesController = new AnnoncesController();
     
@@ -294,8 +295,6 @@ $router->group('/absence', function($router) use ($Abscence_Controller,$Justific
     $router->get('/notifier/tous', [$Notification_Controller, 'notifierAbsencesLot'] );
 });
 
-
-
 $Competence_Controller = new CompetenceController();
 
 // Routes de gestion des compétences
@@ -373,6 +372,16 @@ $router->group('/validations', function($router) use ($EmployeeCompetence_Contro
     
     // Vue HTML du dashboard manager
     $router->get('/dashboard', [$EmployeeCompetence_Controller, 'showValidationDashboard']);
+    
+    // AJOUT DES ROUTES MANQUANTES
+    // Route pour obtenir les statistiques de validation
+    $router->get('/stats', [$EmployeeCompetence_Controller, 'getValidationStats']);
+    
+    // Route pour exporter les validations
+    $router->get('/export', [$EmployeeCompetence_Controller, 'exportValidations']);
+    
+    // Route pour filtrer les validations
+    $router->get('/filter', [$EmployeeCompetence_Controller, 'filterValidations']);
 });
 
 // Routes API pour la validation managériale
@@ -386,4 +395,20 @@ $router->group('/api/validations', function($router) use ($EmployeeCompetence_Co
     
     // Validation en masse
     $router->post('/bulk-validate', [$EmployeeCompetence_Controller, 'bulkValidate']);
+    
+    // AJOUT DES ROUTES API MANQUANTES
+    // API pour les filtres
+    $router->get('/filters', [$EmployeeCompetence_Controller, 'getFilterOptions']);
+    
+    // API pour les statistiques
+    $router->get('/statistics', [$EmployeeCompetence_Controller, 'getValidationStatistics']);
+    
+    // API pour l'historique des validations
+    $router->get('/history', [$EmployeeCompetence_Controller, 'getValidationHistory']);
+    
+    // API pour rejeter une compétence
+    $router->post('/@entryId/reject', [$EmployeeCompetence_Controller, 'rejectCompetence']);
+    
+    // API pour ajuster une compétence
+    $router->post('/@entryId/adjust', [$EmployeeCompetence_Controller, 'adjustCompetence']);
 });

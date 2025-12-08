@@ -359,8 +359,19 @@ $extra_js = '
 </script>
 ';
 
-// Inclure le header avec les styles supplémentaires
-Flight::render("headerA", ['extra_css' => $extra_css]);
+if (isset($_SESSION['infoAdmin'])) {
+    // Rediriger vers une page d'erreur ou de connexion
+    Flight::render("headerA", ['extra_css' => $extra_css]);
+}
+else if (isset($_SESSION['employe'])) {
+    // Rediriger vers une page d'erreur ou de connexion
+    Flight::render("headerE", ['extra_css' => $extra_css]);
+}
+else {
+    // Rediriger vers une page d'erreur ou de connexion
+    Flight::render("headerU");
+
+}
 ?>
 
 <!-- Begin Page Content -->

@@ -537,7 +537,7 @@ class CongeController {
     public function getListeEmployes() {
         // Vérifier les droits d'administration
         if (!$this->estAdministrateur()) {
-            Flight::redirect('/connexion-employe');
+            Flight::redirect('/employe');
             return;
         }
 

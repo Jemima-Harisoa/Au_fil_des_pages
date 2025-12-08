@@ -75,7 +75,19 @@ function getCouleurNiveau($couleur) {
     return $couleursNiveau[strtolower($couleur)] ?? '#6c757d';
 }
 ?>
-<?php Flight::render('headerA')?>
+<?php if (isset($_SESSION['infoAdmin'])) {
+    // Rediriger vers une page d'erreur ou de connexion
+    Flight::render("headerA");
+}
+else if (isset($_SESSION['employe'])) {
+    // Rediriger vers une page d'erreur ou de connexion
+    Flight::render("headerE");
+}
+else {
+    // Rediriger vers une page d'erreur ou de connexion
+    Flight::render("headerU");
+
+}?>
 <div class="competence-list-container">
     <div class="list-header-competence">
         <h4><i class="fas fa-list-alt mr-2"></i>Mes Compétences Auto-évaluées</h4>

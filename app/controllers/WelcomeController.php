@@ -13,14 +13,21 @@ class WelcomeController {
         Flight::render('accueilG');
     }
     public function AppelAccueilA() {
-        Flight::render('accueilA');
+        Flight::render("headerA");
+        Flight::render("accueilA");
+        Flight::render("footer");
     }
     public function AppelAccueilU() {
-        Flight::render('accueilU');
+        Flight::render("headerU");
+        Flight::render("accueilU");
+        Flight::render("footer");
     }
     public function AppelAccueilE() {
-        Flight::render('accueilE');
+        Flight::render("headerE");
+        Flight::render("accueilE");
+        Flight::render("footer");
     }
+
 }
 
 ?>

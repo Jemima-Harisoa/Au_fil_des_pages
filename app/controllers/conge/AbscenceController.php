@@ -199,7 +199,7 @@ class AbscenceController {
         $idEmploye = $this->getIdEmployeConnecte();
         
         if (!$idEmploye) {
-            Flight::redirect('/connexion-employe');
+            Flight::redirect('/employe');
             return;
         }
 

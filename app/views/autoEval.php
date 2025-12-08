@@ -113,7 +113,16 @@ function getCouleurNiveau($couleur) {
     return $couleursNiveau[strtolower($couleur)] ?? '#6c757d';
 }
 ?>
-<?php Flight::render('headerA')?>
+
+<?php 
+if (isset($_SESSION['infoAdmin'])) {
+    Flight::render("headerA");
+} else if (isset($_SESSION['employe'])) {
+    Flight::render("headerE");
+} else {
+    Flight::render("headerU");
+}
+?>
 
 <div class="form-container-competence">
     <div class="form-header-competence">
@@ -122,12 +131,12 @@ function getCouleurNiveau($couleur) {
     </div>
     
     <div class="form-body-competence">
-        <form id="formAutoEvaluationCompetence">
-            <input type="hidden" name="id_employe" value="<?= $id_employe ?>">
+        <!-- CORRECTION : ajout de l'ID manquant et correction de l'action -->
+        <form action="/employees/<?= $id_employe ?>/competences" method="post">
             
             <!-- Sélection de la compétence -->
             <div class="form-group mb-4">
-                <label for="id_competence" class="form-label">Compétence </label>
+                <label for="id_competence" class="form-label">Compétence <span class="text-danger">*</span></label>
                 <select class="form-control" id="id_competence" name="id_competence" required>
                     <option value="">Sélectionnez une compétence...</option>
                     <?php foreach ($competences as $competence): ?>
@@ -148,15 +157,16 @@ function getCouleurNiveau($couleur) {
                 <div id="selected-competence-details"></div>
             </div>
             
-            <!-- Sélection du niveau (menu déroulant) -->
+            <!-- Sélection du niveau -->
             <div class="form-group mb-4">
-                <label for="niveau" class="form-label">Niveau </label>
+                <label for="niveau" class="form-label">Niveau <span class="text-danger">*</span></label>
                 <select class="form-control" id="niveau" name="niveau" required>
                     <option value="">Sélectionnez votre niveau...</option>
                     <?php foreach ($niveaux as $niveau): 
                         $couleur = getCouleurNiveau($niveau['couleur']);
                     ?>
-                        <option value="<?= $niveau['niveau'] ?>" style="border-left: 4px solid <?= $couleur ?>; padding: 8px 12px;">
+                        <option value="<?= $niveau['niveau'] ?>" 
+                                style="border-left: 4px solid <?= $couleur ?>; padding: 8px 12px;">
                             Niveau <?= $niveau['niveau'] ?> - <?= $niveau['libelle'] ?> 
                             (<?= $niveau['description'] ?>)
                         </option>
@@ -165,7 +175,8 @@ function getCouleurNiveau($couleur) {
                 <div class="mt-2">
                     <small class="text-muted">Légende : </small>
                     <?php foreach ($niveaux as $niveau): ?>
-                        <span class="niveau-badge mr-2" style="background-color: <?= getCouleurNiveau($niveau['couleur']) ?>; color: white;">
+                        <span class="niveau-badge mr-2" 
+                              style="background-color: <?= getCouleurNiveau($niveau['couleur']) ?>; color: white;">
                             Niv. <?= $niveau['niveau'] ?>
                         </span>
                     <?php endforeach; ?>
@@ -174,8 +185,8 @@ function getCouleurNiveau($couleur) {
             
             <!-- Commentaires supplémentaires -->
             <div class="form-group mb-4">
-                <label for="commentaires" class="form-label">Commentaires (optionnel)</label>
-                <textarea class="form-control" id="commentaires" name="commentaires" 
+                <label for="details" class="form-label">Commentaires (optionnel)</label>
+                <textarea class="form-control" id="details" name="details" 
                     rows="3" placeholder="Précisez votre expérience avec cette compétence..."></textarea>
             </div>
             
@@ -187,7 +198,7 @@ function getCouleurNiveau($couleur) {
                     </button>
                 </div>
                 <div class="col-sm-6">
-                    <button type="button" class="btn btn-secondary btn-block" onclick="$('#formulaireCompetenceContainer').html('')">
+                    <button type="button" class="btn btn-secondary btn-block" onclick="annulerFormulaire()">
                         <i class="fas fa-times mr-2"></i> Annuler
                     </button>
                 </div>
@@ -198,104 +209,168 @@ function getCouleurNiveau($couleur) {
 
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
-    $(document).ready(function() {
-        // Affichage des détails de la compétence sélectionnée
-        $('#id_competence').on('change', function() {
-            const selectedOption = $(this).find('option:selected');
-            const domaine = selectedOption.data('domaine');
-            const type = selectedOption.data('type');
-            const nom = selectedOption.text();
-            
-            if (selectedOption.val()) {
-                $('#selected-competence-name').text(nom);
-                $('#selected-competence-details').html(`
-                    <div>Domaine: ${domaine}</div>
-                    <div>Type: ${type}</div>
-                `);
-                $('#competence-info').removeClass('d-none');
-            } else {
-                $('#competence-info').addClass('d-none');
-            }
-        });
+$(document).ready(function() {
+    // Affichage des détails de la compétence sélectionnée
+    $('#id_competence').on('change', function() {
+        const selectedOption = $(this).find('option:selected');
+        const domaine = selectedOption.data('domaine');
+        const type = selectedOption.data('type');
+        const nom = selectedOption.text();
         
-        // Soumission du formulaire
-        $('#formAutoEvaluationCompetence').on('submit', function(e) {
-            e.preventDefault();
-            
-            const formData = $(this).serialize();
-            const submitBtn = $(this).find('button[type="submit"]');
-            
-            // Validation
-            if (!$('#niveau').val()) {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Niveau requis',
-                    text: 'Veuillez sélectionner un niveau de compétence',
-                    confirmButtonText: 'OK'
-                });
-                return;
-            }
-            
-            if (!$('#id_competence').val()) {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Compétence requise',
-                    text: 'Veuillez sélectionner une compétence',
-                    confirmButtonText: 'OK'
-                });
-                return;
-            }
-            
-            // Désactiver le bouton pendant l'envoi
-            submitBtn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin mr-2"></i> Envoi en cours...');
-            
-            $.ajax({
-                url: '/employees/<?= $id_employe ?>/competences',
-                type: 'POST',
-                data: formData,
-                success: function(response) {
-                    if (response.success) {
-                        Swal.fire({
-                            icon: 'success',
-                            title: 'Succès !',
-                            text: response.message,
-                            confirmButtonText: 'OK',
-                            confirmButtonColor: '#1cc88a'
-                        }).then(() => {
-                            // Fermer le formulaire et recharger la liste
-                            $('#formulaireCompetenceContainer').html('');
-                            // Optionnel: recharger la liste des compétences
-                            loadCompetenceList();
-                        });
-                    } else {
-                        Swal.fire({
-                            icon: 'error',
-                            title: 'Erreur',
-                            text: response.error || 'Une erreur est survenue',
-                            confirmButtonText: 'OK',
-                            confirmButtonColor: '#e74a3b'
-                        });
-                    }
-                },
-                error: function(xhr, status, error) {
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Erreur de connexion',
-                        text: 'Impossible de contacter le serveur',
-                        confirmButtonText: 'OK',
-                        confirmButtonColor: '#e74a3b'
-                    });
-                },
-                complete: function() {
-                    submitBtn.prop('disabled', false).html('<i class="fas fa-paper-plane mr-2"></i> Soumettre l\'auto-évaluation');
-                }
-            });
-        });
+        if (selectedOption.val()) {
+            $('#selected-competence-name').text(nom);
+            $('#selected-competence-details').html(`
+                <div>Domaine: ${domaine}</div>
+                <div>Type: ${type}</div>
+            `);
+            $('#competence-info').removeClass('d-none');
+        } else {
+            $('#competence-info').addClass('d-none');
+        }
     });
     
-    function loadCompetenceList() {
-        // Fonction pour recharger la liste des compétences (à implémenter si nécessaire)
-        console.log('Rechargement de la liste des compétences...');
-    }
+    // // CORRECTION PRINCIPALE : Gestion de la soumission du formulaire
+    // $('#formAutoEvaluationCompetence').on('submit', function(e) {
+    //     e.preventDefault();
+        
+    //     const submitBtn = $(this).find('button[type="submit"]');
+        
+    //     // Validation côté client
+    //     const niveau = $('#niveau').val();
+    //     const id_competence = $('#id_competence').val();
+        
+    //     if (!niveau) {
+    //         Swal.fire({
+    //             icon: 'error',
+    //             title: 'Niveau requis',
+    //             text: 'Veuillez sélectionner un niveau de compétence',
+    //             confirmButtonText: 'OK'
+    //         });
+    //         return;
+    //     }
+        
+    //     if (!id_competence) {
+    //         Swal.fire({
+    //             icon: 'error',
+    //             title: 'Compétence requise',
+    //             text: 'Veuillez sélectionner une compétence',
+    //             confirmButtonText: 'OK'
+    //         });
+    //         return;
+    //     }
+        
+    //     // CORRECTION : Préparation correcte des données
+    //     const id_employe = $('#formAutoEvaluationCompetence input[name="id_employe"]').val();
+    //     const details = $('#details').val();
+        
+    //     const formData = {
+    //         id_employe: id_employe,
+    //         id_competence: id_competence,
+    //         niveau: niveau,
+    //         details: details
+    //     };
+        
+    //     console.log('Données envoyées:', formData);
+        
+    //     // Désactiver le bouton pendant l'envoi
+    //     submitBtn.prop('disabled', true)
+    //              .html('<i class="fas fa-spinner fa-spin mr-2"></i> Envoi en cours...');
+        
+    //     // CORRECTION : URL et méthode correctes
+    //     $.ajax({
+    //         url: '/employees/' + id_employe + '/competences',
+    //         type: 'POST',
+    //         data: formData,
+    //         dataType: 'json',
+    //         success: function(response) {
+    //             console.log('Réponse serveur:', response);
+                
+    //             if (response.success) {
+    //                 Swal.fire({
+    //                     icon: 'success',
+    //                     title: 'Succès !',
+    //                     text: response.message || 'Compétence soumise avec succès',
+    //                     confirmButtonText: 'OK',
+    //                     confirmButtonColor: '#1cc88a'
+    //                 }).then(() => {
+    //                     // Réinitialiser le formulaire
+    //                     $('#formAutoEvaluationCompetence')[0].reset();
+    //                     $('#competence-info').addClass('d-none');
+                        
+    //                     // Optionnel: recharger la liste des compétences
+    //                     if (typeof loadCompetenceList === 'function') {
+    //                         loadCompetenceList();
+    //                     }
+    //                 });
+    //             } else {
+    //                 Swal.fire({
+    //                     icon: 'error',
+    //                     title: 'Erreur',
+    //                     text: response.error || 'Une erreur est survenue',
+    //                     confirmButtonText: 'OK',
+    //                     confirmButtonColor: '#e74a3b'
+    //                 });
+    //             }
+    //         },
+    //         error: function(xhr, status, error) {
+    //             console.error('Erreur AJAX:', {xhr: xhr, status: status, error: error});
+    //             console.error('Réponse complète:', xhr.responseText);
+                
+    //             let errorMessage = 'Impossible de contacter le serveur';
+                
+    //             // Tenter de parser la réponse JSON en cas d'erreur
+    //             try {
+    //                 const response = JSON.parse(xhr.responseText);
+    //                 if (response.error) {
+    //                     errorMessage = response.error;
+    //                 }
+    //             } catch (e) {
+    //                 // Si ce n'est pas du JSON, utiliser le message par défaut
+    //                 if (xhr.responseText) {
+    //                     errorMessage = 'Erreur serveur: ' + xhr.responseText.substring(0, 100);
+    //                 }
+    //             }
+                
+    //             Swal.fire({
+    //                 icon: 'error',
+    //                 title: 'Erreur de connexion',
+    //                 text: errorMessage,
+    //                 confirmButtonText: 'OK',
+    //                 confirmButtonColor: '#e74a3b'
+    //             });
+    //         },
+    //         complete: function() {
+    //             // Réactiver le bouton
+    //             submitBtn.prop('disabled', false)
+    //                      .html('<i class="fas fa-paper-plane mr-2"></i> Soumettre l\'auto-évaluation');
+    //         }
+    //     });
+    // });
+});
+
+// Fonction pour annuler le formulaire
+function annulerFormulaire() {
+    Swal.fire({
+        title: 'Êtes-vous sûr ?',
+        text: "Les données saisies seront perdues",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#d33',
+        confirmButtonText: 'Oui, annuler',
+        cancelButtonText: 'Non, continuer'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            $('#formulaireCompetenceContainer').html('');
+        }
+    });
+}
+
+// Fonction pour recharger la liste des compétences (à implémenter si nécessaire)
+function loadCompetenceList() {
+    console.log('Rechargement de la liste des compétences...');
+    // Vous pouvez ajouter ici le code pour recharger la liste
+}
 </script>
+
 <?php Flight::render('footer')?>
