@@ -132,7 +132,7 @@ if (isset($_SESSION['infoAdmin'])) {
     
     <div class="form-body-competence">
         <!-- CORRECTION : ajout de l'ID manquant et correction de l'action -->
-        <form id="formAutoEvaluationCompetence" action="/employees/<?= $id_employe ?>/competences" method="post">
+        <form id="formAutoEvaluationCompetence"  method="post">
             
             <!-- Sélection de la compétence -->
             <div class="form-group mb-4">
@@ -230,122 +230,122 @@ $(document).ready(function() {
     });
     
     // // CORRECTION PRINCIPALE : Gestion de la soumission du formulaire
-    // $('#formAutoEvaluationCompetence').on('submit', function(e) {
-    //     e.preventDefault();
+    $('#formAutoEvaluationCompetence').on('submit', function(e) {
+        e.preventDefault();
         
-    //     const submitBtn = $(this).find('button[type="submit"]');
+        const submitBtn = $(this).find('button[type="submit"]');
         
-    //     // Validation côté client
-    //     const niveau = $('#niveau').val();
-    //     const id_competence = $('#id_competence').val();
+        // Validation côté client
+        const niveau = $('#niveau').val();
+        const id_competence = $('#id_competence').val();
         
-    //     if (!niveau) {
-    //         Swal.fire({
-    //             icon: 'error',
-    //             title: 'Niveau requis',
-    //             text: 'Veuillez sélectionner un niveau de compétence',
-    //             confirmButtonText: 'OK'
-    //         });
-    //         return;
-    //     }
+        if (!niveau) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Niveau requis',
+                text: 'Veuillez sélectionner un niveau de compétence',
+                confirmButtonText: 'OK'
+            });
+            return;
+        }
         
-    //     if (!id_competence) {
-    //         Swal.fire({
-    //             icon: 'error',
-    //             title: 'Compétence requise',
-    //             text: 'Veuillez sélectionner une compétence',
-    //             confirmButtonText: 'OK'
-    //         });
-    //         return;
-    //     }
+        if (!id_competence) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Compétence requise',
+                text: 'Veuillez sélectionner une compétence',
+                confirmButtonText: 'OK'
+            });
+            return;
+        }
         
-    //     // CORRECTION : Préparation correcte des données
-    //     const id_employe = $('#formAutoEvaluationCompetence input[name="id_employe"]').val();
-    //     const details = $('#details').val();
+        // CORRECTION : Préparation correcte des données
+        const id_employe = $('#formAutoEvaluationCompetence input[name="id_employe"]').val();
+        const details = $('#details').val();
         
-    //     const formData = {
-    //         id_employe: id_employe,
-    //         id_competence: id_competence,
-    //         niveau: niveau,
-    //         details: details
-    //     };
+        const formData = {
+            id_employe: id_employe,
+            id_competence: id_competence,
+            niveau: niveau,
+            details: details
+        };
         
-    //     console.log('Données envoyées:', formData);
+        console.log('Données envoyées:', formData);
         
-    //     // Désactiver le bouton pendant l'envoi
-    //     submitBtn.prop('disabled', true)
-    //              .html('<i class="fas fa-spinner fa-spin mr-2"></i> Envoi en cours...');
+        // Désactiver le bouton pendant l'envoi
+        submitBtn.prop('disabled', true)
+                 .html('<i class="fas fa-spinner fa-spin mr-2"></i> Envoi en cours...');
         
-    //     // CORRECTION : URL et méthode correctes
-    //     $.ajax({
-    //         url: '/employees/' + id_employe + '/competences',
-    //         type: 'POST',
-    //         data: formData,
-    //         dataType: 'json',
-    //         success: function(response) {
-    //             console.log('Réponse serveur:', response);
+        // CORRECTION : URL et méthode correctes
+        $.ajax({
+            url: '/employees/' + id_employe + '/competences',
+            type: 'POST',
+            data: formData,
+            dataType: 'json',
+            success: function(response) {
+                console.log('Réponse serveur:', response);
                 
-    //             if (response.success) {
-    //                 Swal.fire({
-    //                     icon: 'success',
-    //                     title: 'Succès !',
-    //                     text: response.message || 'Compétence soumise avec succès',
-    //                     confirmButtonText: 'OK',
-    //                     confirmButtonColor: '#1cc88a'
-    //                 }).then(() => {
-    //                     // Réinitialiser le formulaire
-    //                     $('#formAutoEvaluationCompetence')[0].reset();
-    //                     $('#competence-info').addClass('d-none');
+                if (response.success) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Succès !',
+                        text: response.message || 'Compétence soumise avec succès',
+                        confirmButtonText: 'OK',
+                        confirmButtonColor: '#1cc88a'
+                    }).then(() => {
+                        // Réinitialiser le formulaire
+                        $('#formAutoEvaluationCompetence')[0].reset();
+                        $('#competence-info').addClass('d-none');
                         
-    //                     // Optionnel: recharger la liste des compétences
-    //                     if (typeof loadCompetenceList === 'function') {
-    //                         loadCompetenceList();
-    //                     }
-    //                 });
-    //             } else {
-    //                 Swal.fire({
-    //                     icon: 'error',
-    //                     title: 'Erreur',
-    //                     text: response.error || 'Une erreur est survenue',
-    //                     confirmButtonText: 'OK',
-    //                     confirmButtonColor: '#e74a3b'
-    //                 });
-    //             }
-    //         },
-    //         error: function(xhr, status, error) {
-    //             console.error('Erreur AJAX:', {xhr: xhr, status: status, error: error});
-    //             console.error('Réponse complète:', xhr.responseText);
+                        // Optionnel: recharger la liste des compétences
+                        if (typeof loadCompetenceList === 'function') {
+                            loadCompetenceList();
+                        }
+                    });
+                } else {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Erreur',
+                        text: response.error || 'Une erreur est survenue',
+                        confirmButtonText: 'OK',
+                        confirmButtonColor: '#e74a3b'
+                    });
+                }
+            },
+            error: function(xhr, status, error) {
+                console.error('Erreur AJAX:', {xhr: xhr, status: status, error: error});
+                console.error('Réponse complète:', xhr.responseText);
                 
-    //             let errorMessage = 'Impossible de contacter le serveur';
+                let errorMessage = 'Impossible de contacter le serveur';
                 
-    //             // Tenter de parser la réponse JSON en cas d'erreur
-    //             try {
-    //                 const response = JSON.parse(xhr.responseText);
-    //                 if (response.error) {
-    //                     errorMessage = response.error;
-    //                 }
-    //             } catch (e) {
-    //                 // Si ce n'est pas du JSON, utiliser le message par défaut
-    //                 if (xhr.responseText) {
-    //                     errorMessage = 'Erreur serveur: ' + xhr.responseText.substring(0, 100);
-    //                 }
-    //             }
+                // Tenter de parser la réponse JSON en cas d'erreur
+                try {
+                    const response = JSON.parse(xhr.responseText);
+                    if (response.error) {
+                        errorMessage = response.error;
+                    }
+                } catch (e) {
+                    // Si ce n'est pas du JSON, utiliser le message par défaut
+                    if (xhr.responseText) {
+                        errorMessage = 'Erreur serveur: ' + xhr.responseText.substring(0, 100);
+                    }
+                }
                 
-    //             Swal.fire({
-    //                 icon: 'error',
-    //                 title: 'Erreur de connexion',
-    //                 text: errorMessage,
-    //                 confirmButtonText: 'OK',
-    //                 confirmButtonColor: '#e74a3b'
-    //             });
-    //         },
-    //         complete: function() {
-    //             // Réactiver le bouton
-    //             submitBtn.prop('disabled', false)
-    //                      .html('<i class="fas fa-paper-plane mr-2"></i> Soumettre l\'auto-évaluation');
-    //         }
-    //     });
-    // });
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Erreur de connexion',
+                    text: errorMessage,
+                    confirmButtonText: 'OK',
+                    confirmButtonColor: '#e74a3b'
+                });
+            },
+            complete: function() {
+                // Réactiver le bouton
+                submitBtn.prop('disabled', false)
+                         .html('<i class="fas fa-paper-plane mr-2"></i> Soumettre l\'auto-évaluation');
+            }
+        });
+    });
 });
 
 // Fonction pour annuler le formulaire

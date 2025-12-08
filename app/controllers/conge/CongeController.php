@@ -36,7 +36,7 @@ class CongeController {
     public function getInterfaceValidation() {
         // Vérifier les droits d'administration
         if (!$this->estAdministrateur()) {
-            Flight::redirect('/connexion-employe');
+            Flight::redirect('/employe');
             return;
         }
 
@@ -224,7 +224,7 @@ class CongeController {
     public function getDemandeConge() {
         // Vérifier que l'utilisateur est connecté (admin ou employé)
         if (!$this->estAdministrateur() && !$this->estEmploye()) {
-            Flight::redirect('/connexion-employe');
+            Flight::redirect('/employe');
             return;
         }
 
@@ -237,7 +237,7 @@ class CongeController {
         $idEmploye = $this->getIdEmployeConnecte();
         
         if (!$idEmploye) {
-            Flight::redirect('/connexion-employe');
+            Flight::redirect('/employe');
             return;
         }
         
@@ -400,7 +400,7 @@ class CongeController {
     public function getDetailConges($idEmploye, $idType = null) {
         // Vérifier les droits d'accès
         if (!$this->peutVoirFiche($idEmploye)) {
-            Flight::redirect('/connexion-employe');
+            Flight::redirect('/employe');
             return;
         }
 
@@ -424,7 +424,7 @@ class CongeController {
     public function getDetailAbsences($idEmploye, $estAutorise = null) {
         // Vérifier les droits d'accès
         if (!$this->peutVoirFiche($idEmploye)) {
-            Flight::redirect('/connexion-employe');
+            Flight::redirect('/employe');
             return;
         }
 

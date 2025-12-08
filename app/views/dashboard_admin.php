@@ -142,7 +142,7 @@ if (isset($_SESSION['infoAdmin'])) {
 
         <!-- Cartes de statistiques -->
         <div class="row mb-4" id="stats-cards">
-            <?php if (isset($dashboardData) && !empty($dashboardData)): ?>
+            <?php if (isset($dashboardData) && is_array($dashboardData) && isset($dashboardData['statistiques_globales'])): ?>
                 <?php $stats = $dashboardData['statistiques_globales'] ?? []; ?>
                 <div class="col-xl-3 col-md-6 mb-4">
                     <div class="card border-left-primary shadow h-100 py-2">
@@ -152,7 +152,7 @@ if (isset($_SESSION['infoAdmin'])) {
                                     <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
                                         Compétences référencées</div>
                                     <div class="h5 mb-0 font-weight-bold text-gray-800">
-                                        <?php echo $stats['total_competences'] ?? 0; ?>
+                                        <?php echo isset($stats['total_competences']) ? number_format($stats['total_competences']) : 0; ?>
                                     </div>
                                 </div>
                                 <div class="col-auto">
@@ -170,7 +170,7 @@ if (isset($_SESSION['infoAdmin'])) {
                                     <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
                                         Niveau moyen global</div>
                                     <div class="h5 mb-0 font-weight-bold text-gray-800">
-                                        <?php echo number_format($stats['niveau_moyen_global'] ?? 0, 2); ?>/5
+                                        <?php echo isset($stats['niveau_moyen_global']) ? number_format($stats['niveau_moyen_global'], 2) : '0.00'; ?>/5
                                     </div>
                                 </div>
                                 <div class="col-auto">
@@ -188,7 +188,7 @@ if (isset($_SESSION['infoAdmin'])) {
                                     <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
                                         Couverture moyenne</div>
                                     <div class="h5 mb-0 font-weight-bold text-gray-800">
-                                        <?php echo number_format($stats['couverture_moyenne'] ?? 0, 1); ?>%
+                                        <?php echo isset($stats['couverture_moyenne']) ? number_format($stats['couverture_moyenne'], 1) : '0.0'; ?>%
                                     </div>
                                 </div>
                                 <div class="col-auto">
@@ -219,10 +219,10 @@ if (isset($_SESSION['infoAdmin'])) {
             <?php else: ?>
                 <div class="col-12 text-center">
                     <div class="loader"></div>
+                    <p class="text-muted mt-2">Chargement des données...</p>
                 </div>
             <?php endif; ?>
         </div>
-
         <!-- Onglets principaux -->
         <ul class="nav nav-tabs" id="dashboardTabs" role="tablist">
             <li class="nav-item">
@@ -434,30 +434,30 @@ if (isset($_SESSION['infoAdmin'])) {
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        <?php if (isset($gapsCritiques['gaps']) && !empty($gapsCritiques['gaps'])): ?>
-                                            <?php foreach ($gapsCritiques['gaps'] as $gap): ?>
-                                                <tr>
-                                                    <td><?php echo htmlspecialchars($gap['departement_nom'] ?? 'Non spécifié'); ?></td>
-                                                    <td><?php echo htmlspecialchars($gap['nom_competence'] ?? 'Non spécifié'); ?></td>
-                                                    <td class="text-center"><?php echo $gap['nb_employes_avec_gap'] ?? 0; ?></td>
-                                                    <td class="text-center"><?php echo number_format($gap['gap_moyen'] ?? 0, 2); ?></td>
-                                                    <td class="text-center"><?php echo $gap['nb_gaps_critiques'] ?? 0; ?></td>
-                                                    <td class="text-center">
-                                                        <?php 
-                                                        $severite = $gap['severite_departement'] ?? 'faible';
-                                                        $badgeClass = $severite === 'haute' ? 'danger' : ($severite === 'moyenne' ? 'warning' : 'success');
-                                                        ?>
-                                                        <span class="badge badge-<?php echo $badgeClass; ?>">
-                                                            <?php echo ucfirst($severite); ?>
-                                                        </span>
-                                                    </td>
-                                                </tr>
-                                            <?php endforeach; ?>
-                                        <?php else: ?>
+                                    <?php if (isset($gapsCritiques['gaps']) && !empty($gapsCritiques['gaps'])): ?>
+                                        <?php foreach ($gapsCritiques['gaps'] as $gap): ?>
                                             <tr>
-                                                <td colspan="6" class="text-center">Aucun gap critique trouvé</td>
+                                                <td><?php echo htmlspecialchars($gap['departement_nom'] ?? 'Non spécifié'); ?></td>
+                                                <td><?php echo htmlspecialchars($gap['nom_competence'] ?? 'Non spécifié'); ?></td>
+                                                <td class="text-center"><?php echo isset($gap['nb_employes_avec_gap']) ? (int)$gap['nb_employes_avec_gap'] : 0; ?></td>
+                                                <td class="text-center"><?php echo isset($gap['gap_moyen']) ? number_format((float)$gap['gap_moyen'], 2) : '0.00'; ?></td>
+                                                <td class="text-center"><?php echo isset($gap['nb_gaps_critiques']) ? (int)$gap['nb_gaps_critiques'] : 0; ?></td>
+                                                <td class="text-center">
+                                                    <?php 
+                                                    $severite = $gap['severite_departement'] ?? 'faible';
+                                                    $badgeClass = $severite === 'haute' ? 'danger' : ($severite === 'moyenne' ? 'warning' : 'success');
+                                                    ?>
+                                                    <span class="badge badge-<?php echo $badgeClass; ?>">
+                                                        <?php echo ucfirst($severite); ?>
+                                                    </span>
+                                                </td>
                                             </tr>
-                                        <?php endif; ?>
+                                        <?php endforeach; ?>
+                                    <?php else: ?>
+                                        <tr>
+                                            <td colspan="6" class="text-center">Aucun gap critique trouvé</td>
+                                        </tr>
+                                    <?php endif; ?>
                                     </tbody>
                                 </table>
                             </div>
@@ -817,10 +817,11 @@ if (isset($_SESSION['infoAdmin'])) {
         let chartInstances = {};
         
         // Données PHP passées au template
-        const dashboardData = <?php echo isset($dashboardData) ? json_encode($dashboardData) : '{}'; ?>;
-        const gapsCritiques = <?php echo isset($gapsCritiques) ? json_encode($gapsCritiques) : '{}'; ?>;
-        const alertesActives = <?php echo isset($alertesActives) ? json_encode($alertesActives) : '{}'; ?>;
-
+        const dashboardData = <?php echo isset($dashboardData) && is_array($dashboardData) ? json_encode($dashboardData) : '{}'; ?>;
+        const gapsCritiques = <?php echo isset($gapsCritiques) && is_array($gapsCritiques) ? json_encode($gapsCritiques) : '{"gaps":[],"statistiques":[]}'; ?>;
+        const alertesActives = <?php echo isset($alertesActives) && is_array($alertesActives) ? json_encode($alertesActives) : '{"alertes":[],"statistiques":[]}'; ?>;
+        const isAdmin = <?php echo isset($isAdmin) && $isAdmin ? 'true' : 'false'; ?>;
+        const isEmploye = <?php echo isset($isEmploye) && $isEmploye ? 'true' : 'false'; ?>;
         // Fonction d'initialisation
         document.addEventListener('DOMContentLoaded', function() {
             initialiserCharts();
@@ -833,12 +834,12 @@ if (isset($_SESSION['infoAdmin'])) {
         // Initialiser les graphiques avec les données PHP
         function initialiserCharts() {
             // Graphique 1: Distribution des évaluations
-            const ctxEvaluation = document.getElementById('chartEvaluationDistribution').getContext('2d');
-            if (dashboardData.repartition_evaluation) {
-                const labels = dashboardData.repartition_evaluation.map(e => e.evaluation_globale);
+            const ctxEvaluation = document.getElementById('chartEvaluationDistribution');
+            if (ctxEvaluation && dashboardData.repartition_evaluation && Array.isArray(dashboardData.repartition_evaluation) && dashboardData.repartition_evaluation.length > 0) {
+                const labels = dashboardData.repartition_evaluation.map(e => e.evaluation_globale || 'Non évalué');
                 const data = dashboardData.repartition_evaluation.map(e => e.nb_competences || 0);
                 
-                chartInstances.evaluation = new Chart(ctxEvaluation, {
+                chartInstances.evaluation = new Chart(ctxEvaluation.getContext('2d'), {
                     type: 'doughnut',
                     data: {
                         labels: labels,
@@ -859,15 +860,19 @@ if (isset($_SESSION['infoAdmin'])) {
                         }
                     }
                 });
+            } else {
+                // Afficher un message si pas de données
+                ctxEvaluation.parentElement.innerHTML = '<div class="text-center text-muted py-4"><i class="fas fa-chart-pie fa-3x mb-3"></i><p>Aucune donnée disponible</p></div>';
             }
 
+            // Répétez la même logique pour les autres graphiques...
             // Graphique 2: Top 10 compétences
-            const ctxTop = document.getElementById('chartTopCompetences').getContext('2d');
-            if (dashboardData.top_10_competences) {
-                const labels = dashboardData.top_10_competences.slice(0, 10).map(c => c.nom.substring(0, 20) + '...');
+            const ctxTop = document.getElementById('chartTopCompetences');
+            if (ctxTop && dashboardData.top_10_competences && Array.isArray(dashboardData.top_10_competences) && dashboardData.top_10_competences.length > 0) {
+                const labels = dashboardData.top_10_competences.slice(0, 10).map(c => (c.nom || 'Sans nom').substring(0, 20) + '...');
                 const data = dashboardData.top_10_competences.slice(0, 10).map(c => c.score_maturite || 0);
                 
-                chartInstances.top = new Chart(ctxTop, {
+                chartInstances.top = new Chart(ctxTop.getContext('2d'), {
                     type: 'bar',
                     data: {
                         labels: labels,
@@ -899,12 +904,12 @@ if (isset($_SESSION['infoAdmin'])) {
             }
 
             // Graphique 3: Distribution par domaine
-            const ctxDomain = document.getElementById('chartDomainDistribution').getContext('2d');
-            if (dashboardData.distribution_domaines) {
-                const labels = dashboardData.distribution_domaines.map(d => d.domaine);
+            const ctxDomain = document.getElementById('chartDomainDistribution');
+            if (ctxDomain && dashboardData.distribution_domaines && Array.isArray(dashboardData.distribution_domaines) && dashboardData.distribution_domaines.length > 0) {
+                const labels = dashboardData.distribution_domaines.map(d => d.domaine || 'Non classé');
                 const data = dashboardData.distribution_domaines.map(d => d.nb_competences || 0);
                 
-                chartInstances.domain = new Chart(ctxDomain, {
+                chartInstances.domain = new Chart(ctxDomain.getContext('2d'), {
                     type: 'pie',
                     data: {
                         labels: labels,
@@ -931,12 +936,12 @@ if (isset($_SESSION['infoAdmin'])) {
             }
 
             // Graphique 4: Répartition de maturité
-            const ctxMaturity = document.getElementById('chartMaturityDistribution').getContext('2d');
-            if (dashboardData.repartition_maturite) {
-                const labels = dashboardData.repartition_maturite.map(m => m.niveau_maturite);
+            const ctxMaturity = document.getElementById('chartMaturityDistribution');
+            if (ctxMaturity && dashboardData.repartition_maturite && Array.isArray(dashboardData.repartition_maturite) && dashboardData.repartition_maturite.length > 0) {
+                const labels = dashboardData.repartition_maturite.map(m => m.niveau_maturite || 'Non spécifié');
                 const data = dashboardData.repartition_maturite.map(m => m.nb_competences || 0);
                 
-                chartInstances.maturity = new Chart(ctxMaturity, {
+                chartInstances.maturity = new Chart(ctxMaturity.getContext('2d'), {
                     type: 'radar',
                     data: {
                         labels: labels,
@@ -968,32 +973,34 @@ if (isset($_SESSION['infoAdmin'])) {
             }
 
             // Graphique 5: Tendances
-            const ctxTendances = document.getElementById('chartTendances').getContext('2d');
-            chartInstances.tendances = new Chart(ctxTendances, {
-                type: 'line',
-                data: {
-                    labels: [],
-                    datasets: [{
-                        label: 'Niveau moyen',
-                        data: [],
-                        borderColor: '#4e73df',
-                        backgroundColor: 'rgba(78, 115, 223, 0.1)',
-                        fill: true,
-                        tension: 0.4
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    scales: {
-                        y: {
-                            beginAtZero: false,
-                            min: 1,
-                            max: 5
+            const ctxTendances = document.getElementById('chartTendances');
+            if (ctxTendances) {
+                chartInstances.tendances = new Chart(ctxTendances.getContext('2d'), {
+                    type: 'line',
+                    data: {
+                        labels: [],
+                        datasets: [{
+                            label: 'Niveau moyen',
+                            data: [],
+                            borderColor: '#4e73df',
+                            backgroundColor: 'rgba(78, 115, 223, 0.1)',
+                            fill: true,
+                            tension: 0.4
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            y: {
+                                beginAtZero: false,
+                                min: 1,
+                                max: 5
+                            }
                         }
                     }
-                }
-            });
+                });
+            }
         }
 
         // Charger les recommandations via AJAX

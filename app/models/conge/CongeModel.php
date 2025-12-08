@@ -247,7 +247,20 @@ class CongeModel {
             if ($demande['deductible_sur_conge']) {
                 $this->deduireCongesEmploye($demande['id_employe'], $nombreJours);
             }
-            
+            // Met à jour le solde de façon atomique et empêche la valeur négative
+            $sql = "
+                UPDATE employes
+                SET nombre_conge = GREATEST(nombre_conge - :nb, 0)
+                WHERE id_employe = :id_employe
+                RETURNING nombre_conge
+            ";
+            $stmt = $this->db->prepare($sql);
+            $stmt->execute([
+                'nb' => $nombreJours,
+                'id_employe' => $demande['id_employe']
+            ]);
+
+            $newSolde = $stmt->fetchColumn();
             $this->db->commit();
             return true;
             

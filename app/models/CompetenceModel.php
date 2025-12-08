@@ -435,26 +435,44 @@ class CompetenceModel
         $stmt->execute();
         $dashboard = $stmt->fetch(\PDO::FETCH_ASSOC);
 
-        if ($dashboard) {
-            // Colonnes à décoder
-            $jsonColumns = [
-                'statistiques_globales',
-                'repartition_evaluation',
-                'repartition_maturite',
-                'top_10_competences',
-                'competences_critiques',
-                'distribution_domaines'
+        if (!$dashboard) {
+            // Si pas de données, créer une structure vide cohérente
+            $dashboard = [
+                'statistiques_globales' => json_encode([
+                    'total_competences' => 0,
+                    'niveau_moyen_global' => 0,
+                    'couverture_moyenne' => 0
+                ]),
+                'repartition_evaluation' => json_encode([]),
+                'repartition_maturite' => json_encode([]),
+                'top_10_competences' => json_encode([]),
+                'distribution_domaines' => json_encode([])
             ];
+        }
 
-            foreach ($jsonColumns as $col) {
-                $dashboard[$col] = $this->safeJsonDecode($dashboard[$col]);
+        // Colonnes à décoder
+        $jsonColumns = [
+            'statistiques_globales',
+            'repartition_evaluation',
+            'repartition_maturite',
+            'top_10_competences',
+            'competences_critiques',
+            'distribution_domaines'
+        ];
+
+        $result = [];
+        foreach ($dashboard as $key => $value) {
+            if (in_array($key, $jsonColumns)) {
+                $result[$key] = $this->safeJsonDecode($value);
+            } else {
+                $result[$key] = $value;
             }
         }
 
         // Mettre en cache pour 10 minutes
-        $this->setCache($cacheKey, $dashboard, 600);
+        $this->setCache($cacheKey, $result, 600);
         
-        return $dashboard;
+        return $result;
     }
 
     /**
@@ -1619,7 +1637,6 @@ class CompetenceModel
                 vc.nb_employes,
                 vc.niveau_moyen,
                 vc.libelle_niveau_moyen,
-                vc.nb_employes_valides,
                 vc.nb_debutants,
                 vc.nb_intermediaires,
                 vc.nb_avances,

@@ -90,26 +90,104 @@ class CompetenceController
     public function getDashboardAdmin()
     {
         try {
-            // Récupérer les données nécessaires
-            $dashboardData = Flight::Competence()->getDashboardGlobal();
-            $gapsCritiques = Flight::Competence()->getGapsCritiques();
-            $alertesActives = Flight::Competence()->getAlertesActives();
+            // Vérifier les droits
+            if (!$this->estAdministrateur() && !$this->estEmploye()) {
+                Flight::redirect('/employe');
+                return;
+            }
+
+            // TEMPORAIRE : Utiliser des données de test
+            $dashboardData = $this->genererDonneesTest();
             
-            
+            // Données de test pour les gaps
+            $gapsCritiques = [
+                'statistiques' => [
+                    'total_gaps' => 34,
+                    'total_gaps_critiques' => 12,
+                    'departements_concernes' => 8,
+                    'competences_concernes' => 15,
+                    'severite_distribution' => [
+                        'haute' => 5,
+                        'moyenne' => 15,
+                        'faible' => 14
+                    ]
+                ],
+                'gaps' => [
+                    [
+                        'departement_nom' => 'Développement',
+                        'nom_competence' => 'React Native',
+                        'nb_employes_avec_gap' => 8,
+                        'gap_moyen' => 2.5,
+                        'nb_gaps_critiques' => 3,
+                        'severite_departement' => 'haute'
+                    ],
+                    [
+                        'departement_nom' => 'Marketing',
+                        'nom_competence' => 'Analyse SEO',
+                        'nb_employes_avec_gap' => 5,
+                        'gap_moyen' => 1.8,
+                        'nb_gaps_critiques' => 2,
+                        'severite_departement' => 'moyenne'
+                    ]
+                ]
+            ];
+
+            // Données de test pour les alertes
+            $alertesActives = [
+                'statistiques' => [
+                    'total' => 7,
+                    'par_severite' => [
+                        'critique' => 2,
+                        'haute' => 3,
+                        'moyenne' => 1,
+                        'faible' => 1
+                    ]
+                ],
+                'alertes' => [
+                    [
+                        'id_alerte' => 1,
+                        'date_creation' => date('Y-m-d H:i:s', strtotime('-2 days')),
+                        'type_alerte' => 'competence_critique',
+                        'message' => 'Manque critique de compétences en sécurité informatique',
+                        'competence_nom' => 'Sécurité réseau',
+                        'severite' => 'critique',
+                        'departement_nom' => 'IT',
+                        'employe_nom' => 'N/A'
+                    ],
+                    [
+                        'id_alerte' => 2,
+                        'date_creation' => date('Y-m-d H:i:s', strtotime('-1 day')),
+                        'type_alerte' => 'soft_skills_faible',
+                        'message' => 'Niveau faible en communication pour plusieurs équipes',
+                        'competence_nom' => 'Communication',
+                        'severite' => 'haute',
+                        'departement_nom' => 'Ventes',
+                        'employe_nom' => 'N/A'
+                    ]
+                ]
+            ];
+
+            // Afficher la vue avec les données de test
             Flight::render('dashboard_admin', [
                 'dashboardData' => $dashboardData,
                 'gapsCritiques' => $gapsCritiques,
-                'alertesActives' => $alertesActives
+                'alertesActives' => $alertesActives,
+                'erreurs' => [],
+                'estEmploye' => $this->estEmploye() && !$this->estAdministrateur()
             ]);
             
         } catch (\Exception $e) {
-            Flight::json([
-                'success' => false,
-                'error' => $e->getMessage()
-            ], 500);
+            error_log("Erreur critique getDashboardAdmin: " . $e->getMessage());
+            
+            Flight::render('dashboard_admin', [
+                'dashboardData' => $this->genererDonneesTest(),
+                'gapsCritiques' => ['gaps' => [], 'statistiques' => []],
+                'alertesActives' => ['alertes' => [], 'statistiques' => []],
+                'erreurs' => ['Erreur lors du chargement du dashboard: ' . $e->getMessage()],
+                'estEmploye' => false
+            ]);
         }
     }
-
     /**
      * GET /api/competences/dashboard/charts
      * Données pour les graphiques du dashboard
@@ -1209,4 +1287,48 @@ class CompetenceController
         }
         return null;
     }
+    /**
+ * Génère des données de test pour le dashboard
+ */
+private function genererDonneesTest()
+{
+    return [
+        'statistiques_globales' => [
+            'total_competences' => 156,
+            'niveau_moyen_global' => 3.2,
+            'couverture_moyenne' => 45.5
+        ],
+        'repartition_evaluation' => [
+            ['evaluation_globale' => 'Excellent', 'nb_competences' => 25],
+            ['evaluation_globale' => 'Bon', 'nb_competences' => 67],
+            ['evaluation_globale' => 'Satisfaisant', 'nb_competences' => 45],
+            ['evaluation_globale' => 'À développer', 'nb_competences' => 19]
+        ],
+        'top_10_competences' => [
+            ['nom' => 'Gestion de projet', 'score_maturite' => 89],
+            ['nom' => 'JavaScript', 'score_maturite' => 85],
+            ['nom' => 'SQL', 'score_maturite' => 82],
+            ['nom' => 'Python', 'score_maturite' => 78],
+            ['nom' => 'React', 'score_maturite' => 76],
+            ['nom' => 'Communication', 'score_maturite' => 75],
+            ['nom' => 'Analyse de données', 'score_maturite' => 72],
+            ['nom' => 'Docker', 'score_maturite' => 70],
+            ['nom' => 'AWS', 'score_maturite' => 68],
+            ['nom' => 'UX Design', 'score_maturite' => 65]
+        ],
+        'distribution_domaines' => [
+            ['domaine' => 'Développement', 'nb_competences' => 67],
+            ['domaine' => 'Gestion de projet', 'nb_competences' => 34],
+            ['domaine' => 'Infrastructure', 'nb_competences' => 28],
+            ['domaine' => 'Design', 'nb_competences' => 18],
+            ['domaine' => 'Marketing', 'nb_competences' => 9]
+        ],
+        'repartition_maturite' => [
+            ['niveau_maturite' => 'Débutant', 'nb_competences' => 23],
+            ['niveau_maturite' => 'Intermédiaire', 'nb_competences' => 67],
+            ['niveau_maturite' => 'Avancé', 'nb_competences' => 45],
+            ['niveau_maturite' => 'Expert', 'nb_competences' => 21]
+        ]
+    ];
+}
 }

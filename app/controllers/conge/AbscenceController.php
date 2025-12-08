@@ -13,7 +13,7 @@ class AbscenceController {
     public function getListeAbsence($estAutorise = null) {
         // Vérifier les droits d'administration ou si c'est un employé consultant ses propres absences
         if (!$this->estAdministrateur() && !$this->estEmploye()) {
-            Flight::redirect('/connexion-employe');
+            Flight::redirect('/employe');
             return;
         }
 

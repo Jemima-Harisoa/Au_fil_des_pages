@@ -51,7 +51,7 @@ class EmployeeCompetenceController {
                 $data['niveau'],
                 $data['details'] ?? []
             );
-
+            
             if ($success) {
                 Flight::json([
                     'success' => true,
