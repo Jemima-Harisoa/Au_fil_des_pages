@@ -2,10 +2,899 @@
 
 namespace app\controllers;
 
-use app\models;
 use Flight;
+use app\models\CompetenceModel;
 
-class CompetenceController {
+class CompetenceController
+{
+    public function __construct()
+    {
+        // plus d'instance persistante : on utilisera Flight::Competence() à chaque appel
+    }
+    /**
+     * Log une action dans le système
+     */
+    private function logAction($type, $id, $details = [])
+    {
+        try {
+            $sql = "
+                INSERT INTO competence_audit_log 
+                (operation_type, id_employe_operateur, details, date_operation)
+                VALUES (:type, :user_id, :details, NOW())
+            ";
+            
+            $stmt = Flight::db()->prepare($sql);
+            $stmt->execute([
+                'type' => $type,
+                'user_id' => Flight::get('session')['id'] ?? null,
+                'details' => json_encode($details)
+            ]);
+        } catch (\Exception $e) {
+            // Ne pas bloquer l'application si le log échoue
+            error_log('Erreur de logging: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * POST /api/competences/recommandations/bulk-apply
+     * Appliquer plusieurs recommandations en batch
+     */
+    public function appliquerRecommandationsBulk()
+    {
+        try {
+            $data = Flight::request()->data;
+            $ids = $data->ids ?? [];
+            
+            if (empty($ids)) {
+                Flight::json([
+                    'success' => false,
+                    'message' => 'Aucune recommandation sélectionnée'
+                ], 400);
+                return;
+            }
+            
+            $placeholders = implode(',', array_fill(0, count($ids), '?'));
+            $sql = "
+                UPDATE competence_recommandations 
+                SET statut = 'en_cours',
+                    date_application = NOW()
+                WHERE id_recommandation IN ($placeholders)
+            ";
+            
+            $stmt = Flight::db()->prepare($sql);
+            $stmt->execute($ids);
+            
+            $this->logAction('bulk_apply_recommandations', null, [
+                'ids' => $ids,
+                'count' => count($ids),
+                'utilisateur' => Flight::get('session')['id'] ?? null
+            ]);
+            
+            Flight::json([
+                'success' => true,
+                'applied' => $stmt->rowCount(),
+                'message' => 'Recommandations appliquées avec succès'
+            ]);
+            
+        } catch (\Exception $e) {
+            Flight::json([
+                'success' => false,
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+    /**
+     * GET /competences/dashboard/admin
+     * Affiche le dashboard administrateur
+     */
+    public function getDashboardAdmin()
+    {
+        try {
+            // Récupérer les données nécessaires
+            $dashboardData = Flight::Competence()->getDashboardGlobal();
+            $gapsCritiques = Flight::Competence()->getGapsCritiques();
+            $alertesActives = Flight::Competence()->getAlertesActives();
+            
+            
+            Flight::render('dashboard_admin', [
+                'dashboardData' => $dashboardData,
+                'gapsCritiques' => $gapsCritiques,
+                'alertesActives' => $alertesActives
+            ]);
+            
+        } catch (\Exception $e) {
+            Flight::json([
+                'success' => false,
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * GET /api/competences/dashboard/charts
+     * Données pour les graphiques du dashboard
+     */
+    public function getDashboardCharts()
+    {
+        try {
+            // Données pour le graphique de distribution des niveaux
+            $sqlNiveaux = "
+                SELECT 
+                    ROUND(niveau_moyen_simple) as niveau,
+                    COUNT(*) as count
+                FROM mv_competence_cartographie_optimisee
+                GROUP BY ROUND(niveau_moyen_simple)
+                ORDER BY niveau
+            ";
+            
+            $stmtNiveaux = Flight::db()->prepare($sqlNiveaux);
+            $stmtNiveaux->execute();
+            $distributionNiveaux = $stmtNiveaux->fetchAll(\PDO::FETCH_ASSOC);
+            
+            // Données pour les compétences critiques
+            $sqlCritiques = "
+                SELECT 
+                    nom,
+                    score_maturite
+                FROM mv_competence_cartographie_optimisee
+                WHERE evaluation_globale = 'À développer'
+                OR taux_couverture < 20
+                ORDER BY score_maturite ASC
+                LIMIT 10
+            ";
+            
+            $stmtCritiques = Flight::db()->prepare($sqlCritiques);
+            $stmtCritiques->execute();
+            $competencesCritiques = $stmtCritiques->fetchAll(\PDO::FETCH_ASSOC);
+            
+            // Distribution par domaine
+            $sqlDomaines = "
+                SELECT 
+                    domaine,
+                    COUNT(*) as count
+                FROM mv_competence_cartographie_optimisee
+                WHERE domaine IS NOT NULL
+                GROUP BY domaine
+                ORDER BY count DESC
+                LIMIT 10
+            ";
+            
+            $stmtDomaines = Flight::db()->prepare($sqlDomaines);
+            $stmtDomaines->execute();
+            $distributionDomaines = $stmtDomaines->fetchAll(\PDO::FETCH_ASSOC);
+            
+            // Évaluation globale
+            $sqlEvaluation = "
+                SELECT 
+                    evaluation_globale,
+                    COUNT(*) as count
+                FROM mv_competence_cartographie_optimisee
+                GROUP BY evaluation_globale
+            ";
+            
+            $stmtEvaluation = Flight::db()->prepare($sqlEvaluation);
+            $stmtEvaluation->execute();
+            $distributionEvaluation = $stmtEvaluation->fetchAll(\PDO::FETCH_ASSOC);
+            
+            Flight::json([
+                'success' => true,
+                'data' => [
+                    'distribution_niveaux' => $distributionNiveaux,
+                    'competences_critiques' => $competencesCritiques,
+                    'distribution_domaines' => $distributionDomaines,
+                    'distribution_evaluation' => $distributionEvaluation
+                ]
+            ]);
+            
+        } catch (\Exception $e) {
+            Flight::json([
+                'success' => false,
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * GET /api/competences/recommandations/en-attente
+     * Liste des recommandations en attente
+     */
+    public function getRecommandationsEnAttente()
+    {
+        try {
+            $sql = "
+                SELECT 
+                    r.*,
+                    c.nom as competence_nom,
+                    CONCAT(p.nom, ' ', p.prenom) as employe_nom,
+                    e.poste,
+                    d.nom as departement_nom
+                FROM competence_recommandations r
+                JOIN competences c ON r.id_competence = c.id_competence
+                JOIN employes e ON r.id_employe = e.id_employe
+                JOIN personnes p ON e.id_personne = p.id_personne
+                LEFT JOIN departements d ON e.id_departement = d.id_departement
+                WHERE r.statut = 'en_attente'
+                ORDER BY r.priorite DESC, r.date_creation DESC
+            ";
+            
+            $stmt = Flight::db()->prepare($sql);
+            $stmt->execute();
+            $recommandations = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+            
+            Flight::json([
+                'success' => true,
+                'data' => $recommandations,
+                'count' => count($recommandations)
+            ]);
+            
+        } catch (\Exception $e) {
+            Flight::json([
+                'success' => false,
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * POST /api/competences/recommandations/:id/appliquer
+     * Appliquer une recommandation
+     */
+    public function appliquerRecommandation($id)
+    {
+        try {
+            $data = Flight::request()->data;
+            
+            $sql = "
+                UPDATE competence_recommandations 
+                SET statut = 'en_cours',
+                    date_application = NOW()
+                WHERE id_recommandation = :id
+            ";
+            
+            $stmt = Flight::db()->prepare($sql);
+            $stmt->execute(['id' => $id]);
+            
+            // Log de l'action
+            // $this->logAction('appliquer_recommandation', $id, [
+            //     'utilisateur' => Flight::get('session')['id'] ?? null,
+            //     'commentaire' => $data->commentaire ?? null
+            // ]);
+            
+            Flight::json([
+                'success' => true,
+                'message' => 'Recommandation appliquée avec succès'
+            ]);
+            
+        } catch (\Exception $e) {
+            Flight::json([
+                'success' => false,
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * POST /api/competences/alertes/:id/resoudre
+     * Marquer une alerte comme résolue
+     */
+    public function resoudreAlerte($id)
+    {
+        try {
+            $sql = "
+                UPDATE competence_alertes 
+                SET est_resolue = TRUE,
+                    date_resolution = NOW()
+                WHERE id_alerte = :id
+            ";
+            
+            $stmt = Flight::db()->prepare($sql);
+            $stmt->execute(['id' => $id]);
+            
+            Flight::json([
+                'success' => true,
+                'message' => 'Alerte résolue avec succès'
+            ]);
+            
+        } catch (\Exception $e) {
+            Flight::json([
+                'success' => false,
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+    /**
+     * GET /api/competences/:id/indicateurs
+     * Indicateurs détaillés d'une compétence
+     */
+    public function getIndicateursCompetence($id_competence)
+    {
+        try {
+            $indicateurs = Flight::Competence()->getIndicateursCompetence($id_competence);
+            
+            if (empty($indicateurs)) {
+                Flight::json([
+                    'success' => false,
+                    'message' => 'Compétence non trouvée'
+                ], 404);
+                return;
+            }
+            
+            Flight::json([
+                'success' => true,
+                'data' => $indicateurs
+            ]);
+            
+        } catch (\Exception $e) {
+            Flight::json([
+                'success' => false,
+                'error' => $e->getMessage(),
+                'trace' => Flight::get('flight.log_errors') ? $e->getTrace() : null
+            ], 500);
+        }
+    }
+
+    /**
+     * GET /api/competences/:id/trend
+     * Tendance d'une compétence sur période
+     */
+    public function getTrendCompetence($id_competence, $periode = '3 months')
+    {
+        try {
+            // Valider la période
+            $periodesValides = ['1 month', '3 months', '6 months', '1 year'];
+            if (!in_array($periode, $periodesValides)) {
+                $periode = '3 months';
+            }
+            
+            $tendance = Flight::Competence()->getTrendCompetence($id_competence, $periode);
+            
+            Flight::json([
+                'success' => true,
+                'data' => $tendance,
+                'periode' => $periode
+            ]);
+            
+        } catch (\Exception $e) {
+            Flight::json([
+                'success' => false,
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * GET /api/gaps/critiques
+     * Liste des gaps critiques
+     */
+    public function getGapsCritiques($id_departement = null)
+    {
+        try {
+            $gaps = Flight::Competence()->getGapsCritiques($id_departement);
+            
+            Flight::json([
+                'success' => true,
+                'data' => $gaps
+            ]);
+            
+        } catch (\Exception $e) {
+            Flight::json([
+                'success' => false,
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * GET /api/alertes
+     * Liste des alertes actives avec filtres
+     */
+    public function getAlertesActives()
+    {
+        try {
+            // Récupérer les filtres depuis la requête
+            $filtres = [
+                'type_alerte' => Flight::request()->query->type_alerte,
+                'severite' => Flight::request()->query->severite,
+                'departement' => Flight::request()->query->departement,
+                'competence' => Flight::request()->query->competence,
+                'resolue' => Flight::request()->query->resolue === 'true'
+            ];
+            
+            // Filtrer les valeurs null
+            $filtres = array_filter($filtres, function($value) {
+                return $value !== null && $value !== '';
+            });
+            
+            $alertes = Flight::Competence()->getAlertesActives($filtres);
+            
+            Flight::json([
+                'success' => true,
+                'data' => $alertes,
+                'filtres' => $filtres
+            ]);
+            
+        } catch (\Exception $e) {
+            Flight::json([
+                'success' => false,
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * GET /api/recommandations/employe/:id
+     * Recommandations personnalisées pour un employé
+     */
+    public function getRecommandationsEmploye($id_employe)
+    {
+        try {
+            // Vérifier que l'employé existe
+            $sqlCheck = "SELECT COUNT(*) FROM employes WHERE id_employe = :id";
+            $stmt = Flight::db()->prepare($sqlCheck);
+            $stmt->execute(['id' => $id_employe]);
+            
+            if ($stmt->fetchColumn() == 0) {
+                Flight::json([
+                    'success' => false,
+                    'message' => 'Employé non trouvé'
+                ], 404);
+                return;
+            }
+            
+            $recommandations = Flight::Competence()->getRecommandationsEmploye($id_employe);
+            
+            Flight::json([
+                'success' => true,
+                'data' => $recommandations
+            ]);
+            
+        } catch (\Exception $e) {
+            Flight::json([
+                'success' => false,
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * POST /api/competences/job/batch
+     * Déclencher job batch manuel
+     */
+    public function executeJobBatch()
+    {
+        try {
+            // Vérifier les permissions (ex: admin seulement)
+            // $this->checkAdminPermission();
+            
+            $resultat = Flight::Competence()->executeJobBatch();
+            
+            Flight::json($resultat);
+            
+        } catch (\Exception $e) {
+            Flight::json([
+                'success' => false,
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * POST /api/competences/job/incremental
+     * Webhook pour traitement incrémental
+     */
+    public function executeJobIncremental()
+    {
+        try {
+            $data = Flight::request()->data;
+            
+            // Validation des paramètres
+            if (empty($data->id_employe) || empty($data->id_competence)) {
+                Flight::json([
+                    'success' => false,
+                    'message' => 'Paramètres id_employe et id_competence requis'
+                ], 400);
+                return;
+            }
+            
+            $resultat = Flight::Competence()->executeJobIncremental(
+                $data->id_employe,
+                $data->id_competence
+            );
+            
+            Flight::json($resultat);
+            
+        } catch (\Exception $e) {
+            Flight::json([
+                'success' => false,
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * POST /api/competences/refresh-vues
+     * Rafraîchir les vues matérialisées
+     */
+    public function refreshVuesMaterialisees()
+    {
+        try {
+            $resultat = Flight::Competence()->refreshVuesMaterialisees();
+            
+            Flight::json($resultat);
+            
+        } catch (\Exception $e) {
+            Flight::json([
+                'success' => false,
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * POST /api/competences/purge-donnees
+     * Purger les anciennes données
+     */
+    public function purgerAnciennesDonnees()
+    {
+        try {
+            $data = Flight::request()->data;
+            
+            $config = [
+                'jours_snapshot' => $data->jours_snapshot ?? 365,
+                'jours_logs' => $data->jours_logs ?? 90,
+                'jours_alertes' => $data->jours_alertes ?? 30
+            ];
+            
+            $resultat = Flight::Competence()->purgerAnciennesDonnees($config);
+            
+            Flight::json($resultat);
+            
+        } catch (\Exception $e) {
+            Flight::json([
+                'success' => false,
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * GET /api/competences/doublons
+     * Détecter les doublons
+     */
+    public function detecterDoublons($seuil = 0.9)
+    {
+        try {
+            // Valider le seuil
+            $seuil = floatval($seuil);
+            if ($seuil < 0.5 || $seuil > 1.0) {
+                $seuil = 0.9;
+            }
+            
+            $doublons = Flight::Competence()->detecterDoublons($seuil);
+            
+            Flight::json([
+                'success' => true,
+                'data' => $doublons,
+                'seuil' => $seuil
+            ]);
+            
+        } catch (\Exception $e) {
+            Flight::json([
+                'success' => false,
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * GET /api/competences/dashboard
+     * Dashboard global
+     */
+    public function getDashboardGlobal()
+    {
+        try {
+            $dashboard = Flight::Competence()->getDashboardGlobal();
+            
+            Flight::json([
+                'success' => true,
+                'data' => $dashboard
+            ]);
+            
+        } catch (\Exception $e) {
+            Flight::json([
+                'success' => false,
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * GET /api/competences/cartographie-optimisee
+     * Cartographie optimisée
+     */
+    public function getCartographieOptimisee()
+    {
+        try {
+            // Récupérer les filtres depuis la requête
+            $filtres = [
+                'domaine' => Flight::request()->query->domaine,
+                'type_competence' => Flight::request()->query->type_competence,
+                'evaluation' => Flight::request()->query->evaluation
+            ];
+            
+            // Filtrer les valeurs null
+            $filtres = array_filter($filtres, function($value) {
+                return $value !== null && $value !== '';
+            });
+            
+            $cartographie = Flight::Competence()->getCartographieOptimisee($filtres);
+            
+            Flight::json([
+                'success' => true,
+                'data' => $cartographie,
+                'filtres' => $filtres,
+                'count' => count($cartographie)
+            ]);
+            
+        } catch (\Exception $e) {
+            Flight::json([
+                'success' => false,
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Vérifie les permissions admin
+     */
+    private function checkAdminPermission()
+    {
+        // Récupérer la session
+        $session = Flight::get('session');
+        
+        if (!$session || $session['role'] !== 'admin') {
+            Flight::json([
+                'success' => false,
+                'message' => 'Permission refusée'
+            ], 403);
+            exit;
+        }
+    }
+
+    /**
+     * POST /api/competences/import
+     * Importer des données de compétences
+     */
+    public function importCompetences()
+    {
+        try {
+            $this->checkAdminPermission();
+            
+            $data = Flight::request()->data;
+            
+            if (empty($data->type_import) || empty($data->donnees)) {
+                Flight::json([
+                    'success' => false,
+                    'message' => 'Paramètres type_import et donnees requis'
+                ], 400);
+                return;
+            }
+            
+            $typeImport = $data->type_import; // 'auto', 'manager', 'test', 'rh'
+            $donnees = is_array($data->donnees) ? $data->donnees : json_decode($data->donnees, true);
+            
+            // Log de début d'import
+            $this->logImport('import_competences', count($donnees), 'En cours', [
+                'type_import' => $typeImport,
+                'utilisateur' => Flight::get('session')['id'] ?? null
+            ]);
+            
+            // Traitement de l'import
+            $resultats = [];
+            $erreurs = [];
+            
+            foreach ($donnees as $index => $ligne) {
+                try {
+                    // Valider la ligne
+                    if (empty($ligne['id_employe']) || empty($ligne['competence']) || !isset($ligne['niveau'])) {
+                        throw new \Exception("Ligne $index: champs requis manquants");
+                    }
+                    
+                    // Chercher l'ID de la compétence
+                    $id_competence = $this->getOrCreateCompetence($ligne['competence'], $ligne['domaine'] ?? null);
+                    
+                    // Chercher l'ID de la source
+                    $id_source = $this->getSourceId($typeImport);
+                    
+                    // Insérer ou mettre à jour
+                    $sql = "
+                        INSERT INTO employe_competences 
+                        (id_employe, id_competence, niveau, id_source, valide, date_mesure)
+                        VALUES (:id_employe, :id_competence, :niveau, :id_source, :valide, NOW())
+                        ON CONFLICT (id_employe, id_competence) 
+                        DO UPDATE SET 
+                            niveau = EXCLUDED.niveau,
+                            id_source = EXCLUDED.id_source,
+                            valide = EXCLUDED.valide,
+                            date_mesure = EXCLUDED.date_mesure
+                    ";
+                    
+                    $stmt = Flight::db()->prepare($sql);
+                    $stmt->execute([
+                        'id_employe' => $ligne['id_employe'],
+                        'id_competence' => $id_competence,
+                        'niveau' => min(5, max(1, $ligne['niveau'])), // Entre 1 et 5
+                        'id_source' => $id_source,
+                        'valide' => $typeImport !== 'auto' // Auto-évaluation non validée par défaut
+                    ]);
+                    
+                    $resultats[] = [
+                        'ligne' => $index,
+                        'statut' => 'succes',
+                        'id_competence' => $id_competence
+                    ];
+                    
+                    // Déclencher traitement incrémental
+                    Flight::Competence()->executeJobIncremental($ligne['id_employe'], $id_competence);
+                    
+                } catch (\Exception $e) {
+                    $erreurs[] = [
+                        'ligne' => $index,
+                        'statut' => 'erreur',
+                        'message' => $e->getMessage()
+                    ];
+                }
+            }
+            
+            // Log de fin d'import
+            $this->logImport('import_competences', count($donnees), 'Terminé', [
+                'succes' => count($resultats),
+                'erreurs' => count($erreurs)
+            ]);
+            
+            Flight::json([
+                'success' => true,
+                'resultats' => $resultats,
+                'erreurs' => $erreurs,
+                'resume' => [
+                    'total' => count($donnees),
+                    'succes' => count($resultats),
+                    'erreurs' => count($erreurs)
+                ]
+            ]);
+            
+        } catch (\Exception $e) {
+            // Log d'erreur
+            $this->logImport('import_competences', 0, 'Erreur', [
+                'error' => $e->getMessage()
+            ]);
+            
+            Flight::json([
+                'success' => false,
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Récupère ou crée une compétence
+     */
+    private function getOrCreateCompetence($nom, $domaine = null)
+    {
+        $sql = "SELECT id_competence FROM competences WHERE nom = :nom";
+        $stmt = Flight::db()->prepare($sql);
+        $stmt->execute(['nom' => $nom]);
+        
+        $result = $stmt->fetch(\PDO::FETCH_ASSOC);
+        
+        if ($result) {
+            return $result['id_competence'];
+        }
+        
+        // Créer la compétence
+        $sql = "
+            INSERT INTO competences (nom, domaine, created_at, updated_at)
+            VALUES (:nom, :domaine, NOW(), NOW())
+            RETURNING id_competence
+        ";
+        
+        $stmt = Flight::db()->prepare($sql);
+        $stmt->execute([
+            'nom' => $nom,
+            'domaine' => $domaine
+        ]);
+        
+        return $stmt->fetch(\PDO::FETCH_ASSOC)['id_competence'];
+    }
+
+    /**
+     * Récupère l'ID d'une source d'évaluation
+     */
+    private function getSourceId($type)
+    {
+        $sql = "SELECT id_source FROM source_evaluation WHERE libelle = :libelle";
+        $stmt = Flight::db()->prepare($sql);
+        $stmt->execute(['libelle' => $type . '-evaluation']);
+        
+        $result = $stmt->fetch(\PDO::FETCH_ASSOC);
+        
+        if ($result) {
+            return $result['id_source'];
+        }
+        
+        // Créer la source si elle n'existe pas
+        $sql = "
+            INSERT INTO source_evaluation (libelle, description)
+            VALUES (:libelle, :description)
+            RETURNING id_source
+        ";
+        
+        $stmt = Flight::db()->prepare($sql);
+        $stmt->execute([
+            'libelle' => $type . '-evaluation',
+            'description' => 'Import ' . $type
+        ]);
+        
+        return $stmt->fetch(\PDO::FETCH_ASSOC)['id_source'];
+    }
+
+    /**
+     * Log une opération d'import
+     */
+    private function logImport($operation, $nbLignes, $statut, $details = [])
+    {
+        $sql = "
+            INSERT INTO competence_audit_log 
+            (operation_type, nb_lignes_affectees, statut, details, date_operation)
+            VALUES (:operation, :nb_lignes, :statut, :details, NOW())
+        ";
+        
+        $stmt = Flight::db()->prepare($sql);
+        $stmt->execute([
+            'operation' => $operation,
+            'nb_lignes' => $nbLignes,
+            'statut' => $statut,
+            'details' => json_encode($details)
+        ]);
+    }
+
+    /**
+     * GET /api/competences/stats-import
+     * Statistiques des imports
+     */
+    public function getStatsImport()
+    {
+        try {
+            $sql = "
+                SELECT 
+                    operation_type,
+                    statut,
+                    COUNT(*) as nb_operations,
+                    SUM(nb_lignes_affectees) as total_lignes,
+                    MIN(date_operation) as date_debut,
+                    MAX(date_operation) as date_fin
+                FROM competence_audit_log
+                WHERE operation_type LIKE '%import%'
+                GROUP BY operation_type, statut
+                ORDER BY date_fin DESC
+            ";
+            
+            $stmt = Flight::db()->prepare($sql);
+            $stmt->execute();
+            $stats = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+            
+            Flight::json([
+                'success' => true,
+                'data' => $stats
+            ]);
+            
+        } catch (\Exception $e) {
+            Flight::json([
+                'success' => false,
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
 
     /**
      * Affiche la liste complète des compétences avec statistiques

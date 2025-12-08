@@ -132,7 +132,7 @@ if (isset($_SESSION['infoAdmin'])) {
     
     <div class="form-body-competence">
         <!-- CORRECTION : ajout de l'ID manquant et correction de l'action -->
-        <form action="/employees/<?= $id_employe ?>/competences" method="post">
+        <form id="formAutoEvaluationCompetence" action="/employees/<?= $id_employe ?>/competences" method="post">
             
             <!-- Sélection de la compétence -->
             <div class="form-group mb-4">

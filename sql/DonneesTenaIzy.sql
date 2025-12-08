@@ -604,3 +604,298 @@ VALUES
 -- pour l'employé 5 (Magasinier) : auto-éval Communication non validée
 (5, 5, 3, (SELECT id_source FROM source_evaluation WHERE libelle = 'auto-evaluation'), '2024-01-15 08:45:00', FALSE)
 ON CONFLICT (id_employe, id_competence) DO NOTHING;
+
+
+-- Insérer quelques métiers de base
+INSERT INTO metier_competences_requises (libelle_metier, id_departement, description, competences_requises) VALUES
+('Comptable', 2, 'Gestion comptable et financière', 
+ '{"PHP": 3, "SQL": 4, "Communication": 4, "Anglais": 3}'::jsonb),
+('Magasinier', 3, 'Gestion des stocks', 
+ '{"Gestion de projet": 3, "Communication": 3, "Anglais": 2}'::jsonb),
+('Vendeur', 4, 'Vente et relation client', 
+ '{"Communication": 5, "Gestion du temps": 4, "Anglais": 3}'::jsonb),
+('Manager', 1, 'Gestion d''équipe', 
+ '{"Gestion de projet": 5, "Communication": 5, "Leadership": 4}'::jsonb);
+
+ -- ========================================
+-- COMPLÉMENT POUR LA CARTOGRAPHIE DES COMPÉTENCES
+-- ========================================
+
+-- 1. Insertions pour la table profil_competences_requises (structuration des profils)
+INSERT INTO profil_competences_requises (id_profil, id_competence, niveau_requis, est_critique)
+VALUES
+-- Caissier (profil 1)
+(1, 3, 3, FALSE),   -- SQL basique pour gestion caisse
+(1, 5, 4, TRUE),    -- Communication critique
+(1, 8, 3, FALSE),   -- Gestion du temps
+
+-- Comptable (profil 2)
+(2, 1, 4, TRUE),    -- PHP pour outils comptables
+(2, 3, 5, TRUE),    -- SQL avancé critique
+(2, 6, 3, FALSE),   -- Anglais technique
+
+-- Manager (profil 3)
+(3, 4, 5, TRUE),    -- Gestion de projet critique
+(3, 5, 5, TRUE),    -- Communication critique
+(3, 8, 4, FALSE),   -- Gestion du temps
+
+-- Magasinier (profil 4)
+(4, 3, 3, FALSE),   -- SQL pour gestion stock
+(4, 5, 3, FALSE),   -- Communication équipe
+(4, 7, 2, FALSE),   -- Python pour automatisation
+
+-- Vendeur (profil 5)
+(5, 5, 5, TRUE),    -- Communication critique
+(5, 6, 3, FALSE),   -- Anglais clientèle
+(5, 8, 4, FALSE)    -- Gestion du temps
+ON CONFLICT (id_profil, id_competence) DO NOTHING;
+
+-- 2. Insertions pour source_priorite (priorisation des sources d'évaluation)
+INSERT INTO source_priorite (id_source, priorite, description)
+VALUES
+(1, 1, 'Auto-évaluation - priorité basse'),
+(2, 3, 'Évaluation manager - priorité moyenne'),
+(3, 2, 'Évaluation RH - priorité intermédiaire'),
+(4, 2, 'Validation formation - priorité intermédiaire'),
+(5, 4, 'Certification - priorité haute'),
+(6, 5, 'Test technique - priorité très haute')
+ON CONFLICT (id_source) DO UPDATE SET
+    priorite = EXCLUDED.priorite,
+    description = EXCLUDED.description;
+
+-- 3. Snapshots historiques pour analyse des tendances
+INSERT INTO competence_snapshot (id_competence, nb_employes, niveau_moyen, taux_couverture, nb_experts, metadata)
+SELECT 
+    c.id_competence,
+    COUNT(DISTINCT ec.id_employe) as nb_employes,
+    ROUND(AVG(ec.niveau)::numeric, 2) as niveau_moyen,
+    ROUND((COUNT(DISTINCT ec.id_employe)::numeric / 5) * 100, 2) as taux_couverture, -- 5 employés totaux
+    COUNT(DISTINCT CASE WHEN ec.niveau >= 4 THEN ec.id_employe END) as nb_experts,
+    JSONB_BUILD_OBJECT(
+        'date_analyse', '2024-03-01',
+        'type_analyse', 'manuelle',
+        'source', 'test_initial'
+    ) as metadata
+FROM competences c
+LEFT JOIN employe_competences ec ON c.id_competence = ec.id_competence AND ec.valide = TRUE
+WHERE c.id_competence BETWEEN 1 AND 6
+GROUP BY c.id_competence
+ON CONFLICT DO NOTHING;
+
+-- 4. Alertes de competences generees automatiquement
+INSERT INTO competence_alertes (
+    type_alerte,
+    id_competence,
+    id_departement,
+    severite,
+    message,
+    metadata
+)
+VALUES
+(
+    'soft_skills_faible',
+    5,
+    2,
+    'moyenne',
+    'Niveau moyen de communication insuffisant dans le departement Comptabilite',
+    JSONB_BUILD_OBJECT(
+        'niveau_moyen_actuel', 3.2,
+        'niveau_attendu', 4.0,
+        'employes_concernes', ARRAY[2, 4]
+    )
+),
+(
+    'recrutement_requis',
+    1,
+    3,
+    'haute',
+    'Competence PHP critique manquante pour le developpement d outils internes',
+    JSONB_BUILD_OBJECT(
+        'taux_couverture', 10.0,
+        'niveau_requis', 4,
+        'profil_requis', 'Developpeur interne'
+    )
+),
+(
+    'gap_competence',
+    6,
+    4,
+    'critique',
+    'Ecart important entre niveau actuel et niveau requis en anglais commercial',
+    JSONB_BUILD_OBJECT(
+        'niveau_moyen', 2.5,
+        'niveau_requis', 4.0,
+        'ecart_moyen', 1.5
+    )
+)
+ON CONFLICT DO NOTHING;
+
+-- 5. Recommandations d actions
+INSERT INTO competence_recommandations (
+    id_alerte,
+    type_action,
+    id_employe,
+    id_competence,
+    priorite,
+    description,
+    ressources_suggerees,
+    statut
+)
+SELECT
+    a.id_alerte,
+    'formation' as type_action,
+    e.id_employe,
+    a.id_competence,
+    CASE 
+        WHEN a.severite = 'critique' THEN 5
+        WHEN a.severite = 'haute' THEN 4
+        WHEN a.severite = 'moyenne' THEN 3
+        ELSE 2
+    END as priorite,
+    'Formation recommandée pour améliorer la compétence ' || c.nom,
+    JSONB_BUILD_OBJECT(
+        'formations', ARRAY['Cours en ligne LinkedIn Learning', 'Formation interne RH'],
+        'duree_estimee', '20 heures',
+        'cout_estime', 500.00
+    ),
+    'en_attente'
+FROM competence_alertes a
+CROSS JOIN employes e
+JOIN competences c ON a.id_competence = c.id_competence
+WHERE a.est_resolue = FALSE
+  AND e.id_departement = a.id_departement
+  AND e.id_employe IN (2, 4) -- Exemple pour 2 employés
+LIMIT 3
+ON CONFLICT DO NOTHING;
+
+-- 6. Cache pour optimisation des requêtes fréquentes
+INSERT INTO competence_cache (cache_key, cache_value, ttl)
+VALUES
+(
+    'stats_globales_2024_03',
+    JSONB_BUILD_OBJECT(
+        'total_competences', 9,
+        'total_employes_avec_competences', 5,
+        'niveau_moyen_global', 3.4,
+        'taux_couverture_global', 65.2,
+        'date_calcul', '2024-03-15 10:00:00'
+    ),
+    '2024-04-15 10:00:00'
+),
+(
+    'dashboard_competences',
+    JSONB_BUILD_OBJECT(
+        'top_competences', ARRAY['Communication', 'SQL', 'Gestion de projet'],
+        'competences_critiques', ARRAY['PHP', 'Anglais'],
+        'derniere_mise_a_jour', '2024-03-15 09:30:00'
+    ),
+    '2024-03-16 09:30:00'
+)
+ON CONFLICT (cache_key) DO UPDATE SET
+    cache_value = EXCLUDED.cache_value,
+    ttl = EXCLUDED.ttl;
+
+-- 7. Logs d audit pour traçabilité
+INSERT INTO competence_audit_log (
+    operation_type,
+    id_employe_operateur,
+    details,
+    nb_lignes_affectees,
+    statut
+)
+VALUES
+(
+    'import_initial',
+    1, -- Directeur
+    JSONB_BUILD_OBJECT(
+        'source', 'fichier_excel',
+        'nom_fichier', 'competences_employes.xlsx',
+        'timestamp_import', '2024-03-15 08:30:00'
+    ),
+    15,
+    'success'
+),
+(
+    'validation_competences',
+    2, -- Comptable
+    JSONB_BUILD_OBJECT(
+        'employes_valides', ARRAY[1, 3, 4],
+        'competences_validees', ARRAY[1, 3, 5, 6],
+        'duree_operation', '00:15:30'
+    ),
+    8,
+    'success'
+),
+(
+    'generation_rapport',
+    NULL,
+    JSONB_BUILD_OBJECT(
+        'type_rapport', 'cartographie_mensuelle',
+        'periode', '2024-03',
+        'format', 'PDF'
+    ),
+    1,
+    'success'
+)
+ON CONFLICT DO NOTHING;
+
+-- 8. Normalisation des noms de compétences (pour fuzzy matching)
+INSERT INTO competence_normalisation (nom_original, nom_normalise, score_similarite, valide)
+VALUES
+('PHP Developer', 'php', 0.85, TRUE),
+('JavaScript ES6', 'javascript', 0.90, TRUE),
+('SQL Server', 'sql', 0.95, TRUE),
+('Project Management', 'gestion de projet', 0.80, TRUE),
+('English Business', 'anglais', 0.75, FALSE)
+ON CONFLICT (nom_original) DO UPDATE SET
+    nom_normalise = EXCLUDED.nom_normalise,
+    score_similarite = EXCLUDED.score_similarite,
+    valide = EXCLUDED.valide;
+
+-- 9. Complement pour metier_competences_requises (liens metiers-departements)
+INSERT INTO metier_competences_requises (libelle_metier, id_departement, description, competences_requises)
+VALUES
+(
+    'Chef de projet',
+    1,
+    'Gestion de projets transversaux',
+    '{"Gestion de projet": 5, "Communication": 5, "Leadership": 4, "Anglais": 4}'::jsonb
+),
+(
+    'Analyste donnees',
+    2,
+    'Analyse de donnees financieres',
+    '{"SQL": 5, "Python": 4, "Excel": 4, "Communication": 3}'::jsonb
+)
+ON CONFLICT DO NOTHING;
+
+-- 10. Données de test pour heures_supplementaire (liées aux compétences)
+INSERT INTO heures_supplementaire (id_employe, nombre_heure_effectue, mois, annee, numero_semaine)
+SELECT 
+    e.id_employe,
+    ROUND((RANDOM() * 20 + 5)::numeric, 2) as heures,
+    3, -- Mars
+    2024,
+    EXTRACT(WEEK FROM CURRENT_DATE) as semaine
+FROM employes e
+WHERE e.id_employe BETWEEN 1 AND 3
+ON CONFLICT DO NOTHING;
+
+-- 11. Historique des heures supplémentaires
+INSERT INTO heures_supplementaire_historique (id_heure_supp, nombre_heure_effectue, mois, annee, numero_semaine)
+SELECT 
+    hs.id,
+    hs.nombre_heure_effectue,
+    hs.mois,
+    hs.annee,
+    hs.numero_semaine
+FROM heures_supplementaire hs
+WHERE hs.id BETWEEN 1 AND 3
+ON CONFLICT DO NOTHING;
+
+-- ========================================
+-- MISE À JOUR DES VUES MATÉRIALISÉES
+-- ========================================
+-- Rafraîchissement des vues matérialisées pour inclure les nouvelles données
+REFRESH MATERIALIZED VIEW CONCURRENTLY mv_competence_cartographie_optimisee;
+REFRESH MATERIALIZED VIEW CONCURRENTLY mv_dashboard_competences;

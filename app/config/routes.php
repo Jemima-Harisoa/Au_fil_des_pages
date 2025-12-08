@@ -318,6 +318,8 @@ $router->group('/competences', function($router) use ($Competence_Controller) {
     
     // Route par défaut - redirige vers la liste
     $router->get('/', [$Competence_Controller, 'getListeCompetences']);
+    $router->get('/dashboard', [$Competence_Controller, 'getDashboardAdmin']);
+
 });
 
 // Alternative: routes API pour les appels AJAX
@@ -411,4 +413,79 @@ $router->group('/api/validations', function($router) use ($EmployeeCompetence_Co
     
     // API pour ajuster une compétence
     $router->post('/@entryId/adjust', [$EmployeeCompetence_Controller, 'adjustCompetence']);
+});
+
+// ========================================
+// API POUR LE PIPELINE ETL DES COMPÉTENCES
+// ========================================
+
+// Routes API pour les indicateurs et traitements
+$router->group('/api/competences', function($router) use ($Competence_Controller) {
+    
+    // Indicateurs détaillés d'une compétence
+    $router->get('/:id/indicateurs', [$Competence_Controller, 'getIndicateursCompetence']);
+    
+    // Tendance d'une compétence sur période
+    $router->get('/:id/trend(/@periode)', [$Competence_Controller, 'getTrendCompetence']);
+    
+    // Gaps critiques par département
+    $router->get('/gaps/critiques(/@id_departement)', [$Competence_Controller, 'getGapsCritiques']);
+    
+    // Alertes actives avec filtres
+    $router->get('/alertes', [$Competence_Controller, 'getAlertesActives']);
+    
+    // Recommandations personnalisées pour un employé
+    $router->get('/recommandations/employe/:id', [$Competence_Controller, 'getRecommandationsEmploye']);
+    
+    // Déclencher job batch manuel
+    $router->post('/job/batch', [$Competence_Controller, 'executeJobBatch']);
+    
+    // Webhook pour traitement incrémental
+    $router->post('/job/incremental', [$Competence_Controller, 'executeJobIncremental']);
+    
+    // Rafraîchir les vues matérialisées
+    $router->post('/refresh-vues', [$Competence_Controller, 'refreshVuesMaterialisees']);
+    
+    // Purger les anciennes données
+    $router->post('/purge-donnees', [$Competence_Controller, 'purgerAnciennesDonnees']);
+    
+    // Détecter les doublons
+    $router->get('/doublons(/@seuil)', [$Competence_Controller, 'detecterDoublons']);
+    
+    // Dashboard global
+    $router->get('/dashboard', [$Competence_Controller, 'getDashboardGlobal']);
+    
+    // Cartographie optimisée
+    $router->get('/cartographie-optimisee', [$Competence_Controller, 'getCartographieOptimisee']);
+});
+// Ajouter dans le groupe /api/competences dans routes.php
+
+// Import de données de compétences
+$router->post('/import', [$Competence_Controller, 'importCompetences']);
+
+// Statistiques des imports
+$router->get('/stats-import', [$Competence_Controller, 'getStatsImport']);
+
+// Dashboard admin
+$router->get('/competences/dashboard/admin', [$Competence_Controller, 'getDashboardAdmin']);
+
+// API pour le dashboard
+$router->get('/api/competences/dashboard/charts', [$Competence_Controller, 'getDashboardCharts']);
+$router->get('/api/competences/recommandations/en-attente', [$Competence_Controller, 'getRecommandationsEnAttente']);
+$router->post('/api/competences/recommandations/bulk-apply', [$Competence_Controller, 'appliquerRecommandationsBulk']);
+$router->post('/api/competences/recommandations/:id/appliquer', [$Competence_Controller, 'appliquerRecommandation']);
+$router->post('/api/competences/alertes/:id/resoudre', [$Competence_Controller, 'resoudreAlerte']);
+
+// Données supplémentaires
+$router->get('/api/departements', function() {
+    // Retourne la liste des départements pour les filtres
+    $sql = "SELECT id_departement, nom FROM departements ORDER BY nom";
+    $stmt = Flight::db()->prepare($sql);
+    $stmt->execute();
+    $departements = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+    
+    Flight::json([
+        'success' => true,
+        'departements' => $departements
+    ]);
 });

@@ -741,7 +741,24 @@ class AbscenceModel
             'non_autorisees' => $result['absences_non_autorisees'] ?? 0
         ];
     }
-
+    
+    public function getNombreAbsenceTous() {
+        $sql = "
+                SELECT
+            COUNT(*) FILTER (WHERE est_autorise = true)  AS absences_autorisees,
+            COUNT(*) FILTER (WHERE est_autorise = false) AS absences_non_autorisees
+            FROM abscence;
+        ";
+            
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute();
+        $result = $stmt->fetch(\PDO::FETCH_ASSOC);
+        
+        return [
+            'autorisees' => $result['absences_autorisees'] ?? 0,
+            'non_autorisees' => $result['absences_non_autorisees'] ?? 0
+        ];
+    }
     /**
      * Génère le HTML pour la section des statistiques d'absences
      * @param int $idEmploye ID de l'employé

@@ -210,13 +210,13 @@ else {
                     </div> -->
                     <div class="col-md-3 stat-item">
                         <div class="stat-number">
-                            <?= array_sum(array_column($employes, 'absences_autorisees')) ?>
+                            <?= $absences_tous['autorisees'] ?>
                         </div>
                         <div class="stat-label">Absences autorisées</div>
                     </div>
                     <div class="col-md-3 stat-item">
                         <div class="stat-number">
-                            <?= array_sum(array_column($employes, 'absences_non_autorisees')) ?>
+                            <?= $absences_tous['non_autorisees'] ?>
                         </div>
                         <div class="stat-label">Absences non autorisées</div>
                     </div>

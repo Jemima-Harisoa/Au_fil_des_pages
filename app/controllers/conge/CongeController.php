@@ -559,6 +559,7 @@ class CongeController {
             
             // Récupération des absences (à adapter selon votre modèle d'absences)
             $absencesData = $abscenceModel->getAbsencesCumulees($employe['id_employe']);
+            $absencestous = $abscenceModel->getNombreAbsenceTous();
             
             // Récupération du CV depuis le modèle candidat
             $candidatModel = Flight::candidatModel();
@@ -577,7 +578,9 @@ class CongeController {
         }
         // Passage des données à la vue
         Flight::render('conge/liste_employes', [
-            'employes' => $listeEmployes
+            'employes' => $listeEmployes, 
+            'absences_tous' => $absencestous
+
         ]);
     }
     

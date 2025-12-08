@@ -215,7 +215,7 @@
                         <a class="collapse-item" href="/competences/statistiques">
                             <i class="fas fa-chart-bar fa-fw mr-2"></i>Statistiques
                         </a>
-                        <a class="collapse-item" href="/competences/cartographie">
+                        <a class="collapse-item" href="/competences/dashboard">
                             <i class="fas fa-map fa-fw mr-2"></i>Cartographie
                         </a>
                         <?php endif; ?>
