@@ -179,7 +179,7 @@ class ConnexionController {
             // }
 
         $idEmploye =$p->getIdEmployeAdmin($_SESSION['admin']['id_admin']);  
-        echo $idEmploye ;
+       
         if ($idEmploye) {
 
             // ---- 🔹 Récupérer les infos de l'employé ----
