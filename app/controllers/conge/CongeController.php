@@ -446,10 +446,9 @@ class CongeController {
             Flight::redirect('/employe');
             return;
         }
-
         // Passage des données à la vue
         Flight::render('conge/fiche_employe', $this->parametreInfoEmploye($idEmploye));
-    }
+   }
 
     /**
      * Vérifie si l'utilisateur peut voir la fiche de l'employé
@@ -488,16 +487,18 @@ class CongeController {
         $competences = $competenceModel->getCompetencesByEmployee($idEmploye);
         $statsCompetences = $this->getStatsCompetencesEmploye($competences);
         $suggestionsFormations = $competenceModel->suggestFormationsForEmployee($idEmploye);
+        $conge = Flight::Conge()->getDonneesCongesParType($idEmploye);
 
         return [
             'fiche' => $fiche,
             'absences' => $absences,
             'listeconge' => $listeconge, 
-            'nombre_conge' => $employe['nombre_conge'],
+            'nombre_conge' => $employe['nombre_conge'] ?? 0,
             'competences' => $competences,
             'stats_competences' => $statsCompetences,
             'suggestions_formations' => $suggestionsFormations,
-            'estEmploye' => $this->estEmploye() && !$this->estAdministrateur()
+            'estEmploye' => $this->estEmploye() && !$this->estAdministrateur(),
+            'conge' => $conge
         ];
     }
 

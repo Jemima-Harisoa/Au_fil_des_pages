@@ -193,7 +193,7 @@
                     <div class="bg-white py-2 collapse-inner rounded">
                         <h6 class="collapse-header">Gestion des congés et absences:</h6>
                         <?php if($id_employe_connecte): ?>
-                        <a class="collapse-item" href="/conge/employe">Suivi Congés</a>
+                        <a class="collapse-item" href="/conge/fiche/<?= $id_employe_connecte ?>">Suivi Congés</a>
                         <a class="collapse-item" href="/absence/liste/<?= $id_employe_connecte ?>">Suivi absences</a>
                         <a class="collapse-item" href="/conge/demande">Demande de congé</a>
                         <?php else: ?>

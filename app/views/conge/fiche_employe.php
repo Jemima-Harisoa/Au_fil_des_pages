@@ -283,11 +283,12 @@ else {
     <!-- Page Heading -->
     <div class="d-sm-flex align-items-center justify-content-between mb-4">
         <h1 class="h3 mb-0 text-gray-800">Fiche Employé</h1>
-
+        <?php if (isset($_SESSION['infoAdmin'])): ?>
         <a href="/conge/validation" class="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm">
             <i class="fas fa-user fa-sm text-white-50 mr-2"></i>
             Voir les demandes de congé en attente de validation 
         </a>
+        <?php endif; ?>
     </div>
 
     <!-- Content Row -->
@@ -307,7 +308,7 @@ else {
                                 <div class="col mr-2">
                                     <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
                                         Congés Restants</div>
-                                    <div class="conge-counter text-gray-800"><?= $nombre_conge ?? 'N/A' ?></div>
+                                    <div class="conge-counter text-gray-800"><?= $nombre_conge ?? 0 ?></div>
                                     <div class="text-sm text-gray-500 mt-2">
                                         <i class="fas fa-info-circle mr-1"></i>Jours disponibles
                                     </div>

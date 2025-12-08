@@ -2400,3 +2400,55 @@ CREATE INDEX idx_mv_dashboard_date ON mv_dashboard_competences(date_generation);
 -- Configuration pour rafraichissement concurrent
 ALTER MATERIALIZED VIEW mv_competence_cartographie_optimisee SET (autovacuum_enabled = true);
 ALTER MATERIALIZED VIEW mv_dashboard_competences SET (autovacuum_enabled = true);
+
+
+-- 3. VUE : Gaps critiques par département
+CREATE OR REPLACE VIEW v_gaps_critiques_par_departement AS
+WITH employes_profils AS (
+    SELECT 
+        e.id_employe,
+        e.id_departement,
+        d.nom as departement_nom,
+        e.poste,
+        p.id_profil,
+        p.titre as profil_titre
+    FROM employes e
+    LEFT JOIN departements d ON e.id_departement = d.id_departement
+    LEFT JOIN candidats cand ON e.id_personne = cand.id_personne
+    LEFT JOIN profils p ON cand.id_profil = p.id_profil
+),
+gaps_detail AS (
+    SELECT 
+        ep.id_departement,
+        ep.departement_nom,
+        ep.id_employe,
+        ep.poste,
+        g.id_competence,
+        g.nom_competence,
+        g.niveau_actuel,
+        g.niveau_requis,
+        g.gap,
+        g.est_critique
+    FROM employes_profils ep
+    CROSS JOIN LATERAL calculer_gaps_employe(ep.id_employe) g
+    WHERE g.gap > 0
+)
+SELECT 
+    id_departement,
+    departement_nom,
+    id_competence,
+    nom_competence,
+    COUNT(DISTINCT id_employe) as nb_employes_avec_gap,
+    ROUND(AVG(gap)::numeric, 2) as gap_moyen,
+    MAX(gap) as gap_maximum,
+    COUNT(*) FILTER (WHERE est_critique = TRUE) as nb_gaps_critiques,
+    ARRAY_AGG(DISTINCT poste) as postes_concernes,
+    CASE 
+        WHEN COUNT(*) FILTER (WHERE est_critique = TRUE) > 5 THEN 'haute'
+        WHEN COUNT(*) FILTER (WHERE est_critique = TRUE) > 2 THEN 'moyenne'
+        ELSE 'faible'
+    END as severite_departement
+FROM gaps_detail
+GROUP BY id_departement, departement_nom, id_competence, nom_competence
+ORDER BY nb_gaps_critiques DESC, gap_moyen DESC;
+

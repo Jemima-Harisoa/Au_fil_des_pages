@@ -419,8 +419,8 @@ class CompetenceModel
     }
 
     /**
-     * Récupère le dashboard global
-     */
+    * Récupère le dashboard global
+    */
     public function getDashboardGlobal()
     {
         $cacheKey = 'dashboard_global';
@@ -434,21 +434,41 @@ class CompetenceModel
         $stmt = $this->db->prepare($sql);
         $stmt->execute();
         $dashboard = $stmt->fetch(\PDO::FETCH_ASSOC);
-        
-        // Décoder les colonnes JSON
+
         if ($dashboard) {
-            $dashboard['statistiques_globales'] = json_decode($dashboard['statistiques_globales'], true);
-            $dashboard['repartition_evaluation'] = json_decode($dashboard['repartition_evaluation'], true);
-            $dashboard['repartition_maturite'] = json_decode($dashboard['repartition_maturite'], true);
-            $dashboard['top_10_competences'] = json_decode($dashboard['top_10_competences'], true);
-            $dashboard['competences_critiques'] = json_decode($dashboard['competences_critiques'], true);
-            $dashboard['distribution_domaines'] = json_decode($dashboard['distribution_domaines'], true);
+            // Colonnes à décoder
+            $jsonColumns = [
+                'statistiques_globales',
+                'repartition_evaluation',
+                'repartition_maturite',
+                'top_10_competences',
+                'competences_critiques',
+                'distribution_domaines'
+            ];
+
+            foreach ($jsonColumns as $col) {
+                $dashboard[$col] = $this->safeJsonDecode($dashboard[$col]);
+            }
         }
-        
+
         // Mettre en cache pour 10 minutes
         $this->setCache($cacheKey, $dashboard, 600);
         
         return $dashboard;
+    }
+
+    /**
+     * Décodage JSON sécurisé
+     */
+    private function safeJsonDecode($value)
+    {
+        if (!is_string($value) || trim($value) === '') {
+            return []; // Toujours retourner un tableau vide si NULL / vide
+        }
+
+        $decoded = json_decode($value, true);
+
+        return (json_last_error() === JSON_ERROR_NONE) ? $decoded : [];
     }
 
     /**

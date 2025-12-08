@@ -245,6 +245,8 @@
                         <a class="collapse-item" href="/conge">Suivi Congés</a>
                         <a class="collapse-item" href="/absence/liste">Suivi absences</a>
                         <a class="collapse-item" href="/conge/demande">Demande de congé</a>
+                        <a class="collapse-item" href="/conge/calendrier">Calendrier des congés</a>
+                        
                     </div>
                 </div>
             </li>

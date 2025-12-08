@@ -902,6 +902,7 @@ class CongeModel {
         $stmt->execute(['id_employe' => $idEmploye]);
         return $stmt->fetchAll(\PDO::FETCH_ASSOC);
     }
+    
     /**
      * Récupère les données des congés par type pour un employé
      * @param int $idEmploye ID de l'employé
@@ -910,17 +911,59 @@ class CongeModel {
     public function getDonneesCongesParType($idEmploye) {
         // CORRECTION : Utiliser nombre_jour depuis conge_type au lieu de employes.nombre_conge
         $sql = "
-            SELECT 
-                ct.id_type,
-                ct.nom as type_conge,
-                ct.description,
-                ct.nombre_jour as jours_totaux,
-                COALESCE(SUM(acs.nombre_conge), 0) as jours_pris
-            FROM conge_type ct
-            LEFT JOIN abscence_conge_suivi acs ON ct.id_type = acs.id_type AND acs.id_employe = :id_employe
-            GROUP BY ct.id_type, ct.nom, ct.description, ct.nombre_jour
-            ORDER BY ct.nom
-        ";
+WITH sexe_employe AS (
+  SELECT p.id_sexe
+  FROM employes e
+  JOIN personnes p ON e.id_personne = p.id_personne
+  WHERE e.id_employe = :id_employe
+  LIMIT 1
+),
+sex_ids AS (
+  -- récupère ici les id numériques pour Feminin / Masculin (une seule fois)
+  SELECT
+    MAX(CASE WHEN LOWER(type_sexe) LIKE 'fem%' THEN id_sexe END) AS id_feminin,
+    MAX(CASE WHEN LOWER(type_sexe) LIKE 'masc%' THEN id_sexe END) AS id_masculin
+  FROM sexe
+)
+SELECT
+  ct.id_type,
+  CASE
+    WHEN ct.id_type = 6 AND ct.nombre_jour = 90 THEN 'Congé maternité'
+    WHEN ct.id_type = 5 AND ct.nombre_jour = 3  THEN 'Congé paternité'
+    ELSE ct.nom
+  END AS type_conge,
+  CASE
+    WHEN ct.id_type = 5 AND ct.nombre_jour = 3  THEN 'Congé pour le père'
+    WHEN ct.id_type = 6 AND ct.nombre_jour = 90 THEN 'Congé pour la mère'
+    ELSE ct.description
+  END AS description,
+  ct.nombre_jour AS jours_totaux,
+  COALESCE(SUM(acs.nombre_conge), 0) AS jours_pris,
+  CASE
+    -- tous les types non liés maternité/paternité sont disponibles
+    WHEN ct.id_type NOT IN (5, 6) THEN true
+    -- congé maternité (id_type = 6, 90j) disponible uniquement si l'employé est de sexe féminin
+    WHEN ct.id_type = 6 AND ct.nombre_jour = 90 AND se.id_sexe = sids.id_feminin THEN true
+    -- congé paternité (id_type = 5, 3j) disponible uniquement si l'employé est de sexe masculin
+    WHEN ct.id_type = 5 AND ct.nombre_jour = 3  AND se.id_sexe = sids.id_masculin THEN true
+    ELSE false
+  END AS disponible
+FROM conge_type ct
+LEFT JOIN abscence_conge_suivi acs
+  ON ct.id_type = acs.id_type
+  AND acs.id_employe = :id_employe
+CROSS JOIN sexe_employe se
+CROSS JOIN sex_ids sids
+WHERE
+  (
+    ct.id_type NOT IN (5,6)
+    OR (ct.id_type = 6 AND ct.nombre_jour = 90 AND se.id_sexe = sids.id_feminin)
+    OR (ct.id_type = 5 AND ct.nombre_jour = 3  AND se.id_sexe = sids.id_masculin)
+  )
+GROUP BY ct.id_type, ct.nom, ct.description, ct.nombre_jour, se.id_sexe, sids.id_feminin, sids.id_masculin
+ORDER BY
+  CASE WHEN ct.id_type = 5 THEN 'Congé paternité' ELSE ct.nom END;
+";
         
         $stmt = $this->db->prepare($sql);
         $stmt->execute(['id_employe' => $idEmploye]);

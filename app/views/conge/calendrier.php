@@ -9,11 +9,11 @@ for ($i = $currentYear - 2; $i <= $currentYear + 3; $i++) {
 
 if (isset($_SESSION['infoAdmin'])) {
     // Rediriger vers une page d'erreur ou de connexion
-    Flight::render("headerA", ['extra_css' => $extra_css]);
+    Flight::render("headerA");
 }
 else if (isset($_SESSION['employe'])) {
     // Rediriger vers une page d'erreur ou de connexion
-    Flight::render("headerE", ['extra_css' => $extra_css]);
+    Flight::render("headerE");
 }
 else {
     // Rediriger vers une page d'erreur ou de connexion

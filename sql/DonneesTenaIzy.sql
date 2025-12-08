@@ -4,7 +4,6 @@
 
 
 -- Tables de base sans dépendances
--- Tables de base sans dépendances
 INSERT INTO sexe (type_sexe) VALUES 
   ('Masculin'),
   ('Feminin'),
@@ -98,16 +97,16 @@ INSERT INTO type_prime (libelle) VALUES
 ('Prime de responsabilité');
 
 -- Table mère : personnes
-INSERT INTO personnes (nom, prenom, date_naissance, contact, lien_image) VALUES
-  ('Rakoto', 'Jean', '1985-03-12', '0341234567', 'images/jean.jpg'),
-  ('Rasoanaivo', 'Marie', '1990-07-25', '0342345678', 'images/marie.jpg'),
-  ('Randriamahenina', 'Paul', '1988-11-02', '0343456789', 'images/paul.jpg'),
-  ('Andriantsitoha', 'Lova', '1995-01-15', '0344567890', 'images/lova.jpg'),
-  ('Rakotondrazaka', 'Hery', '1992-05-30', '0345678901', 'images/hery.jpg'),
-  ('Lia', 'Mia', '1995-05-12', '0341234560', 'https://img.com/lia.jpg'),
-  ('Rasoa', 'Sophie', '1998-09-21', '0349876543', 'https://img.com/sophie.jpg'),
-  ('Andry', 'Michel', '1990-11-03', '0345556667', 'https://img.com/michel.jpg'),
-  ('Hanitra', 'Lina', '2000-01-15', '0342223334', 'https://img.com/lina.jpg');
+INSERT INTO personnes (nom, prenom, date_naissance, contact, lien_image, id_sexe) VALUES
+  ('Rakoto', 'Jean', '1985-03-12', '0341234567', 'images/jean.jpg', 1),
+  ('Rasoanaivo', 'Marie', '1990-07-25', '0342345678', 'images/marie.jpg', 2),
+  ('Randriamahenina', 'Paul', '1988-11-02', '0343456789', 'images/paul.jpg', 1),
+  ('Andriantsitoha', 'Lova', '1995-01-15', '0344567890', 'images/lova.jpg', 2),
+  ('Rakotondrazaka', 'Hery', '1992-05-30', '0345678901', 'images/hery.jpg', 2),
+  ('Lia', 'Mia', '1995-05-12', '0341234560', 'https://img.com/lia.jpg', 2),
+  ('Rasoa', 'Sophie', '1998-09-21', '0349876543', 'https://img.com/sophie.jpg', 2),
+  ('Andry', 'Michel', '1990-11-03', '0345556667', 'https://img.com/michel.jpg', 1),
+  ('Hanitra', 'Lina', '2000-01-15', '0342223334', 'https://img.com/lina.jpg', 1);
 
 -- CORRECTION: Employes - utilisation de la syntaxe correcte
 -- Note: Nous mettons id_contrat à NULL car les contrats ne sont pas encore insérés
@@ -405,6 +404,7 @@ INSERT INTO conge_type (nom, description, nombre_jour, deductible_sur_salaire, d
 ('Congé maladie', 'Congé pour maladie', 30, FALSE, FALSE),
 ('Congé exceptionnel', 'Congé pour événement exceptionnel', 5, FALSE, FALSE),
 ('Congé sans solde', 'Congé non payé', 0, TRUE, TRUE),
+('Congé paternité', 'Congé paternité', 3, TRUE, TRUE), -- pour les pere 
 ('Congé maternité', 'Congé maternité', 90, FALSE, FALSE);
 
 -- Insérer les types de pénalité d'absence
