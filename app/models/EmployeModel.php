@@ -147,27 +147,28 @@ class EmployeModel
         return $stmt->fetchAll(\PDO::FETCH_ASSOC);
     }
 
-    public static function contratEnAlerte(int $id_employe): bool
+    public static function contratEnAlerte(int $id_employe): string
     {
         $db = Flight::db();
 
-        // Version corrigée : lien direct employe -> contrat
+        // Vérifie si le contrat est expiré ou en alerte (expire dans 30 jours)
         $sql = "
-            SELECT EXISTS (
-                SELECT 1 
-                FROM employes e
-                JOIN contrats c ON e.id_contrat = c.id_contrat
-                JOIN type_contrats tc ON c.id_type_contrat = tc.id_type_contrat
-                WHERE e.id_employe = :id_employe
-                  AND c.date_fin IS NOT NULL
-                  AND tc.nom != 'CDI'
-                  AND c.date_fin <= CURRENT_DATE + INTERVAL '30 days'
-            ) AS alerte
+            SELECT 
+                CASE
+                    WHEN c.date_fin IS NOT NULL AND c.date_fin < CURRENT_DATE THEN 'expirer'
+                    WHEN c.date_fin IS NOT NULL AND c.date_fin <= CURRENT_DATE + INTERVAL '30 days' THEN 'alerte'
+                    ELSE 'ok'
+                END AS statut_contrat
+            FROM employes e
+            JOIN contrats c ON e.id_contrat = c.id_contrat
+            WHERE e.id_employe = :id_employe
+            LIMIT 1
         ";
 
         $stmt = $db->prepare($sql);
         $stmt->execute([':id_employe' => $id_employe]);
-        return (bool)$stmt->fetchColumn();
+        $result = $stmt->fetchColumn();
+        return $result ?: 'ok';
     }
     // 
 

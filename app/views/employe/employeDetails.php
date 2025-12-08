@@ -20,8 +20,9 @@ $dateEmbauche = $data['date_embauche'] ? new DateTime($data['date_embauche']) : 
 $anciennete_annees = $dateEmbauche ? $dateEmbauche->diff($aujourd)->y : '—';
 $anciennete_jours = $dateEmbauche ? $dateEmbauche->diff($aujourd)->days : '—';
 
-// ALERTE FIN DE CONTRAT (30 jours)
-$enAlerteContrat = !empty($data['id_employe']) && EmployeModel::contratEnAlerte((int)$data['id_employe']);
+// ALERTE FIN DE CONTRAT : récupérer le statut (ok, alerte, expirer)
+$contratStatut = !empty($data['id_employe']) ? EmployeModel::contratEnAlerte((int)$data['id_employe']) : 'ok';
+$enAlerteContrat = ($contratStatut === 'alerte' || $contratStatut === 'expirer');
 ?>
 
 <!DOCTYPE html>
@@ -169,8 +170,37 @@ $enAlerteContrat = !empty($data['id_employe']) && EmployeModel::contratEnAlerte(
 
 <div class="max-w-7xl mx-auto">
 
-    <!-- ALERTE FIN DE CONTRAT - TRÈS VISIBLE -->
-    <?php if ($enAlerteContrat): ?>
+    <!-- ALERTE FIN DE CONTRAT - Affichage selon statut -->
+    <?php if ($contratStatut === 'expirer'): ?>
+        <div class="bg-gray-200 border-l-8 border-gray-800 rounded-r-2xl p-8 mb-8 shadow-2xl">
+            <div class="flex flex-col md:flex-row items-center justify-between gap-6">
+                <div class="flex items-center gap-6">
+                    <div class="text-gray-800">
+                        <i class="fas fa-ban text-6xl"></i>
+                    </div>
+                    <div>
+                        <h2 class="text-3xl font-bold text-gray-900 mb-2">
+                            CONTRAT EXPIRÉ
+                        </h2>
+                        <p class="text-xl text-gray-700 font-medium">
+                            Le contrat de cet employé est arrivé à échéance.
+                        </p>
+                        <p class="text-gray-600 mt-2">
+                            Renouvellement ou fin de collaboration requis.
+                        </p>
+                    </div>
+                </div>
+                <div class="flex flex-col gap-3">
+                    <button disabled
+                       class="bg-gray-400 text-white font-bold text-lg px-8 py-4 rounded-xl shadow-lg cursor-not-allowed opacity-50 flex items-center gap-3"
+                       title="Fonctionnalité désactivée">
+                        <i class="fas fa-file-contract text-2xl"></i>
+                        Renouveler le contrat
+                    </button>
+                </div>
+            </div>
+        </div>
+    <?php elseif ($contratStatut === 'alerte'): ?>
         <div class="bg-red-50 border-l-8 border-red-600 rounded-r-2xl p-8 mb-8 shadow-2xl pulse-alert">
             <div class="flex flex-col md:flex-row items-center justify-between gap-6">
                 <div class="flex items-center gap-6">
@@ -182,7 +212,7 @@ $enAlerteContrat = !empty($data['id_employe']) && EmployeModel::contratEnAlerte(
                             ALERTE : FIN DE CONTRAT PROCHE
                         </h2>
                         <p class="text-xl text-red-700 font-medium">
-                            Le contrat de cet employé expire dans moins de 30 jours ou est déjà expiré.
+                            Le contrat de cet employé expire dans moins de 30 jours.
                         </p>
                         <p class="text-red-600 mt-2">
                             Action urgente requise !
@@ -207,18 +237,38 @@ $enAlerteContrat = !empty($data['id_employe']) && EmployeModel::contratEnAlerte(
     <?php endif; ?>
 
     <!-- En-tête -->
-    <div class="bg-white rounded-t-2xl shadow-xl p-6 border-b-4 <?= $enAlerteContrat ? 'border-red-600' : 'border-blue-500' ?>">
+    <div class="bg-white rounded-t-2xl shadow-xl p-6 border-b-4 <?php
+        if ($contratStatut === 'expirer') {
+            echo 'border-gray-800';
+        } elseif ($contratStatut === 'alerte') {
+            echo 'border-red-600';
+        } else {
+            echo 'border-blue-500';
+        }
+    ?>">
         <div class="flex items-center justify-between">
             <h1 class="text-3xl font-bold text-gray-800 flex items-center gap-3">
                 <i class="fas fa-user-tie"></i>
                 Fiche Employé
-                <?php if ($enAlerteContrat): ?>
+                <?php if ($contratStatut === 'expirer'): ?>
+                    <span class="ml-4 inline-flex items-center gap-2 text-gray-800 font-bold">
+                        <i class="fas fa-ban"></i> CONTRAT EXPIRÉ
+                    </span>
+                <?php elseif ($contratStatut === 'alerte'): ?>
                     <span class="ml-4 inline-flex items-center gap-2 text-red-600 font-bold">
                         <i class="fas fa-bell animate-pulse"></i> CONTRAT EN ALERTE
                     </span>
                 <?php endif; ?>
             </h1>
-            <span class="bg-gradient-to-r <?= $enAlerteContrat ? 'from-red-600 to-red-700' : 'from-blue-600 to-indigo-600' ?> text-white px-6 py-2 rounded-full text-lg font-bold shadow-lg">
+            <span class="bg-gradient-to-r <?php
+                if ($contratStatut === 'expirer') {
+                    echo 'from-gray-700 to-gray-800';
+                } elseif ($contratStatut === 'alerte') {
+                    echo 'from-red-600 to-red-700';
+                } else {
+                    echo 'from-blue-600 to-indigo-600';
+                }
+            ?> text-white px-6 py-2 rounded-full text-lg font-bold shadow-lg">
                 ID: <?= $data['id_employe'] ?? '—' ?>
             </span>
         </div>
