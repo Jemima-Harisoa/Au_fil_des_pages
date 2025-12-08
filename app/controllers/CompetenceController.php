@@ -87,6 +87,7 @@ class CompetenceController
      * GET /competences/dashboard/admin
      * Affiche le dashboard administrateur
      */
+
     public function getDashboardAdmin()
     {
         try {
@@ -96,96 +97,255 @@ class CompetenceController
                 return;
             }
 
-            // TEMPORAIRE : Utiliser des données de test
-            $dashboardData = $this->genererDonneesTest();
+            // Initialiser le modèle
+            $competenceModel = Flight::Competence();
             
-            // Données de test pour les gaps
-            $gapsCritiques = [
-                'statistiques' => [
-                    'total_gaps' => 34,
-                    'total_gaps_critiques' => 12,
-                    'departements_concernes' => 8,
-                    'competences_concernes' => 15,
-                    'severite_distribution' => [
-                        'haute' => 5,
-                        'moyenne' => 15,
-                        'faible' => 14
-                    ]
-                ],
-                'gaps' => [
-                    [
-                        'departement_nom' => 'Développement',
-                        'nom_competence' => 'React Native',
-                        'nb_employes_avec_gap' => 8,
-                        'gap_moyen' => 2.5,
-                        'nb_gaps_critiques' => 3,
-                        'severite_departement' => 'haute'
-                    ],
-                    [
-                        'departement_nom' => 'Marketing',
-                        'nom_competence' => 'Analyse SEO',
-                        'nb_employes_avec_gap' => 5,
-                        'gap_moyen' => 1.8,
-                        'nb_gaps_critiques' => 2,
-                        'severite_departement' => 'moyenne'
-                    ]
-                ]
-            ];
+            // 1. Récupérer les données du dashboard global (utilise la vue matérialisée)
+            $dashboardData = $competenceModel->getDashboardGlobal();
+            
+            // 2. Récupérer les statistiques réalistes des compétences
+            $statsRealistes = $competenceModel->getRealisticCompetenceStats();
+            
+            // 3. Fusionner les données (priorité aux données réalistes)
+            $dashboardData = array_merge($dashboardData, [
+                'stats_realistes' => $statsRealistes['stats_globales'] ?? [],
+                'competences_realistes' => $statsRealistes['competences'] ?? []
+            ]);
+            
+            // 4. Récupérer les gaps critiques (sans filtre = tous)
+            $gapsCritiques = $competenceModel->getGapsCritiques();
+            
+            // 5. Récupérer les alertes actives (sans filtre = toutes)
+            $alertesActives = $competenceModel->getAlertesActives();
+            
+            // 6. Récupérer la cartographie optimisée pour les graphiques
+            $cartographieOptimisee = $competenceModel->getCartographieOptimisee();
+            
+            // 7. Calculer les données pour les graphiques
+            $chartData = $this->preparerDonneesGraphiques($cartographieOptimisee, $statsRealistes);
+            
+            // 8. Fusionner avec les données du dashboard
+            $dashboardData = array_merge($dashboardData, $chartData);
+            
+            // 9. Calculer les tendances (top progression/régression)
+            $tendances = $this->calculerTendances($cartographieOptimisee);
+            $dashboardData['tendances'] = $tendances;
 
-            // Données de test pour les alertes
-            $alertesActives = [
-                'statistiques' => [
-                    'total' => 7,
-                    'par_severite' => [
-                        'critique' => 2,
-                        'haute' => 3,
-                        'moyenne' => 1,
-                        'faible' => 1
-                    ]
-                ],
-                'alertes' => [
-                    [
-                        'id_alerte' => 1,
-                        'date_creation' => date('Y-m-d H:i:s', strtotime('-2 days')),
-                        'type_alerte' => 'competence_critique',
-                        'message' => 'Manque critique de compétences en sécurité informatique',
-                        'competence_nom' => 'Sécurité réseau',
-                        'severite' => 'critique',
-                        'departement_nom' => 'IT',
-                        'employe_nom' => 'N/A'
-                    ],
-                    [
-                        'id_alerte' => 2,
-                        'date_creation' => date('Y-m-d H:i:s', strtotime('-1 day')),
-                        'type_alerte' => 'soft_skills_faible',
-                        'message' => 'Niveau faible en communication pour plusieurs équipes',
-                        'competence_nom' => 'Communication',
-                        'severite' => 'haute',
-                        'departement_nom' => 'Ventes',
-                        'employe_nom' => 'N/A'
-                    ]
-                ]
-            ];
-
-            // Afficher la vue avec les données de test
+            // Afficher la vue avec les données réelles
             Flight::render('dashboard_admin', [
                 'dashboardData' => $dashboardData,
                 'gapsCritiques' => $gapsCritiques,
                 'alertesActives' => $alertesActives,
+                'tendancesData' => $tendances,
                 'erreurs' => [],
-                'estEmploye' => $this->estEmploye() && !$this->estAdministrateur()
+                'estEmploye' => $this->estEmploye() && !$this->estAdministrateur(),
+                'isAdmin' => $this->estAdministrateur(),
+                'isEmploye' => $this->estEmploye()
             ]);
             
         } catch (\Exception $e) {
             error_log("Erreur critique getDashboardAdmin: " . $e->getMessage());
             
+            // En cas d'erreur, utiliser des données par défaut
             Flight::render('dashboard_admin', [
                 'dashboardData' => $this->genererDonneesTest(),
                 'gapsCritiques' => ['gaps' => [], 'statistiques' => []],
                 'alertesActives' => ['alertes' => [], 'statistiques' => []],
+                'tendancesData' => ['progression' => [], 'regression' => []],
                 'erreurs' => ['Erreur lors du chargement du dashboard: ' . $e->getMessage()],
-                'estEmploye' => false
+                'estEmploye' => false,
+                'isAdmin' => $this->estAdministrateur(),
+                'isEmploye' => $this->estEmploye()
             ]);
+        }
+    }
+    
+    /**
+     * Prépare les données pour les graphiques du dashboard
+     */
+    private function preparerDonneesGraphiques($cartographieOptimisee, $statsRealistes)
+    {
+        $chartData = [];
+        
+        // 1. Distribution des évaluations
+        if (!empty($cartographieOptimisee)) {
+            $distributionEvaluation = [];
+            foreach ($cartographieOptimisee as $competence) {
+                $evaluation = $competence['evaluation_globale'] ?? 'Non évalué';
+                if (!isset($distributionEvaluation[$evaluation])) {
+                    $distributionEvaluation[$evaluation] = 0;
+                }
+                $distributionEvaluation[$evaluation]++;
+            }
+            
+            $chartData['repartition_evaluation'] = [];
+            foreach ($distributionEvaluation as $evaluation => $count) {
+                $chartData['repartition_evaluation'][] = [
+                    'evaluation_globale' => $evaluation,
+                    'nb_competences' => $count
+                ];
+            }
+        }
+        
+        // 2. Top 10 compétences par maturité
+        if (!empty($statsRealistes['competences'])) {
+            usort($statsRealistes['competences'], function($a, $b) {
+                return ($b['indice_maturite'] ?? 0) <=> ($a['indice_maturite'] ?? 0);
+            });
+            
+            $chartData['top_10_competences'] = array_slice($statsRealistes['competences'], 0, 10);
+        }
+        
+        // 3. Distribution par domaine
+        if (!empty($statsRealistes['competences'])) {
+            $distributionDomaines = [];
+            foreach ($statsRealistes['competences'] as $competence) {
+                $domaine = $competence['domaine'] ?? 'Non classé';
+                if (!isset($distributionDomaines[$domaine])) {
+                    $distributionDomaines[$domaine] = 0;
+                }
+                $distributionDomaines[$domaine]++;
+            }
+            
+            $chartData['distribution_domaines'] = [];
+            foreach ($distributionDomaines as $domaine => $count) {
+                $chartData['distribution_domaines'][] = [
+                    'domaine' => $domaine,
+                    'nb_competences' => $count
+                ];
+            }
+        }
+        
+        // 4. Répartition de maturité
+        if (!empty($statsRealistes['competences'])) {
+            $repartitionMaturite = [
+                'Très faible (<20)' => 0,
+                'Faible (20-40)' => 0,
+                'Moyenne (40-60)' => 0,
+                'Bonne (60-80)' => 0,
+                'Excellente (80-100)' => 0
+            ];
+            
+            foreach ($statsRealistes['competences'] as $competence) {
+                $maturite = $competence['indice_maturite'] ?? 0;
+                if ($maturite < 20) $repartitionMaturite['Très faible (<20)']++;
+                elseif ($maturite < 40) $repartitionMaturite['Faible (20-40)']++;
+                elseif ($maturite < 60) $repartitionMaturite['Moyenne (40-60)']++;
+                elseif ($maturite < 80) $repartitionMaturite['Bonne (60-80)']++;
+                else $repartitionMaturite['Excellente (80-100)']++;
+            }
+            
+            $chartData['repartition_maturite'] = [];
+            foreach ($repartitionMaturite as $niveau => $count) {
+                $chartData['repartition_maturite'][] = [
+                    'niveau_maturite' => $niveau,
+                    'nb_competences' => $count
+                ];
+            }
+        }
+        
+        // 5. Compétences critiques (score < 40)
+        if (!empty($statsRealistes['competences'])) {
+            $chartData['competences_critiques'] = array_filter(
+                $statsRealistes['competences'],
+                fn($c) => ($c['indice_maturite'] ?? 100) < 40
+            );
+            $chartData['competences_critiques'] = array_slice(
+                $chartData['competences_critiques'], 0, 10
+            );
+        }
+        
+        return $chartData;
+    }
+
+    /**
+     * Calcule les tendances (top progression et régression)
+     */
+    private function calculerTendances($cartographieOptimisee)
+    {
+        $tendances = [
+            'progression' => [],
+            'regression' => []
+        ];
+        
+        if (empty($cartographieOptimisee)) {
+            return $tendances;
+        }
+        
+        // Trie par taux de couverture (ascendant pour progression, descendant pour régression)
+        usort($cartographieOptimisee, function($a, $b) {
+            return ($a['taux_couverture'] ?? 0) <=> ($b['taux_couverture'] ?? 0);
+        });
+        
+        // Top 5 progression (meilleure couverture)
+        $tendances['progression'] = array_slice($cartographieOptimisee, -5, 5);
+        $tendances['progression'] = array_reverse($tendances['progression']);
+        
+        // Top 5 régression (pire couverture)
+        $tendances['regression'] = array_slice($cartographieOptimisee, 0, 5);
+        
+        return $tendances;
+    }
+
+    /**
+     * GET /api/competences/departements
+     * Liste des départements pour les filtres
+     */
+    public function getDepartements()
+    {
+        try {
+            $sql = "
+                SELECT id_departement, nom 
+                FROM departements 
+                WHERE actif = true 
+                ORDER BY nom
+            ";
+            
+            $stmt = Flight::db()->prepare($sql);
+            $stmt->execute();
+            $departements = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+            
+            Flight::json([
+                'success' => true,
+                'departements' => $departements
+            ]);
+            
+        } catch (\Exception $e) {
+            Flight::json([
+                'success' => false,
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * GET /api/competences
+     * Liste des compétences pour les filtres
+     */
+    public function getCompetences()
+    {
+        try {
+            $sql = "
+                SELECT id_competence, nom, domaine
+                FROM competences 
+                ORDER BY nom
+                LIMIT 50
+            ";
+            
+            $stmt = Flight::db()->prepare($sql);
+            $stmt->execute();
+            $competences = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+            
+            Flight::json([
+                'success' => true,
+                'data' => $competences
+            ]);
+            
+        } catch (\Exception $e) {
+            Flight::json([
+                'success' => false,
+                'error' => $e->getMessage()
+            ], 500);
         }
     }
     /**

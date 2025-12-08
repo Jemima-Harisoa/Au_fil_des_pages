@@ -13,13 +13,14 @@
     <script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.js"></script>
     
 <?php 
-if (isset($_SESSION['infoAdmin'])) {
-    Flight::render("headerA");
-} else if (isset($_SESSION['employe'])) {
-    Flight::render("headerE");
-} else {
-    Flight::render("headerU");
-}?>
+    if (isset($_SESSION['infoAdmin'])) {
+        Flight::render("headerA");
+    } else if (isset($_SESSION['employe'])) {
+        Flight::render("headerE");
+    } else {
+        Flight::render("headerU");
+    }
+?>
     <style>
         :root {
             --primary-color: #4e73df;

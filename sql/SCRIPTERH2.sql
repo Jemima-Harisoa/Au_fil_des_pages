@@ -426,7 +426,7 @@ CREATE TABLE conge_historique (
 CREATE TABLE conge_solde (
     id_solde SERIAL PRIMARY KEY,
     id_employe INT,
-    id_type_conge INT,
+    id_type_conge INT default 1,
     solde DOUBLE PRECISION,
     annee INT,
     CONSTRAINT fk_conge_solde_employe FOREIGN KEY (id_employe) REFERENCES employes(id_employe),

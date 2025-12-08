@@ -351,6 +351,8 @@ $router->group('/employees', function($router) use ($EmployeeCompetence_Controll
     
     // Vues HTML
     $router->get('/@id/competences/form', [$EmployeeCompetence_Controller, 'showCompetenceForm']);
+    $router->post('/@id/competences/form', [$EmployeeCompetence_Controller, 'showCompetenceForm']);
+    
     $router->get('/@id/competences/list', [$EmployeeCompetence_Controller, 'showCompetenceList']);
     
     // Auto-évaluation des compétences

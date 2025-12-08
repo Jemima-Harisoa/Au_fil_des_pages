@@ -212,9 +212,9 @@
                         
                         <!-- Pour admin: voir les compétences de tous les employés -->
                         <?php if($isAdmin): ?>
-                        <a class="collapse-item" href="/competences/statistiques">
+                        <!-- <a class="collapse-item" href="/competences/statistiques">
                             <i class="fas fa-chart-bar fa-fw mr-2"></i>Statistiques
-                        </a>
+                        </a> -->
                         <a class="collapse-item" href="/competences/dashboard">
                             <i class="fas fa-map fa-fw mr-2"></i>Cartographie
                         </a>
