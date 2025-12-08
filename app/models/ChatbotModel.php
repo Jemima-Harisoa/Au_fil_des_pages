@@ -282,41 +282,35 @@ INSTRUCTIONS IMPORTANTES:
 {$functionCatalog}
 
 {$contextText}
-
-QUESTION DE L'UTILISATEUR: {$question}
-
-Réponds de manière claire et professionnelle.
 PROMPT;
 
-        // Appel API Gemini
-        $apiKey = "AIzaSyAbXblX7AEQ_h6RnSjb4C7uhqqazJr6UvA";
-        $url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent";
+        // Configuration API Hugging Face
+        $apiUrl = "https://router.huggingface.co/v1/chat/completions";
+        $apiToken = "";
 
         $payload = [
-            'contents' => [
-                ['parts' => [['text' => $systemPrompt]]]
+            "model" => "deepseek-ai/DeepSeek-V3.2:novita",
+            "messages" => [
+                ["role" => "system", "content" => $systemPrompt],
+                ["role" => "user", "content" => $question]
             ],
-            'generationConfig' => [
-                'temperature' => 0.4,
-                'maxOutputTokens' => 800,
-                'topP' => 0.8,
-                'topK' => 40
-            ]
+            "max_tokens" => 800,
+            "temperature" => 0.4
         ];
 
-        $ch = curl_init($url);
+        $ch = curl_init($apiUrl);
         curl_setopt_array($ch, [
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_POST => true,
             CURLOPT_HTTPHEADER => [
-                'Content-Type: application/json',
-                'x-goog-api-key: ' . $apiKey
+                "Authorization: Bearer $apiToken",
+                "Content-Type: application/json"
             ],
             CURLOPT_POSTFIELDS => json_encode($payload),
-            CURLOPT_RETURNTRANSFER => true,
             CURLOPT_SSL_VERIFYPEER => false,
             CURLOPT_SSL_VERIFYHOST => false,
             CURLOPT_TIMEOUT => 30,
-            CURLOPT_FOLLOWLOCATION => true,
-            CURLOPT_POST => true
+            CURLOPT_FOLLOWLOCATION => true
         ]);
 
         if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
@@ -336,9 +330,9 @@ PROMPT;
         }
 
         if ($httpCode !== 200) {
-            $err = json_decode($result, true);
-            $msg = $err['error']['message'] ?? ('HTTP ' . $httpCode);
-            throw new \Exception('Erreur API: ' . $msg);
+            $decoded = json_decode($result, true);
+            $msg = $decoded['error']['message'] ?? ('HTTP ' . $httpCode);
+            throw new \Exception('Erreur API Hugging Face: ' . $msg);
         }
 
         $decoded = json_decode($result, true);
@@ -346,17 +340,13 @@ PROMPT;
             throw new \Exception('Réponse JSON invalide');
         }
 
-        // Extraction de la réponse
-        if (isset($decoded['candidates'][0]['content']['parts'][0]['text'])) {
-            return trim($decoded['candidates'][0]['content']['parts'][0]['text']);
+        // Extraction de la réponse (format Hugging Face)
+        if (isset($decoded['choices'][0]['message']['content'])) {
+            return trim($decoded['choices'][0]['message']['content']);
         }
 
-        if (isset($decoded['candidates'][0]['parts'][0]['text'])) {
-            return trim($decoded['candidates'][0]['parts'][0]['text']);
-        }
-
-        if (isset($decoded['candidates'][0]['finishReason']) && 
-            $decoded['candidates'][0]['finishReason'] === 'MAX_TOKENS') {
+        if (isset($decoded['choices'][0]['finish_reason']) && 
+            $decoded['choices'][0]['finish_reason'] === 'length') {
             return "Réponse partielle (limite de tokens atteinte). Reformulez votre question de manière plus concise.";
         }
 
