@@ -119,9 +119,17 @@
                     </thead>
                     <tbody class="bg-white divide-y divide-gray-200">
                         <?php foreach ($filtered as $emp): 
-                            $enAlerte = EmployeModel::contratEnAlerte($emp['id_employe']);
+                            $contratStatut = EmployeModel::contratEnAlerte($emp['id_employe']);
                         ?>
-                            <tr class="<?= $enAlerte ? 'bg-red-50 border-l-4 border-red-600 hover:bg-red-100' : 'hover:bg-blue-50' ?> transition cursor-pointer"
+                            <tr class="<?php
+                                if ($contratStatut === 'expirer') {
+                                    echo 'bg-gray-200 border-l-4 border-gray-800';
+                                } elseif ($contratStatut === 'alerte') {
+                                    echo 'bg-red-50 border-l-4 border-red-600 hover:bg-red-100';
+                                } else {
+                                    echo 'hover:bg-blue-50';
+                                }
+                            ?> transition cursor-pointer"
                                 onclick="window.location='/employeDetails/<?= $emp['id_employe'] ?>'">
                                 
                                 <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
@@ -147,7 +155,12 @@
 
                                 <!-- COLONNE ALERTE CONTRAT -->
                                 <td class="px-6 py-4 text-center font-bold">
-                                    <?php if ($enAlerte): ?>
+                                    <?php if ($contratStatut === 'expirer'): ?>
+                                        <div class="flex items-center justify-center gap-2 text-gray-800 pulse-alert" title="Contrat expiré">
+                                            <i class="fas fa-ban text-xl"></i>
+                                            <span>CONTRAT EXPIRÉ</span>
+                                        </div>
+                                    <?php elseif ($contratStatut === 'alerte'): ?>
                                         <div class="flex items-center justify-center gap-2 text-red-600 pulse-alert" title="Contrat expire dans moins de 30 jours !">
                                             <i class="fas fa-exclamation-triangle text-xl"></i>
                                             <span>ALERTE FIN CONTRAT</span>
@@ -168,9 +181,15 @@
     <div class="mt-6 text-sm text-gray-600">
         <strong><?= count($filtered) ?></strong> employé(s) affiché(s) sur <strong><?= count($employes) ?></strong> au total.
         <?php if (!empty($filtered)): ?>
-            <?php $alertes = array_filter($filtered, fn($e) => EmployeModel::contratEnAlerte($e['id_employe'])); ?>
+            <?php
+                $alertes = array_filter($filtered, fn($e) => EmployeModel::contratEnAlerte($e['id_employe']) === 'alerte');
+                $expires = array_filter($filtered, fn($e) => EmployeModel::contratEnAlerte($e['id_employe']) === 'expirer');
+            ?>
             <?php if (count($alertes) > 0): ?>
                 <span class="ml-4 text-red-600 font-bold">• <?= count($alertes) ?> en alerte contrat</span>
+            <?php endif; ?>
+            <?php if (count($expires) > 0): ?>
+                <span class="ml-4 text-gray-800 font-bold">• <?= count($expires) ?> contrat(s) expiré(s)</span>
             <?php endif; ?>
         <?php endif; ?>
     </div>

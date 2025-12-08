@@ -13,6 +13,7 @@ Flight::map('db', function() {
         'pgsql:host=localhost;port=5432;dbname=aufildespages', // DSN PostgreSQL
         'postgres',        // ton user PostgreSQL
         'NouveauMotDePasse' // ton mot de passe PostgreSQL
+
     );
 });
 

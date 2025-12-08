@@ -108,20 +108,41 @@ INSERT INTO personnes (nom, prenom, date_naissance, contact, lien_image, id_sexe
   ('Durand', 'Bob', '1993-08-10', 'bob.durand@mail.com', '/img/bob.jpg', 1),
   ('Petit', 'Caroline', '1991-03-25', 'caroline.petit@mail.com', '/img/caroline.jpg', 2);
 
+-- INSERTION DES CANDIDATS EN PREMIER (AVANT LES CONTRATS)
+INSERT INTO candidats (id_personne, poste, cv_url) VALUES
+(13, 'Développeur', '/cv/lucas.pdf'),     -- id_candidat = 1
+(14, 'RH Manager', '/cv/sophie.pdf');     -- id_candidat = 2
+
+-- ================================================
+-- INSERTIONS DANS LA TABLE contrats
+-- ================================================
+INSERT INTO contrats (
+    id_candidat, 
+    id_type_contrat, 
+    url_contrat, 
+    date_debut, 
+    date_fin
+) VALUES
+(1, 1, '/contrats/contrat_lucas_rivoire_cdi_2024.pdf', '2024-03-01', NULL),
+(2, 2, '/contrats/contrat_sophie_bernard_cdd_2024.pdf', '2024-04-15', '2025-04-14'),
+(1, 3, '/contrats/contrat_lucas_stage_2023.pdf', '2023-06-01', '2023-08-31'),
+(2, 4, '/contrats/contrat_sophie_freelance_2023.pdf', '2023-09-01', '2023-12-31'),
+(1, 2, '/contrats/contrat_lucas_cdd_avant_cdi.pdf', '2023-09-01', '2024-02-29'),
+(2, 1, '/contrats/ancien_contrat_sophie_cdi_refuse.pdf', '2022-01-10', '2023-01-09');
+
 -- Employes (12 employés au total)
+-- CORRECTION : 1 seule ligne par personne physique
 INSERT INTO employes (id_personne, id_contrat, id_departement, poste, date_embauche, nombre_conge, salaire_base) VALUES
+  (13, 1, 2, 'Développeur Fullstack', '2024-03-01', 25, 3800000),   -- Lucas Rivoire, contrat ACTUEL (CDI)
+  (14, 2, 1, 'RH Manager', '2024-04-15', 30, 5500000),              -- Sophie Bernard, contrat ACTUEL (CDD)
+  -- NE PAS créer de lignes supplémentaires pour les anciens contrats de Lucas/Sophie
+  
   (1, NULL, 1, 'Directeur', '2020-01-15', 30, 5500000),
   (2, NULL, 2, 'Comptable', '2021-06-01', 25, 3500000),
   (3, NULL, 3, 'Caissier', '2023-05-01', 20, 1500000),
   (4, NULL, 4, 'Magasinier', '2024-01-15', 15, 1800000), 
   (5, NULL, 4, 'Magasinier', '2024-01-15', 15, 1800000),
-  (6, NULL, 1, 'Directrice RH', '2020-09-01', 30, 5500000),
-  (10, NULL, 2, 'Développeur Fullstack', '2024-03-01', 25, 3800000),
-  (11, NULL, 1, 'Chargé RH', '2023-06-15', 25, 3500000),
-  (12, NULL, 2, 'Comptable', '2022-01-10', 28, 3200000),
-  (15, NULL, 4, 'Vendeur', '2023-03-20', 20, 2000000),
-  (16, NULL, 4, 'Vendeuse', '2023-04-10', 20, 2000000),
-  (8, NULL, 3, 'Magasinier', '2023-02-15', 20, 1900000);
+  (6, NULL, 1, 'Directrice RH', '2020-09-01', 30, 5500000);
 
 -- Admins
 INSERT INTO admins (id_employe, nom, mdp, date_affiliation) VALUES
@@ -130,10 +151,17 @@ INSERT INTO admins (id_employe, nom, mdp, date_affiliation) VALUES
   (3, 'admin_stock', 'stock2024', '2022-03-10');
 
 -- Connexion employes
+-- CORRECTION : Ne créer des connexions que pour les employés qui existent (1-8)
 INSERT INTO connexEmployes (idEmploye, mdp) VALUES
-(1, 'emp123'), (2, 'emp123'), (3, 'emp123'), (4, 'emp123'), (5, 'emp123'),
-(6, 'emp123'), (7, 'emp123'), (8, 'emp123'), (9, 'emp123'), (10, 'emp123'),
-(11, 'emp123'), (12, 'emp123');
+(1, 'emp123'), 
+(2, 'emp123'), 
+(3, 'emp123'), 
+(4, 'emp123'), 
+(5, 'emp123'),
+(6, 'emp123'), 
+(7, 'emp123'), 
+(8, 'emp123');
+-- NE PAS créer de connexions pour les employés 9-12 qui n'existent pas
 
 -- Profils
 INSERT INTO profils (titre, competences, skills, loisirs, id_diplome, id_filiere, experience_pro, certifications, langues, id_type_contrat, est_minimum) VALUES
@@ -191,9 +219,11 @@ INSERT INTO employe_competences (id_employe, id_competence, niveau, id_source, d
 (8, 3, 4, 2, '2024-03-06 10:30:00', TRUE, 1, '2024-03-07 08:30:00');
 
 -- Candidats pour historique_mobilite
-INSERT INTO candidats (id_personne, poste, cv_url) VALUES
-(13, 'Développeur', '/cv/lucas.pdf'),
-(14, 'RH Manager', '/cv/sophie.pdf');
+-- SUPPRESSION : déjà insérés plus haut
+-- INSERT INTO candidats (id_personne, poste, cv_url) VALUES
+-- (13, 'Développeur', '/cv/lucas.pdf'),
+-- (14, 'RH Manager', '/cv/sophie.pdf')
+-- ON CONFLICT DO NOTHING;
 
 -- CORRECTION: historique_mobilite utilise id_candidat, pas id_employe
 INSERT INTO historique_mobilite (id_employe, id_evenement, id_profil, id_departement, date_evenement, support) VALUES
@@ -202,18 +232,19 @@ INSERT INTO historique_mobilite (id_employe, id_evenement, id_profil, id_departe
 (2, 1, NULL, 1, '2023-06-15', 'Embauche RH');
 
 -- Managers
+-- CORRECTION : Adapter les IDs managers selon les employés existants
 INSERT INTO managers (employe_id, date_nomination) VALUES
-(1, '2025-10-27'),
-(2, '2025-10-27'),
-(6, '2025-10-27');
+(1, '2025-10-27'),  -- Lucas (Développeur Fullstack)
+(2, '2025-10-27'),  -- Sophie (RH Manager)
+(8, '2025-10-27');  -- Dernier employé existant
 
--- CORRECTION: Utiliser seulement des IDs d'employés existants (1-12)
+-- CORRECTION: Adapter manager_employes selon les employés réels
 INSERT INTO manager_employes (manager_id, employe_id) VALUES
-(1, 7),  -- Jean manage employé 7
-(1, 8),  -- Jean manage employé 8
-(2, 9),  -- Marie manage employé 9
-(2, 10), -- Marie manage employé 10
-(3, 11); -- Lina manage employé 11
+(1, 3),  -- Manager 1 manage employé 3
+(1, 4),  -- Manager 1 manage employé 4
+(2, 5),  -- Manager 2 manage employé 5
+(2, 6),  -- Manager 2 manage employé 6
+(3, 7);  -- Manager 3 manage employé 7
 
 INSERT INTO manager_admins (id_manager, id_admin) VALUES
 (1, 1), (2, 2), (3, 3);
@@ -713,3 +744,7 @@ INSERT INTO abscence_conge_suivi (id_demande, id_abscence, id_type, id_employe, 
 
 SELECT 'Données insérées avec succès!' AS message;
 --\i C:/xampp/htdocs/Au_fil_des_pages/Au_fil_des_pages/sql/DonneesTenaIzy.sql
+
+-- Message de confirmation
+SELECT 'Insertion des contrats terminée avec succès ! (' || 
+       (SELECT COUNT(*) FROM contrats) || ' contrats au total)' AS message;

@@ -81,6 +81,7 @@ return [
         'dbname'   => 'aufildespages',
         'user'     => 'postgres',
         'password' => 'NouveauMotDePasse'
+
     ],
 	// this is just here for an example
 	// 'google_oauth' => [
