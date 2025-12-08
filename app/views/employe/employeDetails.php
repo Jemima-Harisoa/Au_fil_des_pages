@@ -260,9 +260,60 @@ $enAlerteContrat = !empty($data['id_employe']) && EmployeModel::contratEnAlerte(
                                 </td>
 
                                 <td class="px-4 py-3">
-                                    <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-700">
-                                        <?= htmlspecialchars($mvt['support'] ?? '—') ?>
-                                    </span>
+                                    <?php if (!empty($mvt['support'])): ?>
+                                        <?php
+                                        $supportBrut = $mvt['support'];
+                                        
+                                        // Nettoyage complet : enlever tous les préfixes possibles
+                                        $support = trim($supportBrut, '/');
+                                        
+                                        // Enlever public/Documents/ si présent
+                                        if (strpos($support, 'public/Documents/') === 0) {
+                                            $support = substr($support, 17);
+                                        }
+                                        // Sinon enlever juste Documents/ si présent
+                                        elseif (strpos($support, 'Documents/') === 0) {
+                                            $support = substr($support, 10);
+                                        }
+                                        
+                                        // Chemin web
+                                        $webPath = '/Documents/' . $support;
+                                        
+                                        // Chemin serveur
+                                        $filePath = $_SERVER['DOCUMENT_ROOT'] . '/Documents/' . $support;
+                                        $isFile = is_file($filePath);
+                                        
+                                        // Extension et icône
+                                        $ext = strtolower(pathinfo($support, PATHINFO_EXTENSION));
+                                        $iconClass = match($ext) {
+                                            'pdf' => 'fa-file-pdf text-red-600',
+                                            'doc', 'docx' => 'fa-file-word text-blue-600',
+                                            'xls', 'xlsx' => 'fa-file-excel text-green-600',
+                                            'jpg', 'jpeg', 'png' => 'fa-file-image text-purple-600',
+                                            default => 'fa-file-alt text-gray-600'
+                                        };
+                                        ?>
+                                        
+                                        <?php if ($isFile): ?>
+                                            <a href="<?= htmlspecialchars($webPath) ?>" 
+                                               target="_blank"
+                                               class="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium bg-blue-100 text-blue-700 hover:bg-blue-200 transition group">
+                                                <i class="fas <?= $iconClass ?>"></i>
+                                                <span class="max-w-xs truncate"><?= htmlspecialchars(basename($support)) ?></span>
+                                                <i class="fas fa-external-link-alt opacity-0 group-hover:opacity-100 transition"></i>
+                                            </a>
+                                        <?php else: ?>
+                                            <span class="inline-flex items-center gap-2 px-2.5 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-700">
+                                                <i class="fas fa-exclamation-triangle text-orange-500"></i>
+                                                <span class="max-w-xs truncate" title="<?= htmlspecialchars($support) ?>">
+                                                    <?= htmlspecialchars(basename($support)) ?>
+                                                </span>
+                                                <span class="text-gray-400">(introuvable)</span>
+                                            </span>
+                                        <?php endif; ?>
+                                    <?php else: ?>
+                                        <span class="text-gray-400 text-xs">—</span>
+                                    <?php endif; ?>
                                 </td>
 
                                 <td class="px-4 py-3 font-medium text-indigo-700">
