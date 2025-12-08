@@ -106,36 +106,68 @@ class EmployeModel
         $this->date_embauche = $date;
     }
 
+    public static function getAllPoste()
+    {
+        $db = Flight::db();
+        $sql = "SELECT nom FROM postes";
+        $stmt = $db->query($sql);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    public static function getAllDepartements()
+    {
+        $db = Flight::db();
+        $sql = "SELECT * FROM departements;";
+        $stmt = $db->query($sql);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
     // 
     public static function getJoinedEmployePersonnes()
     {
         $db = Flight::db();
-        $sql = "SELECT *
-            FROM personnes p
-            JOIN employes e ON p.id_personne = e.id_personne;";
+
+        $sql = "
+            SELECT 
+                e.id_employe,
+                e.poste,
+                e.date_embauche,
+                e.id_departement,
+                p.nom,
+                p.prenom,
+                p.contact,
+                p.lien_image,
+                d.nom as nom_departement
+            FROM employes e
+            JOIN personnes p ON e.id_personne = p.id_personne
+            LEFT JOIN departements d ON e.id_departement = d.id_departement
+            ORDER BY p.nom, p.prenom
+        ";
+
         $stmt = $db->query($sql);
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        return $stmt->fetchAll(\PDO::FETCH_ASSOC);
     }
-    
+
     public static function contratEnAlerte(int $id_employe): bool
     {
         $db = Flight::db();
+
+        // Version corrigée : lien direct employe -> contrat
         $sql = "
-        SELECT EXISTS (
-            SELECT 1 
-            FROM contrats c
-            JOIN candidats ca ON c.id_candidat = ca.id_candidat
-            JOIN employes e   ON ca.id_personne = e.id_personne
-            JOIN type_contrats tc ON c.id_type_contrat = tc.id_type_contrat
-            WHERE e.id_employe = :id_employe
-              AND c.date_fin IS NOT NULL
-              AND tc.nom != 'CDI'
-              AND c.date_fin <= CURRENT_DATE + INTERVAL '30 days'
-        )
-    ";
+            SELECT EXISTS (
+                SELECT 1 
+                FROM employes e
+                JOIN contrats c ON e.id_contrat = c.id_contrat
+                JOIN type_contrats tc ON c.id_type_contrat = tc.id_type_contrat
+                WHERE e.id_employe = :id_employe
+                  AND c.date_fin IS NOT NULL
+                  AND tc.nom != 'CDI'
+                  AND c.date_fin <= CURRENT_DATE + INTERVAL '30 days'
+            ) AS alerte
+        ";
+
         $stmt = $db->prepare($sql);
         $stmt->execute([':id_employe' => $id_employe]);
-        return $stmt->fetchColumn(); // Directement true ou false
+        return (bool)$stmt->fetchColumn();
     }
     // 
 
@@ -213,8 +245,8 @@ class EmployeModel
     }
 
     public function verifierManager($prenom, $mdp)
-{
-    $sql = "
+    {
+        $sql = "
         SELECT m.id_manager, m.employe_id, m.mot_de_passe, p.nom, p.prenom
         FROM managers m
         JOIN employes e ON e.id_employe = m.employe_id
@@ -222,24 +254,24 @@ class EmployeModel
         WHERE p.prenom = :prenom
     ";
 
-    $stmt = $this->db->prepare($sql);
-    $stmt->execute(['prenom' => $prenom]);
-    $result = $stmt->fetch(\PDO::FETCH_ASSOC);
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute(['prenom' => $prenom]);
+        $result = $stmt->fetch(\PDO::FETCH_ASSOC);
 
-    if ($result) {
-        // Comparaison du mot de passe simple
-        if ($result['mot_de_passe'] === $mdp) {
-            return [
-                'id_manager' => (int)$result['id_manager'],
-                'employe_id' => (int)$result['employe_id'],
-                'nom' => $result['nom'],
-                'prenom' => $result['prenom']
-            ];
+        if ($result) {
+            // Comparaison du mot de passe simple
+            if ($result['mot_de_passe'] === $mdp) {
+                return [
+                    'id_manager' => (int)$result['id_manager'],
+                    'employe_id' => (int)$result['employe_id'],
+                    'nom' => $result['nom'],
+                    'prenom' => $result['prenom']
+                ];
+            }
         }
-    }
 
-    return false;
-}
+        return false;
+    }
     public function verifierEmploye($prenom, $mdp)
     {
         $sql = "
@@ -273,7 +305,8 @@ class EmployeModel
         return $stmt->fetchAll(\PDO::FETCH_ASSOC);
     }
 
-    // Méthode pour récupérer les employés avec les informations liées
+    // [CHATBOT] Méthode pour récupérer les employés avec les informations liées
+    // Questions supportées: "Liste des employés?", "Qui travaille où?", "Informations employés?"
     public function listWithDetails(): array
     {
         $sql = "SELECT e.id_employe,
@@ -424,7 +457,8 @@ class EmployeModel
     }
 
     // Trouver un employé avec tous les détails
-    public function findByIdWithDetails(int $id): ?array {
+    public function findByIdWithDetails(int $id): ?array
+    {
         $sql = "SELECT e.*, p.nom, p.prenom, p.contact, d.nom as departement_nom 
                 FROM employes e 
                 LEFT JOIN personnes p ON e.id_personne = p.id_personne 
@@ -505,14 +539,15 @@ class EmployeModel
         $stmt->execute(['value' => '%' . $value . '%']);
         return $stmt->fetchAll(\PDO::FETCH_ASSOC);
     }
-        /**
-         * Retourne tous les employés sauf celui dont l'id est fourni.
-         *
-         * @param int $id_employe
-         * @return array
-         */
-        public function getEmployeAutre(int $id_employe): array {
-            $sql = "
+    /**
+     * Retourne tous les employés sauf celui dont l'id est fourni.
+     *
+     * @param int $id_employe
+     * @return array
+     */
+    public function getEmployeAutre(int $id_employe): array
+    {
+        $sql = "
                 SELECT 
                     e.id_employe,
                     e.id_personne,
@@ -534,15 +569,16 @@ class EmployeModel
                 WHERE e.id_employe <> :id
                 ORDER BY p.nom ASC, p.prenom ASC
             ";
-            $stmt = $this->db->prepare($sql);
-            $stmt->execute(['id' => $id_employe]);
-            $rows = $stmt->fetchAll(\PDO::FETCH_ASSOC);
-            return $rows ?: [];
-        }
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute(['id' => $id_employe]);
+        $rows = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+        return $rows ?: [];
+    }
 
 
     // Reçoit la fiche complète d'un employé et renvoie le HTML de la carte
-    public function getFicheEmploye($idEmploye) {
+    public function getFicheEmploye($idEmploye)
+    {
         // Récupération des modèles
         $employeModel = Flight::Employe();
         $personneModel = Flight::Personne();
@@ -550,14 +586,14 @@ class EmployeModel
 
         // Récupération des données de l'employé avec les détails
         $employe = $employeModel->findByIdWithDetails($idEmploye);
-        
+
         if (!$employe) {
             return "<div class='alert alert-danger'>Employé non trouvé</div>";
         }
 
         // Récupération des informations personnelles supplémentaires
         $personne = $personneModel->getBy('id_personne', $employe['id_personne']);
-        
+
         if (!$personne) {
             return "<div class='alert alert-danger'>Informations personnelles non trouvées</div>";
         }
@@ -565,18 +601,18 @@ class EmployeModel
         // Formatage des dates
         $dateEmbauche = date('d/m/Y', strtotime($employe['date_embauche']));
         $dateNaissance = isset($personne['date_naissance']) ? date('d/m/Y', strtotime($personne['date_naissance'])) : 'Non renseignée';
-        
+
         // Extraction email et téléphone du contact
         $contact = $personne['contact'] ?? '';
         $email = filter_var($contact, FILTER_VALIDATE_EMAIL) ? $contact : 'Non renseigné';
         $telephone = preg_match('/[\+]?[0-9]{10,15}/', $contact, $matches) ? $matches[0] : 'Non renseigné';
-        
+
         // Photo de profil
         $photo = $personne['lien_image'] ?? '/images/jean.jpg';
-        
+
         // ID employé formaté
         $idFormate = "EMP-" . date('Y', strtotime($employe['date_embauche'])) . "-" . str_pad($employe['id_employe'], 3, '0', STR_PAD_LEFT);
-        
+
         // Badge département (3 premières lettres)
         $badgeDepartement = substr(strtoupper($employe['departement_nom'] ?? 'DEP'), 0, 3);
 
@@ -709,7 +745,6 @@ class EmployeModel
             }
 
             return (bool)$result;
-
         } catch (PDOException $e) {
             error_log("Erreur lors de la soumission de compétence: " . $e->getMessage());
             return false;
@@ -763,7 +798,6 @@ class EmployeModel
             ]);
 
             return $stmt->fetchAll(PDO::FETCH_ASSOC);
-
         } catch (PDOException $e) {
             error_log("Erreur lors du listing des auto-évaluations: " . $e->getMessage());
             return [];
@@ -793,7 +827,6 @@ class EmployeModel
             $result = $stmt->fetch(PDO::FETCH_ASSOC);
 
             return (int)$result['id_source'];
-
         } catch (PDOException $e) {
             error_log("Erreur lors de la récupération de la source auto-évaluation: " . $e->getMessage());
             return 1;
@@ -869,7 +902,7 @@ class EmployeModel
                         tc.libelle as type_competence,
                         tc.id_type_competence
                     FROM competences c
-                    LEFT JOIN type_competence tc ON c.id_type_competence = tc.id_type_competence
+                    LEFT JOIN type_competence tc ON c.id_type_competence = tc.id_type_contrat
                     WHERE c.id_competence IN (
                         SELECT DISTINCT id_competence 
                         FROM employe_competences 
@@ -879,7 +912,6 @@ class EmployeModel
 
             $stmt = $this->db->query($sql);
             return $stmt->fetchAll(PDO::FETCH_ASSOC);
-
         } catch (PDOException $e) {
             error_log("Erreur lors de la récupération des compétences: " . $e->getMessage());
             return [];
@@ -928,7 +960,6 @@ class EmployeModel
                 'id_competence' => $id_competence,
                 'id_source' => $id_source_auto
             ]);
-
         } catch (PDOException $e) {
             error_log("Erreur lors de la suppression de compétence: " . $e->getMessage());
             return false;

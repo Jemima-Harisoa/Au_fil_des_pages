@@ -80,7 +80,7 @@ return [
         'port'     => '5432', // le port par défaut de PostgreSQL
         'dbname'   => 'aufildespages',
         'user'     => 'postgres',
-        'password' => 'NouveauMotDePasse',
+        'password' => 'manoa'
     ],
 	// this is just here for an example
 	// 'google_oauth' => [

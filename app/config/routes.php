@@ -266,7 +266,7 @@ $router->post('/loginU', [ $ConnexionController, 'VerificationConnectionU' ]); /
 
 $router->get('/deconnexionU', [ $ConnexionController, 'deconnexionU' ]);
 
-$router->get('/admin', [ $ConnexionController, 'AppelLoginA' ]);
+$router->get('/admin', [ $ConnexionController, 'AppalLoginA' ]);
 $router->post('/inscriptionA', [ $ConnexionController, 'InscrireA' ]);
 $router->post('/loginA', [ $ConnexionController, 'VerificationConnectionA' ]);
 $router->get('/deconnexionA', [ $ConnexionController, 'deconnexionA' ]);
@@ -318,18 +318,28 @@ $router->get('/messagerieA/@id_candidat/@id_annonce', [ $MessagerieController, '
 
 $router->get('/api/refresh-notifications', [ $MessagerieController, 'refreshNotifications' ]);
 
-// Routes existantes (à garder)
+// --- Routes supplémentaires pour messagerie employé (fusion des deux fichiers) ---
+// AJAX / API pour conversations entre employés
+Flight::route('GET /messagerie/conversationsE/@id_employe', [\app\controllers\MessagerieController::class, 'getConversationsE']);
+Flight::route('GET /messagerie/searchEmployes/@id_employe', [\app\controllers\MessagerieController::class, 'searchEmployes']);
+Flight::route('GET /messagerie/convEmploye/@id_employe/@partenaire_id', [\app\controllers\MessagerieController::class, 'getConversationEmploye']);
+
+// Interface et envoi pour messagerie entre employés
+Flight::route('GET /messagerieE/@id_employe/@partenaire_id', [\app\controllers\MessagerieController::class, 'showMessagerieE']);
+Flight::route('POST /messagerieE/send', [\app\controllers\MessagerieController::class, 'sendMessageE']);
+
+// routes existantes pour candidats/admin (conservées)
 Flight::route('GET /messagerieU/@id_candidat/@id_annonce', [MessagerieController::class, 'showMessagerieU']);
 Flight::route('POST /messagerieU/send', [MessagerieController::class, 'sendMessageU']);
 Flight::route('GET /messagerieA/@id_candidat/@id_annonce', [MessagerieController::class, 'showMessagerieA']);
 Flight::route('POST /messagerieA/send', [MessagerieController::class, 'sendMessageA']);
 
-// Nouvelles routes pour l'actualisation temps réel
+// Nouvelles routes pour l'actualisation temps réel (conservées)
 Flight::route('GET /messagerie/getCount', [MessagerieController::class, 'getNotificationCount']);
 Flight::route('GET /messagerie/refresh', [MessagerieController::class, 'refreshNotifications']);
 Flight::route('POST /messagerie/markAsRead', [MessagerieController::class, 'markAsReadAndGetCount']);
 Flight::route('GET /messagerie/markAsRead/@id_candidat/@id_annonce', [MessagerieController::class, 'markConversationAsRead']);
-// Route pour SSE
+// Route SSE (déjà présente, double déclaration tolérée mais gardez une seule si possible)
 Flight::route('GET /messagerie/sse', [MessagerieController::class, 'sseNotifications']);
 Flight::route('GET /messagerie/refreshSession', [MessagerieController::class, 'refreshConversation']);
 
@@ -506,3 +516,20 @@ $router->group('/employees', function($router) use ($EmployeeCompetence_Controll
     // Suppression d'une compétence
     $router->delete('/@id/competences/@id_competence', [$EmployeeCompetence_Controller, 'deleteCompetence']);
 });
+// Route Chatbot -> vue messagerieBot (crée la vue ci‑dessous)
+Flight::route('GET /messagerieBot', function(){
+    // Vérifier la session admin/employé (ajout de plus de vérifications)
+    $hasAdminSession = isset($_SESSION['infoAdmin']) && !empty($_SESSION['infoAdmin']);
+    $hasEmployeSession = isset($_SESSION['employe']) && !empty($_SESSION['employe']);
+    
+    if (!$hasAdminSession && !$hasEmployeSession) {
+        Flight::redirect('/admin'); // ou '/employe' selon votre logique
+        return;
+    }
+    
+    Flight::render('messagerieBot', ['messages' => []]);
+});
+
+// POST route for chatbot: delegate to controller
+Flight::route('POST /messagerieBot/send', [\app\controllers\ChatBotController::class, 'send']);
+?>

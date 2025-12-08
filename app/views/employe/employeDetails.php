@@ -37,9 +37,136 @@ $enAlerteContrat = !empty($data['id_employe']) && EmployeModel::contratEnAlerte(
         body { font-family: 'Inter', sans-serif; }
         .pulse-alert { animation: pulse 2s infinite; }
         @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.7; } }
+        
+        /* Modale pour l'arborescence */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.7);
+        }
+        .modal.active { display: flex; align-items: center; justify-content: center; }
+        .modal-content {
+            background-color: white;
+            border-radius: 1rem;
+            max-width: 800px;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
     </style>
+    <script>
+        function copierChemin(chemin) {
+            navigator.clipboard.writeText(chemin).then(() => {
+                const toast = document.createElement('div');
+                toast.className = 'fixed bottom-4 right-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg z-50 flex items-center gap-3';
+                toast.innerHTML = '<i class="fas fa-check-circle"></i><span>Chemin copié ! Collez-le dans votre explorateur de fichiers.</span>';
+                document.body.appendChild(toast);
+                
+                setTimeout(() => {
+                    toast.remove();
+                }, 4000);
+            });
+        }
+
+        // Afficher l'arborescence d'un dossier dans une modale
+        function afficherArborescenceDossier(chemin, nomDossier) {
+            fetch(`?action=arborescence&chemin=${encodeURIComponent(chemin)}`)
+                .then(r => r.json())
+                .then(data => {
+                    if (data.success) {
+                        ouvrirModalArborescence(data.arborescence, nomDossier);
+                    } else {
+                        alert('Impossible de charger l\'arborescence');
+                    }
+                })
+                .catch(err => {
+                    console.error(err);
+                    alert('Erreur lors du chargement de l\'arborescence');
+                });
+        }
+
+        function ouvrirModalArborescence(arborescence, nomDossier) {
+            const modal = document.getElementById('modalArborescence');
+            const titre = document.getElementById('modalTitre');
+            const contenu = document.getElementById('modalContenu');
+            
+            titre.textContent = nomDossier;
+            contenu.innerHTML = genererHTML(arborescence);
+            modal.classList.add('active');
+        }
+
+        function fermerModal() {
+            document.getElementById('modalArborescence').classList.remove('active');
+        }
+
+        function genererHTML(items, niveau = 0) {
+            let html = '<ul class="space-y-1">';
+            items.forEach(item => {
+                const marginLeft = niveau * 4;
+                if (item.type === 'dir') {
+                    html += `<li style="margin-left: ${marginLeft * 4}px;">
+                        <div class="flex items-center gap-2 py-1 px-2 hover:bg-blue-50 rounded">
+                            <i class="fas fa-folder text-yellow-500"></i>
+                            <span class="font-medium">${item.name}</span>
+                            ${item.children ? `<span class="text-xs text-gray-500">(${item.children.length})</span>` : ''}
+                        </div>
+                        ${item.children ? genererHTML(item.children, niveau + 1) : ''}
+                    </li>`;
+                } else {
+                    const icons = {
+                        'pdf': 'fa-file-pdf text-red-600',
+                        'doc': 'fa-file-word text-blue-600',
+                        'docx': 'fa-file-word text-blue-600',
+                        'xls': 'fa-file-excel text-green-600',
+                        'xlsx': 'fa-file-excel text-green-600',
+                        'jpg': 'fa-file-image text-purple-600',
+                        'jpeg': 'fa-file-image text-purple-600',
+                        'png': 'fa-file-image text-purple-600',
+                    };
+                    const iconClass = icons[item.ext] || 'fa-file text-gray-600';
+                    const isPDF = item.ext === 'pdf';
+                    
+                    html += `<li style="margin-left: ${marginLeft * 4}px;">
+                        <div class="flex items-center gap-2 py-1 px-2 hover:bg-blue-50 rounded group">
+                            <i class="fas ${iconClass}"></i>
+                            <span class="flex-1">${item.name}</span>
+                            <span class="text-xs text-gray-500">${(item.size / 1024).toFixed(1)} Ko</span>
+                            ${isPDF ? `
+                                <button onclick="window.open('${item.webPath}', '_blank')" 
+                                        class="ml-2 px-2 py-1 bg-red-500 hover:bg-red-600 text-white text-xs rounded transition opacity-0 group-hover:opacity-100"
+                                        title="Ouvrir le PDF">
+                                    <i class="fas fa-file-pdf"></i>
+                                </button>
+                            ` : ''}
+                        </div>
+                    </li>`;
+                }
+            });
+            html += '</ul>';
+            return html;
+        }
+    </script>
 </head>
 <body class="bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 min-h-screen py-10 px-4">
+
+<!-- Modale pour afficher l'arborescence -->
+<div id="modalArborescence" class="modal" onclick="if(event.target === this) fermerModal()">
+    <div class="modal-content p-8">
+        <div class="flex items-center justify-between mb-6">
+            <h3 id="modalTitre" class="text-2xl font-bold text-gray-800"></h3>
+            <button onclick="fermerModal()" class="text-gray-500 hover:text-gray-700">
+                <i class="fas fa-times text-2xl"></i>
+            </button>
+        </div>
+        <div id="modalContenu" class="text-sm"></div>
+    </div>
+</div>
+
 <div class="max-w-7xl mx-auto">
 
     <!-- ALERTE FIN DE CONTRAT - TRÈS VISIBLE -->
@@ -63,15 +190,17 @@ $enAlerteContrat = !empty($data['id_employe']) && EmployeModel::contratEnAlerte(
                     </div>
                 </div>
                 <div class="flex flex-col gap-3">
-                    <a href="renouveler_contrat.php?id=<?= $data['id_employe'] ?>"
-                       class="bg-red-600 hover:bg-red-700 text-white font-bold text-lg px-8 py-4 rounded-xl shadow-lg transform hover:scale-105 transition flex items-center gap-3 pulse-alert">
+                    <button disabled
+                       class="bg-gray-400 text-white font-bold text-lg px-8 py-4 rounded-xl shadow-lg cursor-not-allowed opacity-50 flex items-center gap-3"
+                       title="Fonctionnalité désactivée">
                         <i class="fas fa-file-contract text-2xl"></i>
                         Renouveler le contrat maintenant
-                    </a>
-                    <a href="modifier_employe.php?id=<?= $data['id_employe'] ?>#contrat"
-                       class="text-red-700 underline hover:text-red-900 text-sm">
+                    </button>
+                    <button disabled
+                       class="text-gray-400 text-sm cursor-not-allowed"
+                       title="Fonctionnalité désactivée">
                         → Modifier les dates du contrat
-                    </a>
+                    </button>
                 </div>
             </div>
         </div>
@@ -167,17 +296,19 @@ $enAlerteContrat = !empty($data['id_employe']) && EmployeModel::contratEnAlerte(
 
                 <div class="flex justify-end mt-8 gap-4">
                     <?php if ($enAlerteContrat): ?>
-                        <a href="renouveler_contrat.php?id=<?= $data['id_employe'] ?>"
-                           class="bg-red-600 hover:bg-red-700 text-white font-bold px-8 py-4 rounded-xl shadow-lg transform hover:scale-105 transition flex items-center gap-3 pulse-alert">
+                        <button disabled
+                           class="bg-gray-400 text-white font-bold px-8 py-4 rounded-xl shadow-lg cursor-not-allowed opacity-50 flex items-center gap-3"
+                           title="Fonctionnalité désactivée">
                             <i class="fas fa-file-contract"></i>
                             Renouveler le contrat
-                        </a>
+                        </button>
                     <?php endif; ?>
-                    <a href="modifier_employe.php?id=<?= $data['id_employe'] ?? '' ?>"
-                       class="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transform hover:scale-105 transition">
+                    <button disabled
+                       class="inline-flex items-center gap-2 px-6 py-3 bg-gray-400 text-white font-semibold rounded-xl shadow-lg cursor-not-allowed opacity-50"
+                       title="Fonctionnalité désactivée">
                         <i class="fas fa-edit"></i>
                         Modifier la fiche
-                    </a>
+                    </button>
                 </div>
             </div>
         </div>
@@ -260,9 +391,69 @@ $enAlerteContrat = !empty($data['id_employe']) && EmployeModel::contratEnAlerte(
                                 </td>
 
                                 <td class="px-4 py-3">
-                                    <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-700">
-                                        <?= htmlspecialchars($mvt['support'] ?? '—') ?>
-                                    </span>
+                                    <?php if (!empty($mvt['support'])): ?>
+                                        <?php
+                                        $supportBrut = $mvt['support'];
+                                        
+                                        // Nettoyage : enlever /public/ ou public/ du début
+                                        $support = trim($supportBrut, '/');
+                                        if (strpos($support, 'public/') === 0) {
+                                            $support = substr($support, 7);
+                                        }
+                                        
+                                        // Chemin serveur complet
+                                        $projectRoot = dirname(__DIR__, 3);
+                                        $fullPath = $projectRoot . '/public/' . $support;
+                                        
+                                        // Vérifier si c'est un dossier ou un fichier
+                                        $isDirectory = is_dir($fullPath);
+                                        $isFile = is_file($fullPath);
+                                        
+                                        if ($isDirectory) {
+                                            // C'EST UN DOSSIER - Bouton pour afficher l'arborescence
+                                            ?>
+                                            <button onclick="afficherArborescenceDossier('<?= htmlspecialchars($fullPath) ?>', '<?= htmlspecialchars(basename($support)) ?>')"
+                                                    class="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium bg-yellow-100 text-yellow-700 hover:bg-yellow-200 transition">
+                                                <i class="fas fa-folder-open text-yellow-600"></i>
+                                                <span><?= htmlspecialchars(basename($support)) ?></span>
+                                                <i class="fas fa-sitemap"></i>
+                                            </button>
+                                            <?php
+                                        } elseif ($isFile) {
+                                            // C'EST UN FICHIER
+                                            $webPath = '/' . $support;
+                                            $ext = strtolower(pathinfo($support, PATHINFO_EXTENSION));
+                                            $iconClass = match($ext) {
+                                                'pdf' => 'fa-file-pdf text-red-600',
+                                                'doc', 'docx' => 'fa-file-word text-blue-600',
+                                                'xls', 'xlsx' => 'fa-file-excel text-green-600',
+                                                'jpg', 'jpeg', 'png' => 'fa-file-image text-purple-600',
+                                                default => 'fa-file-alt text-gray-600'
+                                            };
+                                            ?>
+                                            <a href="<?= htmlspecialchars($webPath) ?>" 
+                                               target="_blank"
+                                               class="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium bg-blue-100 text-blue-700 hover:bg-blue-200 transition group">
+                                                <i class="fas <?= $iconClass ?>"></i>
+                                                <span class="max-w-xs truncate"><?= htmlspecialchars(basename($support)) ?></span>
+                                                <i class="fas fa-external-link-alt opacity-0 group-hover:opacity-100 transition"></i>
+                                            </a>
+                                            <?php
+                                        } else {
+                                            ?>
+                                            <span class="inline-flex items-center gap-2 px-2.5 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-700">
+                                                <i class="fas fa-exclamation-triangle text-orange-500"></i>
+                                                <span class="max-w-xs truncate" title="<?= htmlspecialchars($support) ?>">
+                                                    <?= htmlspecialchars(basename($support)) ?>
+                                                </span>
+                                                <span class="text-gray-400">(introuvable)</span>
+                                            </span>
+                                            <?php
+                                        }
+                                        ?>
+                                    <?php else: ?>
+                                        <span class="text-gray-400 text-xs">—</span>
+                                    <?php endif; ?>
                                 </td>
 
                                 <td class="px-4 py-3 font-medium text-indigo-700">
